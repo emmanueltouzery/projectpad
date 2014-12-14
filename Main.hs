@@ -1,8 +1,6 @@
 {-# LANGUAGE OverloadedStrings, TemplateHaskell #-}
 module Main where
 
-import Database.SQLite.Simple
-import qualified Database.SQLite3 as Direct
 import Control.Error
 import Control.Applicative
 import Control.Exception
@@ -14,6 +12,9 @@ import Data.FileEmbed
 import Data.List
 import Data.Map (Map)
 import qualified Data.Map as Map
+import Database.Persist.Sqlite
+import Database.Esqueleto
+import Control.Monad.Trans.Reader
 
 -- the DB init should be done in a try block
 -- (if i don't have the rights and so on)
@@ -37,33 +38,43 @@ parseMigrationName name = fromMaybe (error $ "Invalid migration filename: " ++ n
 		
 
 main :: IO ()
-main = do
-	conn <- open "projectpad.db"
-	dbVersion <- fromMaybe 0 <$> getDbVersion conn
+main = runSqlite "projectpad.db" $ do
+	dbVersion <- fromMaybe 0 <$> getDbVersion
 	-- if migrations fail, offer to delete the file
-	upgradeFrom conn dbVersion
-	putStrLn "hello world"
-	close conn
+-- 	upgradeFrom conn dbVersion
+-- 	getProjects conn >>= print
+	liftIO $ putStrLn "hello world"
 
-getDbVersion :: Connection -> IO (Maybe Int)
-getDbVersion conn = runMaybeT $ do
-	-- if the table doesn't exist, I'll get an SQLError.
-	let queryStr = "select * from db_version order by version_code desc limit 1"
-	rows <- hushT (EitherT $ (trySql (query_ conn queryStr)))
-	hoistMaybe $ versionCode <$> headMay rows
+getDbVersion :: SqlPersistM (Maybe Int)
+getDbVersion = do
+	hasTable <- countNotZero . unSingle . head <$>
+		(rawSql "select count(*) from sqlite_master where type='table' and name='db_version'" [])
+	if hasTable
+		then readDbVersion
+		else return Nothing
 	where
-		trySql :: IO a -> IO (Either Direct.SQLError a)
-		trySql = try
+		countNotZero :: Int -> Bool
+		countNotZero = (>0)
 
-upgradeFrom :: Connection -> Int -> IO ()
-upgradeFrom conn curVersion = do
-	let maxVersion = fromMaybe (error "No migrations") (lastZ $ Map.keys migrations)
-	mapM_ (applyUpgrade conn) [(curVersion+1)..maxVersion]
+readDbVersion :: SqlPersistM (Maybe Int)
+readDbVersion = do
+	dbVersions <- select $ from $ \v -> do
+		orderBy [desc (v ^. DbVersionCode)]
+		limit 1
+		return v
+	case dbVersions of
+		[] -> return Nothing
+		[v] -> return $ Just (dbVersionCode (entityVal v))
 
-applyUpgrade :: Connection -> Int -> IO ()
-applyUpgrade conn version = do
-	putStrLn ("applying migration " ++ show version)
-	let migrationText = fromMaybe (error $ "Can't find migration " ++ show version)
-		(Map.lookup version migrations)
-	print migrationText
-	Direct.exec (connectionHandle conn) migrationText
+-- upgradeFrom :: Connection -> Int -> IO ()
+-- upgradeFrom conn curVersion = do
+-- 	let maxVersion = fromMaybe (error "No migrations") (lastZ $ Map.keys migrations)
+-- 	mapM_ (applyUpgrade conn) [(curVersion+1)..maxVersion]
+-- 
+-- applyUpgrade :: Connection -> Int -> IO ()
+-- applyUpgrade conn version = do
+-- 	putStrLn ("applying migration " ++ show version)
+-- 	let migrationText = fromMaybe (error $ "Can't find migration " ++ show version)
+-- 		(Map.lookup version migrations)
+-- 	print migrationText
+-- 	Direct.exec (connectionHandle conn) migrationText

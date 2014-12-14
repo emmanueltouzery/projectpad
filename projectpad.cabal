@@ -20,8 +20,12 @@ executable projectpad
   -- other-modules:       
   -- other-extensions:    
   build-depends:       base >=4.7 && <4.8,
-                       sqlite-simple,
-                       direct-sqlite,
+                       -- TODO move to sqlcipher
+                       persistent-sqlite,
+                       persistent,
+                       persistent-template,
+                       esqueleto,
+                       transformers,
                        hsqml,
                        time,
                        errors,
