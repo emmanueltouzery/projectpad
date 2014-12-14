@@ -41,20 +41,17 @@ main :: IO ()
 main = runSqlite "projectpad.db" $ do
 	dbVersion <- fromMaybe 0 <$> getDbVersion
 	-- if migrations fail, offer to delete the file
--- 	upgradeFrom conn dbVersion
+	upgradeFrom dbVersion
 -- 	getProjects conn >>= print
 	liftIO $ putStrLn "hello world"
 
 getDbVersion :: SqlPersistM (Maybe Int)
 getDbVersion = do
-	hasTable <- countNotZero . unSingle . head <$>
-		(rawSql "select count(*) from sqlite_master where type='table' and name='db_version'" [])
+	hasTable <- (>0) <$>
+		(rawExecuteCount "select count(*) from sqlite_master where type='table' and name='db_version'" [])
 	if hasTable
 		then readDbVersion
 		else return Nothing
-	where
-		countNotZero :: Int -> Bool
-		countNotZero = (>0)
 
 readDbVersion :: SqlPersistM (Maybe Int)
 readDbVersion = do
@@ -66,15 +63,14 @@ readDbVersion = do
 		[] -> return Nothing
 		[v] -> return $ Just (dbVersionCode (entityVal v))
 
--- upgradeFrom :: Connection -> Int -> IO ()
--- upgradeFrom conn curVersion = do
--- 	let maxVersion = fromMaybe (error "No migrations") (lastZ $ Map.keys migrations)
--- 	mapM_ (applyUpgrade conn) [(curVersion+1)..maxVersion]
+upgradeFrom :: Int -> SqlPersistM ()
+upgradeFrom curVersion = do
+	let maxVersion = fromMaybe (error "No migrations") (lastZ $ Map.keys migrations)
+	mapM_ applyUpgrade [(curVersion+1)..maxVersion]
 -- 
--- applyUpgrade :: Connection -> Int -> IO ()
--- applyUpgrade conn version = do
--- 	putStrLn ("applying migration " ++ show version)
--- 	let migrationText = fromMaybe (error $ "Can't find migration " ++ show version)
--- 		(Map.lookup version migrations)
--- 	print migrationText
--- 	Direct.exec (connectionHandle conn) migrationText
+applyUpgrade :: Int -> SqlPersistM ()
+applyUpgrade version = do
+	liftIO $ putStrLn ("applying migration " ++ show version)
+	let migrationText = fromMaybe (error $ "Can't find migration " ++ show version)
+		(Map.lookup version migrations)
+	rawExecute migrationText []
