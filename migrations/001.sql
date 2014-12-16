@@ -2,14 +2,14 @@ CREATE TABLE command_to_run (id INTEGER PRIMARY KEY,
 	desc TEXT NOT NULL,
 	path TEXT NOT NULL,
 	text TEXT NOT NULL,
-	server_id INTEGER NULL, -- if null it's the developer's machine
+	server_id INTEGER NULL,
 	FOREIGN KEY(server_id) REFERENCES server(id));
 
 CREATE TABLE point_of_interest (id INTEGER PRIMARY KEY,
 	description TEXT NOT NULL,
 	location TEXT NOT NULL,
 	interest_type INTEGER NOT NULL,
-	server_id INTEGER NULL, -- if null it's the developer's machine
+	server_id INTEGER NULL,
 	FOREIGN KEY(server_id) REFERENCES server(id));
 
 CREATE TABLE server (id INTEGER PRIMARY KEY,

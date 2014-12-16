@@ -8,6 +8,7 @@ import Control.Monad.Trans
 import qualified Data.ByteString as BS
 import qualified Data.Text.Encoding as TE
 import Data.Text (Text)
+import qualified Data.Text as T
 import Data.FileEmbed
 import Data.List
 import Data.Map (Map)
@@ -15,6 +16,7 @@ import qualified Data.Map as Map
 import Database.Persist.Sqlite
 import Database.Esqueleto
 import Control.Monad.Trans.Reader
+import Data.Int
 
 -- the DB init should be done in a try block
 -- (if i don't have the rights and so on)
@@ -47,11 +49,14 @@ main = runSqlite "projectpad.db" $ do
 
 getDbVersion :: SqlPersistM (Maybe Int)
 getDbVersion = do
-	hasTable <- (>0) <$>
-		(rawExecuteCount "select count(*) from sqlite_master where type='table' and name='db_version'" [])
+	hasTable <- (>0) <$> queryCount
+		"select count(*) from sqlite_master where type='table' and name='db_version'"
 	if hasTable
 		then readDbVersion
 		else return Nothing
+
+queryCount :: Text -> SqlPersistM Int64
+queryCount query = (unSingle . head) <$> rawSql query []
 
 readDbVersion :: SqlPersistM (Maybe Int)
 readDbVersion = do
@@ -59,9 +64,7 @@ readDbVersion = do
 		orderBy [desc (v ^. DbVersionCode)]
 		limit 1
 		return v
-	case dbVersions of
-		[] -> return Nothing
-		[v] -> return $ Just (dbVersionCode (entityVal v))
+	return $ (dbVersionCode . entityVal) <$> listToMaybe dbVersions
 
 upgradeFrom :: Int -> SqlPersistM ()
 upgradeFrom curVersion = do
@@ -73,4 +76,5 @@ applyUpgrade version = do
 	liftIO $ putStrLn ("applying migration " ++ show version)
 	let migrationText = fromMaybe (error $ "Can't find migration " ++ show version)
 		(Map.lookup version migrations)
-	rawExecute migrationText []
+	let commands = filter (not . T.null) (T.strip <$> T.splitOn ";" migrationText)
+	mapM_ (flip rawExecute []) commands
