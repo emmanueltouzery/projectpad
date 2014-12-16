@@ -16,6 +16,7 @@ import qualified Data.Map as Map
 import Database.Persist.Sqlite
 import Database.Esqueleto
 import Control.Monad.Trans.Reader
+import qualified Database.Persist as P
 import Data.Int
 
 -- the DB init should be done in a try block
@@ -44,8 +45,11 @@ main = runSqlite "projectpad.db" $ do
 	dbVersion <- fromMaybe 0 <$> getDbVersion
 	-- if migrations fail, offer to delete the file
 	upgradeFrom dbVersion
--- 	getProjects conn >>= print
-	liftIO $ putStrLn "hello world"
+	--P.insert (Project "LTA" "")
+	projects <- select $ from $ \p -> do
+		orderBy [asc (p ^. ProjectName)]
+		return p
+	liftIO $ print $ entityVal <$> projects
 
 getDbVersion :: SqlPersistM (Maybe Int)
 getDbVersion = do
