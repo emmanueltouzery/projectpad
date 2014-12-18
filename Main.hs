@@ -14,6 +14,7 @@ import Database.Persist.Sqlite
 import Database.Esqueleto
 import Control.Monad.Trans
 import Control.Applicative
+import Graphics.QML
 
 import Model
 import Schema
@@ -26,3 +27,15 @@ main = runSqlite "projectpad.db" $ do
 		orderBy [asc (p ^. ProjectName)]
 		return p
 	liftIO $ print $ entityVal <$> projects
+
+	liftIO displayApp
+
+displayApp :: IO ()
+displayApp = do
+	ctx <- newObjectDC $ Project "LTA" ""
+
+	runEngineLoop defaultEngineConfig
+		{
+			initialDocument = fileDocument "projectpad.qml",
+			contextObject = Just $ anyObjRef ctx
+		}

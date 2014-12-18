@@ -1,11 +1,14 @@
 {-# LANGUAGE GADTs, GeneralizedNewtypeDeriving, MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings, TemplateHaskell, QuasiQuotes, TypeFamilies #-}
+{-# LANGUAGE DeriveDataTypeable #-}
 module Model where
 
 import Data.Time.Clock
-import Control.Applicative
 import Data.ByteString
 import Database.Persist.TH
+import Data.Typeable
+import Data.Text
+import Graphics.QML
 
 import ModelBase
 
@@ -31,14 +34,18 @@ Server
 	projectId ProjectId
 	deriving Show
 Project
-	name String
+	name Text
 	icon ByteString
-	deriving Show
+	deriving Show Typeable
 DbVersion
 	code Int
 	upgradeDate UTCTime
 	deriving Show
 |]
 
--- getProjects :: Connection -> IO [Project]
--- getProjects conn = query_ conn "select * from project"
+-- TODO generate this with TH?
+instance DefaultClass Project where
+	classMembers =
+		[
+			defPropertyRO "name" (return . projectName . fromObjRef)
+		]

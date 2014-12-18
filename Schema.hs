@@ -4,9 +4,7 @@ module Schema (upgradeSchema) where
 
 import Control.Error
 import Control.Applicative
-import Control.Exception
 import Control.Monad.Trans
-import qualified Data.ByteString as BS
 import qualified Data.Text.Encoding as TE
 import Data.Text (Text)
 import qualified Data.Text as T
@@ -16,8 +14,6 @@ import Data.Map (Map)
 import qualified Data.Map as Map
 import Database.Persist.Sqlite
 import Database.Esqueleto
-import Control.Monad.Trans.Reader
-import qualified Database.Persist as P
 import Data.Int
 
 import Model
@@ -60,7 +56,7 @@ upgradeFrom :: Int -> SqlPersistM ()
 upgradeFrom curVersion = do
 	let maxVersion = fromMaybe (error "No migrations") (lastZ $ Map.keys migrations)
 	mapM_ applyUpgrade [(curVersion+1)..maxVersion]
--- 
+
 applyUpgrade :: Int -> SqlPersistM ()
 applyUpgrade version = do
 	liftIO $ putStrLn ("applying migration " ++ show version)
