@@ -1,5 +1,7 @@
 import QtQuick 2.0
 import QtQuick.Window 2.0
+import QtQuick.Controls 1.2
+import QtQuick.Layouts 1.1
 
 Window {
 	width: 800; height: 600;
@@ -37,7 +39,11 @@ Window {
 			}
 			MouseArea {
 				anchors.fill: parent
-				onClicked: expandAnimation.start()
+				onClicked: {
+					expandAnimation.start()
+					projectNameEntry.selectAll()
+					projectNameEntry.forceActiveFocus()
+				}
 			}
 		}
 
@@ -77,18 +83,37 @@ Window {
 
 	Rectangle {
 		width: 180; height: 180
-		x: -180
+		x: -400
 		id: addRect
 		color: "light grey"
 
-		Rectangle {
-			color: "white"
-			width: 200
-			height: 40
-			TextInput {
-				font.pointSize: 22
-				text: "Project name"
-				anchors.fill: parent
+		GridLayout {
+			anchors.fill: parent
+			columns: 2
+
+			Text {
+				text: "Project name:"
+			}
+
+			Rectangle {
+				color: "white"
+				width: 200
+				height: 40
+				TextInput {
+					font.pointSize: 22
+					id: projectNameEntry
+					text: "Project name"
+					anchors.fill: parent
+				}
+			}
+
+			Button {
+				text: "OK"
+			}
+
+			Button {
+				text: "Cancel"
+				onClicked: { addRect.width = 180; addRect.x = -400 }
 			}
 		}
 	}
