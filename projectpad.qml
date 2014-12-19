@@ -109,6 +109,7 @@ Window {
 
 			Button {
 				text: "OK"
+				onClicked: addProject(projectNameEntry.text)
 			}
 
 			Button {

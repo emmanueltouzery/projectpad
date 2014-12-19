@@ -17,6 +17,7 @@ import Control.Applicative
 import Graphics.QML
 import Control.Concurrent.MVar
 import Data.Typeable
+import Data.Text (Text)
 
 import Model
 import Schema
@@ -45,8 +46,12 @@ instance DefaultClass ProjectScreenState where
 	classMembers = 
 		[
 			defPropertySigRO "projects" (Proxy :: Proxy ListChanged)
-				$ readMVar . projects . fromObjRef
+				$ readMVar . projects . fromObjRef,
+			defMethod "addProject" addProject
 		]
+
+addProject :: ObjRef ProjectScreenState -> Text -> IO ()
+addProject state text = print text
 
 displayApp :: [ObjRef (Entity Project)] -> IO ()
 displayApp prj = do
