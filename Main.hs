@@ -24,13 +24,11 @@ import Schema
 main :: IO ()
 main = runSqlite "projectpad.db" $ do
 	upgradeSchema
-	--P.insert (Project "LTA" "")
-	p <- select $ from $ \p -> do
+
+	prj <- select $ from $ \p -> do
 		orderBy [asc (p ^. ProjectName)]
 		return p
-	liftIO $ print $ entityVal <$> p
-
-	liftIO displayApp
+	liftIO $ mapM newObjectDC prj >>= displayApp
 
 -- Signals
 data ListChanged deriving Typeable
@@ -40,7 +38,7 @@ instance SignalKeyClass ListChanged where
 
 data ProjectScreenState = ProjectScreenState
 	{
-		projects :: MVar [ObjRef Project]
+		projects :: MVar [ObjRef (Entity Project)]
 	} deriving Typeable
 
 instance DefaultClass ProjectScreenState where
@@ -50,12 +48,9 @@ instance DefaultClass ProjectScreenState where
 				$ readMVar . projects . fromObjRef
 		]
 
-displayApp :: IO ()
-displayApp = do
-	c1 <- newObjectDC $ Project "C1" ""
-	c2 <- newObjectDC $ Project "C2" ""
-	c3 <- newObjectDC $ Project "C3" ""
-	projectScreenState <- ProjectScreenState <$> newMVar [c1, c2, c3]
+displayApp :: [ObjRef (Entity Project)] -> IO ()
+displayApp prj = do
+	projectScreenState <- ProjectScreenState <$> newMVar prj
 	ctx <- newObjectDC projectScreenState
 
 	runEngineLoop defaultEngineConfig

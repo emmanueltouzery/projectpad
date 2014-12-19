@@ -1,6 +1,7 @@
 {-# LANGUAGE GADTs, GeneralizedNewtypeDeriving, MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings, TemplateHaskell, QuasiQuotes, TypeFamilies #-}
-{-# LANGUAGE DeriveDataTypeable #-}
+{-# LANGUAGE DeriveDataTypeable, StandaloneDeriving, FlexibleContexts, UndecidableInstances #-}
+{-# LANGUAGE FlexibleInstances #-}
 module Model where
 
 import Data.Time.Clock
@@ -9,6 +10,8 @@ import Database.Persist.TH
 import Data.Typeable
 import Data.Text
 import Graphics.QML
+import Database.Persist.Sql
+import Data.Int
 
 import ModelBase
 
@@ -43,9 +46,16 @@ DbVersion
 	deriving Show
 |]
 
+int64to32 :: Int64 -> Int32
+int64to32 = fromIntegral
+
 -- TODO generate this with TH?
-instance DefaultClass Project where
+instance DefaultClass (Entity Project) where
 	classMembers =
 		[
-			defPropertyRO "name" (return . projectName . fromObjRef)
+			defPropertyRO "id" (return . int64to32 . fromSqlKey . entityKey . fromObjRef),
+			defPropertyRO "name" (return . projectName . entityVal . fromObjRef)
 		]
+
+deriving instance Typeable Entity
+deriving instance Typeable Key
