@@ -50,6 +50,7 @@ int64to32 :: Int64 -> Int32
 int64to32 = fromIntegral
 
 -- TODO generate this with TH?
+-- or with some fmap over a list of pairs field name / accessor.
 instance DefaultClass (Entity Project) where
 	classMembers =
 		[

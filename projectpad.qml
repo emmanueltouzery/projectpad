@@ -21,9 +21,13 @@ Window {
 			id: itemsrepeater
 			model: projects
 
-			Text {
-				width: 20; height: 20
-				text: modelData.name
+			Rectangle {
+				width: 180; height: 180
+				color: "light blue"
+
+				Text {
+					text: modelData.name
+				}
 			}
 		}
 	}
