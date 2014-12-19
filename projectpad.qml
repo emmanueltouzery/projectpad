@@ -19,11 +19,11 @@ Window {
 
 		Repeater {
 			id: itemsrepeater
-			model: itemsrepeater
+			model: projects
 
 			Text {
 				width: 20; height: 20
-				text: "bla"
+				text: modelData.name
 			}
 		}
 	}
