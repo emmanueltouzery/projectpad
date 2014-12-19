@@ -81,8 +81,15 @@ Window {
 		id: addRect
 		color: "light grey"
 
-		Text {
-			text: "+"
+		Rectangle {
+			color: "white"
+			width: 200
+			height: 40
+			TextInput {
+				font.pointSize: 22
+				text: "Project name"
+				anchors.fill: parent
+			}
 		}
 	}
 
