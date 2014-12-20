@@ -7,6 +7,7 @@ Window {
 	width: 800; height: 600;
 	title: 'ProjectPAD';
 	visible: true;
+	id: window
 
 	ScrollView {
 		anchors.fill: parent
@@ -58,14 +59,14 @@ Window {
 						target: addRect
 						properties: "width"
 						from: addIcon.width
-						to: flow.width
+						to: window.width
 						duration: 200
 					}
 					PropertyAnimation {
 						target: addRect
 						properties: "height"
 						from: addIcon.height
-						to: flow.height
+						to: window.height
 						duration: 200
 					}
 					PropertyAnimation {
@@ -123,6 +124,7 @@ Window {
 				onClicked: {
 					addProject(projectNameEntry.text)
 					addRect.closePopup()
+					/* TODO now directly open the new project */
 				}
 			}
 
