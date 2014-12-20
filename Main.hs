@@ -36,11 +36,13 @@ main = do
 	sqlBackend <- wrapConnection conn logger
 	prj <- runSqlBackend sqlBackend $ do
 		upgradeSchema
-
-		select $ from $ \p -> do
-			orderBy [asc (p ^. ProjectName)]
-			return p
+		readProjects
 	mapM newObjectDC prj >>= displayApp sqlBackend
+
+readProjects :: SqlPersistM [Entity Project]
+readProjects = select $ from $ \p -> do
+	orderBy [asc (p ^. ProjectName)]
+	return p
 
 runSqlBackend :: SqlBackend -> SqlPersistM a -> IO a
 runSqlBackend = flip runSqlPersistM
@@ -67,8 +69,14 @@ createContext sqlBackend state = do
 	newObject rootClass state
 
 addProject :: SqlBackend -> ObjRef ProjectScreenState -> Text -> IO ()
-addProject sqlBackend state text = runSqlBackend sqlBackend $ do
-	P.insert (Project text "")
+addProject sqlBackend state text = do
+	newProjects <- runSqlBackend sqlBackend $ do
+		P.insert (Project text "")
+		readProjects
+	-- update the model (also makes sure the new project
+	-- is inserted respecting my sorting)
+	let newQmlProjects = mapM newObjectDC newProjects
+	modifyMVar_ (projects $ fromObjRef state) $ const newQmlProjects
 	liftIO $ fireSignal (Proxy :: Proxy ListChanged) state
 
 displayApp :: SqlBackend -> [ObjRef (Entity Project)] -> IO ()
