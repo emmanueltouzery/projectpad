@@ -7,8 +7,12 @@ module Main where
 -- create a unsafePerformIO error call that displays
 -- a message box, use it instead of error everywhere
 -- in case of terminal failure
+-- proper logger for the SQL errors that goes all
+-- the way to the GUI.
 --
 -- create db file in ~/.projectpad
+--
+-- enforce unicity of project names
 
 import Database.Persist.Sqlite
 import Database.Esqueleto
@@ -18,18 +22,28 @@ import Graphics.QML
 import Control.Concurrent.MVar
 import Data.Typeable
 import Data.Text (Text)
+import qualified Database.Persist as P
+import Database.Sqlite
+import System.Log.FastLogger
 
 import Model
 import Schema
 
 main :: IO ()
-main = runSqlite "projectpad.db" $ do
-	upgradeSchema
+main = do
+	conn <- open "projectpad.db"
+	let logger = \_ _ _ -> print . fromLogStr
+	sqlBackend <- wrapConnection conn logger
+	prj <- runSqlBackend sqlBackend $ do
+		upgradeSchema
 
-	prj <- select $ from $ \p -> do
-		orderBy [asc (p ^. ProjectName)]
-		return p
-	liftIO $ mapM newObjectDC prj >>= displayApp
+		select $ from $ \p -> do
+			orderBy [asc (p ^. ProjectName)]
+			return p
+	mapM newObjectDC prj >>= displayApp sqlBackend
+
+runSqlBackend :: SqlBackend -> SqlPersistM a -> IO a
+runSqlBackend = flip runSqlPersistM
 
 -- Signals
 data ListChanged deriving Typeable
@@ -42,21 +56,26 @@ data ProjectScreenState = ProjectScreenState
 		projects :: MVar [ObjRef (Entity Project)]
 	} deriving Typeable
 
-instance DefaultClass ProjectScreenState where
-	classMembers = 
+createContext :: SqlBackend -> ProjectScreenState -> IO (ObjRef ProjectScreenState)
+createContext sqlBackend state = do
+	rootClass <- newClass
 		[
 			defPropertySigRO "projects" (Proxy :: Proxy ListChanged)
 				$ readMVar . projects . fromObjRef,
-			defMethod "addProject" addProject
+			defMethod "addProject" (addProject sqlBackend)
 		]
+	newObject rootClass state
 
-addProject :: ObjRef ProjectScreenState -> Text -> IO ()
-addProject state text = print text
+addProject :: SqlBackend -> ObjRef ProjectScreenState -> Text -> IO ()
+addProject sqlBackend state text = runSqlBackend sqlBackend $ do
+	P.insert (Project text "")
+	liftIO $ fireSignal (Proxy :: Proxy ListChanged) state
 
-displayApp :: [ObjRef (Entity Project)] -> IO ()
-displayApp prj = do
+displayApp :: SqlBackend -> [ObjRef (Entity Project)] -> IO ()
+displayApp sqlBackend prj = do
 	projectScreenState <- ProjectScreenState <$> newMVar prj
-	ctx <- newObjectDC projectScreenState
+
+	ctx <- createContext sqlBackend projectScreenState
 
 	runEngineLoop defaultEngineConfig
 		{

@@ -87,6 +87,11 @@ Window {
 		id: addRect
 		color: "light grey"
 
+		function closePopup() {
+			addRect.width = 180
+			addRect.x = -400
+		}
+
 		GridLayout {
 			anchors.fill: parent
 			columns: 2
@@ -109,12 +114,15 @@ Window {
 
 			Button {
 				text: "OK"
-				onClicked: addProject(projectNameEntry.text)
+				onClicked: {
+					addProject(projectNameEntry.text)
+					addRect.closePopup()
+				}
 			}
 
 			Button {
 				text: "Cancel"
-				onClicked: { addRect.width = 180; addRect.x = -400 }
+				onClicked: addRect.closePopup()
 			}
 		}
 	}
