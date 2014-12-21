@@ -17,6 +17,10 @@ module Main where
 -- Probably don't need that ListChanged signal?
 --
 -- server type should be TEXT in model.
+--
+-- I have these caches in array properties in models
+-- but maybe there's no point optimizing and I should
+-- simply have functions returning the current state.
 
 import Database.Persist.Sqlite
 import Database.Esqueleto
