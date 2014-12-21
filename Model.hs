@@ -52,21 +52,20 @@ int64to32 = fromIntegral
 toSqlKey32 :: ToBackendKey SqlBackend record => Int -> Key record
 toSqlKey32 = toSqlKey . fromIntegral
 
+getStandardClassMembers :: (Marshal tr, ToBackendKey SqlBackend record, Typeable record,
+	 MarshalMode tr ICanReturnTo () ~ Yes) =>
+	[(String, record -> tr)] -> [Member (GetObjType (ObjRef (Entity record)))]
+getStandardClassMembers pairs = (idProperty:others)
+	where
+		idProperty = defPropertyRO "id" (return . int64to32 . fromSqlKey . entityKey . fromObjRef)
+		others = fmap (\(name, f) -> defPropertyRO name (return . f . entityVal . fromObjRef)) pairs
+
 -- TODO generate this with TH?
--- or with some fmap over a list of pairs field name / accessor. ###############
 instance DefaultClass (Entity Project) where
-	classMembers =
-		[
-			defPropertyRO "id" (return . int64to32 . fromSqlKey . entityKey . fromObjRef),
-			defPropertyRO "name" (return . projectName . entityVal . fromObjRef)
-		]
+	classMembers = getStandardClassMembers [("name", projectName)]
 
 instance DefaultClass (Entity Server) where
-	classMembers =
-		[
-			defPropertyRO "id" (return . int64to32 . fromSqlKey . entityKey . fromObjRef),
-			defPropertyRO "desc" (return . serverDesc . entityVal . fromObjRef)
-		]
+	classMembers = getStandardClassMembers [("desc", serverDesc)]
 
 deriving instance Typeable Entity
 deriving instance Typeable Key
