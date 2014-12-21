@@ -1,4 +1,4 @@
-{-# LANGUAGE OverloadedStrings, TemplateHaskell, DeriveDataTypeable, TypeFamilies #-}
+{-# LANGUAGE OverloadedStrings, DeriveDataTypeable, TypeFamilies #-}
 module Main where
 
 -- the DB init should be done in a try block
@@ -13,6 +13,10 @@ module Main where
 -- create db file in ~/.projectpad
 --
 -- enforce unicity of project names
+--
+-- Probably don't need that ListChanged signal?
+--
+-- server type should be TEXT in model.
 
 import Database.Persist.Sqlite
 import Database.Esqueleto
@@ -28,6 +32,7 @@ import System.Log.FastLogger
 
 import Model
 import Schema
+import ProjectView
 
 main :: IO ()
 main = do
@@ -44,18 +49,10 @@ readProjects = select $ from $ \p -> do
 	orderBy [asc (p ^. ProjectName)]
 	return p
 
-runSqlBackend :: SqlBackend -> SqlPersistM a -> IO a
-runSqlBackend = flip runSqlPersistM
-
--- Signals
-data ListChanged deriving Typeable
-
-instance SignalKeyClass ListChanged where
-    type SignalParams ListChanged = IO ()
-
 data ProjectScreenState = ProjectScreenState
 	{
-		projects :: MVar [ObjRef (Entity Project)]
+		projects :: MVar [ObjRef (Entity Project)],
+		projectViewState :: ObjRef ProjectViewScreenState
 	} deriving Typeable
 
 createContext :: SqlBackend -> ProjectScreenState -> IO (ObjRef ProjectScreenState)
@@ -64,6 +61,8 @@ createContext sqlBackend state = do
 		[
 			defPropertySigRO "projects" (Proxy :: Proxy ListChanged)
 				$ readMVar . projects . fromObjRef,
+			defPropertySigRO "projectViewState" (Proxy :: Proxy ListChanged)
+				$ return . projectViewState . fromObjRef,
 			defMethod "addProject" (addProject sqlBackend)
 		]
 	newObject rootClass state
@@ -81,7 +80,9 @@ addProject sqlBackend state text = do
 
 displayApp :: SqlBackend -> [ObjRef (Entity Project)] -> IO ()
 displayApp sqlBackend prj = do
-	projectScreenState <- ProjectScreenState <$> newMVar prj
+	projectScreenState <- ProjectScreenState
+		<$> newMVar prj
+		<*> createProjectViewState sqlBackend
 
 	ctx <- createContext sqlBackend projectScreenState
 

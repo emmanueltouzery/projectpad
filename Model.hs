@@ -29,13 +29,13 @@ PointOfInterest
 	serverId ServerId Maybe
 	deriving Show
 Server
-	desc String
+	desc Text
 	ip IpAddress
-	username String
+	username Text
 	password Password
 	type ServerType
 	projectId ProjectId
-	deriving Show
+	deriving Show Typeable
 Project
 	name Text
 	icon ByteString
@@ -49,8 +49,11 @@ DbVersion
 int64to32 :: Int64 -> Int32
 int64to32 = fromIntegral
 
+toSqlKey32 :: ToBackendKey SqlBackend record => Int -> Key record
+toSqlKey32 = toSqlKey . fromIntegral
+
 -- TODO generate this with TH?
--- or with some fmap over a list of pairs field name / accessor.
+-- or with some fmap over a list of pairs field name / accessor. ###############
 instance DefaultClass (Entity Project) where
 	classMembers =
 		[
@@ -58,5 +61,21 @@ instance DefaultClass (Entity Project) where
 			defPropertyRO "name" (return . projectName . entityVal . fromObjRef)
 		]
 
+instance DefaultClass (Entity Server) where
+	classMembers =
+		[
+			defPropertyRO "id" (return . int64to32 . fromSqlKey . entityKey . fromObjRef),
+			defPropertyRO "desc" (return . serverDesc . entityVal . fromObjRef)
+		]
+
 deriving instance Typeable Entity
 deriving instance Typeable Key
+
+runSqlBackend :: SqlBackend -> SqlPersistM a -> IO a
+runSqlBackend = flip runSqlPersistM
+
+-- Signals TODO get rid of this? ##########
+data ListChanged deriving Typeable
+
+instance SignalKeyClass ListChanged where
+    type SignalParams ListChanged = IO ()
