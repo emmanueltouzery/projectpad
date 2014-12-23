@@ -10,7 +10,7 @@ import Control.Monad
 
 import Model
 
-data ProjectViewScreenState = ProjectViewScreenState
+data ProjectViewState = ProjectViewState
 	{
 		curProjectId :: MVar (Maybe Int),
 		servers :: MVar [ObjRef (Entity Server)]
@@ -22,7 +22,7 @@ readServers projectId = select $ from $ \s -> do
 	orderBy [asc (s ^. ServerDesc)]
 	return s
 
-updateProjectViewCache :: SqlBackend -> ProjectViewScreenState -> Int -> IO ()
+updateProjectViewCache :: SqlBackend -> ProjectViewState -> Int -> IO ()
 updateProjectViewCache sqlBackend state projectId = do
 	newServers <- runSqlBackend sqlBackend (readServers projectId)
 	let newQmlServers = mapM newObjectDC newServers
@@ -30,7 +30,7 @@ updateProjectViewCache sqlBackend state projectId = do
 	modifyMVar_ (servers state) $ const newQmlServers
 	-- maybe i need to fire a signal for hsqml so it updates the objref?
 
-getServers :: SqlBackend -> ObjRef ProjectViewScreenState -> Int -> IO [ObjRef (Entity Server)]
+getServers :: SqlBackend -> ObjRef ProjectViewState -> Int -> IO [ObjRef (Entity Server)]
 getServers sqlBackend _state projectId = do
 	putStrLn "getServers() called!"
 	let state = fromObjRef _state
@@ -38,9 +38,9 @@ getServers sqlBackend _state projectId = do
 	when (not $ pId == Just projectId) (updateProjectViewCache sqlBackend state projectId)
 	readMVar $ servers state
 
-createProjectViewState :: SqlBackend -> IO (ObjRef ProjectViewScreenState)
+createProjectViewState :: SqlBackend -> IO (ObjRef ProjectViewState)
 createProjectViewState sqlBackend = do
-	projectViewState <- ProjectViewScreenState
+	projectViewState <- ProjectViewState
 		<$> newMVar Nothing
 		<*> newMVar []
 	projectViewClass <- newClass

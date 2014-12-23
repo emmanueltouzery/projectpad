@@ -72,9 +72,3 @@ deriving instance Typeable Key
 
 runSqlBackend :: SqlBackend -> SqlPersistM a -> IO a
 runSqlBackend = flip runSqlPersistM
-
--- Signals TODO get rid of this? ##########
-data ListChanged deriving Typeable
-
-instance SignalKeyClass ListChanged where
-    type SignalParams ListChanged = IO ()

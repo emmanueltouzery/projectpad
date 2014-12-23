@@ -21,21 +21,19 @@ module Main where
 -- I have these caches in array properties in models
 -- but maybe there's no point optimizing and I should
 -- simply have functions returning the current state.
+--
+-- I think I don't need a factory pool but?
 
 import Database.Persist.Sqlite
-import Database.Esqueleto
-import Control.Monad.Trans
 import Control.Applicative
 import Graphics.QML
-import Control.Concurrent.MVar
 import Data.Typeable
-import Data.Text (Text)
-import qualified Database.Persist as P
 import Database.Sqlite
 import System.Log.FastLogger
 
 import Model
 import Schema
+import ProjectList
 import ProjectView
 
 main :: IO ()
@@ -43,53 +41,33 @@ main = do
 	conn <- open "projectpad.db"
 	let logger = \_ _ _ -> print . fromLogStr
 	sqlBackend <- wrapConnection conn logger
-	prj <- runSqlBackend sqlBackend $ do
-		upgradeSchema
-		readProjects
-	mapM newObjectDC prj >>= displayApp sqlBackend
+	runSqlBackend sqlBackend upgradeSchema
+	displayApp sqlBackend
 
-readProjects :: SqlPersistM [Entity Project]
-readProjects = select $ from $ \p -> do
-	orderBy [asc (p ^. ProjectName)]
-	return p
-
-data ProjectScreenState = ProjectScreenState
+data AppState = AppState
 	{
-		projects :: MVar [ObjRef (Entity Project)],
-		projectViewState :: ObjRef ProjectViewScreenState
+		projectListState :: ObjRef ProjectListState,
+		projectViewState :: ObjRef ProjectViewState
 	} deriving Typeable
 
-createContext :: SqlBackend -> ProjectScreenState -> IO (ObjRef ProjectScreenState)
-createContext sqlBackend state = do
+createContext :: SqlBackend -> IO (ObjRef AppState)
+createContext sqlBackend = do
 	rootClass <- newClass
 		[
-			defPropertySigRO "projects" (Proxy :: Proxy ListChanged)
-				$ readMVar . projects . fromObjRef,
-			defPropertySigRO "projectViewState" (Proxy :: Proxy ListChanged)
-				$ return . projectViewState . fromObjRef,
-			defMethod "addProject" (addProject sqlBackend)
+			defPropertyRO "projectListState"
+				$ return . projectListState . fromObjRef,
+			defPropertyRO "projectViewState"
+				$ return . projectViewState . fromObjRef
 		]
-	newObject rootClass state
-
-addProject :: SqlBackend -> ObjRef ProjectScreenState -> Text -> IO ()
-addProject sqlBackend state text = do
-	newProjects <- runSqlBackend sqlBackend $ do
-		P.insert (Project text "")
-		readProjects
-	-- update the model (also makes sure the new project
-	-- is inserted respecting my sorting)
-	let newQmlProjects = mapM newObjectDC newProjects
-	modifyMVar_ (projects $ fromObjRef state) $ const newQmlProjects
-	liftIO $ fireSignal (Proxy :: Proxy ListChanged) state
-
-displayApp :: SqlBackend -> [ObjRef (Entity Project)] -> IO ()
-displayApp sqlBackend prj = do
-	projectScreenState <- ProjectScreenState
-		<$> newMVar prj
+	rootContext <- AppState
+		<$> createProjectListState sqlBackend
 		<*> createProjectViewState sqlBackend
+	newObject rootClass rootContext
 
-	ctx <- createContext sqlBackend projectScreenState
 
+displayApp :: SqlBackend -> IO ()
+displayApp sqlBackend = do
+	ctx <- createContext sqlBackend
 	runEngineLoop defaultEngineConfig
 		{
 			initialDocument = fileDocument "projectpad.qml",

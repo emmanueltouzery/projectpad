@@ -20,7 +20,7 @@ ScrollView {
 
 			Repeater {
 				id: itemsrepeater
-				model: projects
+				model: projectListState.projects
 
 				Rectangle {
 					width: 180; height: 180
