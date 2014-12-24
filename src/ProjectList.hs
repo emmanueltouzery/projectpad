@@ -21,8 +21,8 @@ readProjects = select $ from $ \p -> do
 	orderBy [asc (p ^. ProjectName)]
 	return p
 
-addProject :: SqlBackend -> ObjRef ProjectListState -> Text -> IO ()
-addProject sqlBackend state text = do
+addProject :: SqlBackend -> SignalKey (IO ())-> ObjRef ProjectListState -> Text -> IO ()
+addProject sqlBackend changeKey state text = do
 	newProjects <- runSqlBackend sqlBackend $ do
 		P.insert (Project text "")
 		readProjects
@@ -30,14 +30,16 @@ addProject sqlBackend state text = do
 	-- is inserted respecting my sorting)
 	let newQmlProjects = mapM newObjectDC newProjects
 	modifyMVar_ (projects $ fromObjRef state) $ const newQmlProjects
+	fireSignal changeKey state
 
 createProjectListState :: SqlBackend -> IO (ObjRef ProjectListState)
 createProjectListState sqlBackend = do
+	changeKey <- newSignalKey
 	rootClass <- newClass
 		[
-			defPropertyRO "projects"
+			defPropertySigRO "projects" changeKey
 				$ readMVar . projects . fromObjRef,
-			defMethod "addProject" (addProject sqlBackend)
+			defMethod "addProject" (addProject sqlBackend changeKey)
 		]
 	prj <- runSqlBackend sqlBackend readProjects
 	objPrj <- mapM newObjectDC prj
