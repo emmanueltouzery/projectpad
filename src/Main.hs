@@ -70,6 +70,6 @@ displayApp sqlBackend = do
 	ctx <- createContext sqlBackend
 	runEngineLoop defaultEngineConfig
 		{
-			initialDocument = fileDocument "qml/projectpad.qml",
+			initialDocument = fileDocument "qml/ProjectPad.qml",
 			contextObject = Just $ anyObjRef ctx
 		}
