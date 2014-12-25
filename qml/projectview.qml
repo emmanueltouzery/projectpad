@@ -6,8 +6,13 @@ import QtQuick.Layouts 1.1
 ScrollView {
 	id: pv
 	anchors.fill: parent
-	signal loadView(string name, int displayId)
+	signal loadView(string name, int displayId, variant displayPath, variant actions)
 	property int displayId /* project ID */
+
+	function actionTriggered(name) {
+		console.log("action triggered: " + name)
+	}
+
 	Flickable {
 		width: parent.width
 		contentHeight: flow.implicitHeight

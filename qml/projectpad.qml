@@ -9,16 +9,18 @@ Window {
 	visible: true;
 	id: window
 
-	function loadViewAction(name, displayId, displayPath) {
+	function loadViewAction(name, displayId, displayPath, actions) {
 		console.log("load view")
 		loader.source=name
 		loader.item.displayId = displayId
 		toolbar.displayPath = displayPath
+		toolbar.actions = actions
 	}
 
 	Toolbar {
 		id: toolbar
-		onLoadView: loadViewAction(name, displayId, displayPath)
+		onLoadView: loadViewAction(name, displayId, displayPath, actions)
+		onActionTriggered: loader.item.actionTriggered(name)
 	}
 
 	Loader {
@@ -32,6 +34,6 @@ Window {
 
 	Connections {
 		target: loader.item
-		onLoadView: loadViewAction(name, displayId, displayPath)
+		onLoadView: loadViewAction(name, displayId, displayPath, actions)
 	}
 }

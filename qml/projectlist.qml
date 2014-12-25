@@ -5,7 +5,7 @@ import QtQuick.Layouts 1.1
 ScrollView {
 	anchors.fill: parent
 	property int displayId /* displayId is ignored in this screen */
-	signal loadView(string name, int displayId, variant displayPath)
+	signal loadView(string name, int displayId, variant displayPath, variant actions)
 	Flickable {
 		width: parent.width
 		contentHeight: flow.implicitHeight
@@ -32,7 +32,8 @@ ScrollView {
 					MouseArea {
 						anchors.fill: parent
 						onClicked: {
-							loadView("projectview.qml", modelData.id, [modelData.name])
+							var myActions = [["edit", "glyphicons-31-pencil", "Edit project"]]
+							loadView("projectview.qml", modelData.id, [modelData.name], myActions)
 							/*plLoader.source = "projectview.qml"*/
 						}
 					}
