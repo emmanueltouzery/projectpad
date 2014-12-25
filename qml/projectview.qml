@@ -53,8 +53,7 @@ ScrollView {
 					anchors.fill: parent
 					onClicked: {
 						expandAnimation.start()
-						projectNameEntry.selectAll()
-						projectNameEntry.forceActiveFocus()
+						addRect.activate()
 					}
 				}
 			}
@@ -92,51 +91,8 @@ ScrollView {
 				}
 			}
 		}
-	}
-	Rectangle {
-		width: 180; height: 180
-		x: -400
-		id: addRect
-		color: "light grey"
-	
-		function closePopup() {
-			addRect.width = 180
-			addRect.x = -400
-		}
-	
-		GridLayout {
-			anchors.fill: parent
-			columns: 2
-	
-			Text {
-				text: "Project name:"
-			}
-	
-			Rectangle {
-				color: "white"
-				width: 200
-				height: 40
-				TextInput {
-					font.pointSize: 22
-					id: projectNameEntry
-					text: "Project name"
-					anchors.fill: parent
-				}
-			}
-	
-			Button {
-				text: "OK"
-				onClicked: {
-					addProject(projectNameEntry.text)
-					addRect.closePopup()
-					/* TODO now directly open the new project */
-				}
-			}
-	
-			Button {
-				text: "Cancel"
-				onClicked: addRect.closePopup()
-			}
+		ProjectEdit {
+			id: addRect
 		}
 	}
 }
