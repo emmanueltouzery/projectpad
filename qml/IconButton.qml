@@ -1,7 +1,7 @@
 import QtQuick 2.0
 
 Rectangle {
-	width: text.width+20
+	width: text.width+23
 	height: 32
 	border.width: 1
 	border.color: "black"
