@@ -41,7 +41,7 @@ Rectangle {
 		Button {
 			text: "OK"
 			onClicked: {
-				addProject(projectNameEntry.text)
+				projectListState.addProject(projectNameEntry.text)
 				addRect.closePopup()
 				/* TODO now directly open the new project */
 			}
