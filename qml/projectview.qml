@@ -7,7 +7,7 @@ ScrollView {
 	id: pv
 	anchors.fill: parent
 	signal loadView(string name, int displayId)
-	property int displayId
+	property int displayId /* project ID */
 	Flickable {
 		width: parent.width
 		contentHeight: flow.implicitHeight

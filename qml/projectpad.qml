@@ -9,8 +9,16 @@ Window {
 	visible: true;
 	id: window
 
+	function loadViewAction(name, displayId, displayPath) {
+		console.log("load view")
+		loader.source=name
+		loader.item.displayId = displayId
+		toolbar.displayPath = displayPath
+	}
+
 	Toolbar {
 		id: toolbar
+		onLoadView: loadViewAction(name, displayId, displayPath)
 	}
 
 	Loader {
@@ -24,10 +32,6 @@ Window {
 
 	Connections {
 		target: loader.item
-		onLoadView: {
-			loader.source=name
-			loader.item.displayId = displayId
-			toolbar.displayPath = displayPath
-		}
+		onLoadView: loadViewAction(name, displayId, displayPath)
 	}
 }

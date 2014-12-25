@@ -4,6 +4,7 @@ import QtQuick.Layouts 1.1
 
 ScrollView {
 	anchors.fill: parent
+	property int displayId /* displayId is ignored in this screen */
 	signal loadView(string name, int displayId, variant displayPath)
 	Flickable {
 		width: parent.width

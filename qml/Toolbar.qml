@@ -6,6 +6,7 @@ Rectangle {
 	width: parent.width
 	height: 32
 
+	signal loadView(string name, int displayId, variant displayPath)
 	property variant displayPath: []
 
 	Flow {
@@ -33,6 +34,11 @@ Rectangle {
 				text: 'home'
 				height: parent.height
 				verticalAlignment: Text.AlignVCenter
+			}
+
+			MouseArea {
+				anchors.fill: parent
+				onClicked: loadView("projectlist.qml", null, [])
 			}
 		}
 		Repeater {
