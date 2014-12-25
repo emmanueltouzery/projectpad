@@ -1,21 +1,16 @@
 import QtQuick 2.0
-import QtQuick.Window 2.0
 import QtQuick.Controls 1.2
-import QtQuick.Layouts 1.1
 
 ScrollView {
-	id: pv
 	anchors.fill: parent
-	signal loadView(string name, int displayId, variant displayPath, variant actions)
-	property int displayId /* project ID */
-
-	function actionTriggered(name) {
-		console.log("action triggered: " + name)
-	}
-
+	property int displayId /* displayId is ignored in this screen */
+	signal loadView(string name, int displayId, variant displayPath)
 	Flickable {
 		width: parent.width
 		contentHeight: flow.implicitHeight
+		Loader {
+			id: plLoader
+		}
 		Flow {
 			anchors.fill: parent
 			anchors.margins: 4
@@ -24,18 +19,20 @@ ScrollView {
 
 			Repeater {
 				id: itemsrepeater
-				model: projectViewState.getServers(pv.displayId)
+				model: projectListState.projects
 
 				Rectangle {
 					width: 180; height: 180
 					color: "light blue"
 
 					Text {
-						text: modelData.desc
+						text: modelData.name
 					}
 					MouseArea {
 						anchors.fill: parent
 						onClicked: {
+							loadView("ProjectView.qml", modelData.id, [modelData.name])
+
 						}
 					}
 				}
@@ -53,7 +50,7 @@ ScrollView {
 					anchors.fill: parent
 					onClicked: {
 						expandAnimation.start()
-						addRect.activate()
+						projectEdit.activate()
 					}
 				}
 			}
@@ -62,28 +59,28 @@ ScrollView {
 				id: expandAnimation
 				loops: 1
 				PropertyAnimation {
-					target: addRect
+					target: projectEdit
 					properties: "width"
 					from: addIcon.width
 					to: window.width
 					duration: 200
 				}
 				PropertyAnimation {
-					target: addRect
+					target: projectEdit
 					properties: "height"
 					from: addIcon.height
 					to: window.height
 					duration: 200
 				}
 				PropertyAnimation {
-					target: addRect
+					target: projectEdit
 					properties: "x"
 					from: addIcon.x
 					to: 0
 					duration: 200
 				}
 				PropertyAnimation {
-					target: addRect
+					target: projectEdit
 					properties: "y"
 					from: addIcon.y
 					to: 0
@@ -92,8 +89,7 @@ ScrollView {
 			}
 		}
 		ProjectEdit {
-			id: addRect
+			id: projectEdit
 		}
 	}
 }
-

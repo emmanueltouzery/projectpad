@@ -33,7 +33,7 @@ Rectangle {
 		IconButton {
 			text: 'home'
 			iconName: 'glyphicons-21-home'
-			onClicked: loadView("projectlist.qml", null, [], [])
+			onClicked: loadView("ProjectList.qml", null, [])
 		}
 		Repeater {
 			model: displayPath

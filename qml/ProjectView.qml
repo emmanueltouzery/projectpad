@@ -1,16 +1,23 @@
 import QtQuick 2.0
+import QtQuick.Window 2.0
 import QtQuick.Controls 1.2
+import QtQuick.Layouts 1.1
 
 ScrollView {
+	id: pv
 	anchors.fill: parent
-	property int displayId /* displayId is ignored in this screen */
-	signal loadView(string name, int displayId, variant displayPath, variant actions)
+	signal loadView(string name, int displayId, variant displayPath)
+	property int displayId /* project ID */
+
+	property variant actions: [["edit", "glyphicons-31-pencil", "Edit project"]]
+
+	function actionTriggered(name) {
+		console.log("action triggered: " + name)
+	}
+
 	Flickable {
 		width: parent.width
 		contentHeight: flow.implicitHeight
-		Loader {
-			id: plLoader
-		}
 		Flow {
 			anchors.fill: parent
 			anchors.margins: 4
@@ -19,21 +26,18 @@ ScrollView {
 
 			Repeater {
 				id: itemsrepeater
-				model: projectListState.projects
+				model: projectViewState.getServers(pv.displayId)
 
 				Rectangle {
 					width: 180; height: 180
 					color: "light blue"
 
 					Text {
-						text: modelData.name
+						text: modelData.desc
 					}
 					MouseArea {
 						anchors.fill: parent
 						onClicked: {
-							var myActions = [["edit", "glyphicons-31-pencil", "Edit project"]]
-							loadView("projectview.qml", modelData.id, [modelData.name], myActions)
-							/*plLoader.source = "projectview.qml"*/
 						}
 					}
 				}
@@ -94,3 +98,4 @@ ScrollView {
 		}
 	}
 }
+
