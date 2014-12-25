@@ -5,7 +5,7 @@ import QtQuick.Layouts 1.1
 Rectangle {
 	width: 180; height: 180
 	x: -400
-	id: addRect
+	id: projectEdit
 	color: "light grey"
 
 	function activate() {
@@ -14,8 +14,8 @@ Rectangle {
 	}
 
 	function closePopup() {
-		addRect.width = 180
-		addRect.x = -400
+		projectEdit.width = 180
+		projectEdit.x = -400
 	}
 
 	GridLayout {
@@ -42,14 +42,14 @@ Rectangle {
 			text: "OK"
 			onClicked: {
 				projectListState.addProject(projectNameEntry.text)
-				addRect.closePopup()
+				projectEdit.closePopup()
 				/* TODO now directly open the new project */
 			}
 		}
 
 		Button {
 			text: "Cancel"
-			onClicked: addRect.closePopup()
+			onClicked: projectEdit.closePopup()
 		}
 	}
 }
