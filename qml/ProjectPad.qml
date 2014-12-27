@@ -9,17 +9,16 @@ Window {
 	visible: true;
 	id: window
 
-	function loadViewAction(name, displayId, displayPath) {
+	function loadViewAction(name, model, displayPath) {
 		console.log("load view")
-		loader.source=name
-		loader.item.displayId = displayId
+		loader.setSource(name, {"model": model})
 		toolbar.displayPath = displayPath
 		toolbar.actions = loader.item.actions
 	}
 
 	Toolbar {
 		id: toolbar
-		onLoadView: loadViewAction(name, displayId, displayPath)
+		onLoadView: loadViewAction(name, model, displayPath)
 		onActionTriggered: loader.item.actionTriggered(name)
 	}
 
@@ -30,10 +29,10 @@ Window {
 		id: loader
 		source: "ProjectList.qml"
 	}
-	signal loadView(string name, int displayId, variant displayPath)
+	signal loadView(string name, variant model, variant displayPath)
 
 	Connections {
 		target: loader.item
-		onLoadView: loadViewAction(name, displayId, displayPath)
+		onLoadView: loadViewAction(name, model, displayPath)
 	}
 }

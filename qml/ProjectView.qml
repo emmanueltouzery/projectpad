@@ -6,13 +6,20 @@ import QtQuick.Layouts 1.1
 ScrollView {
 	id: pv
 	anchors.fill: parent
-	signal loadView(string name, int displayId, variant displayPath)
-	property int displayId /* project ID */
+	signal loadView(string name, variant model, variant displayPath)
+	property variant model
 
 	property variant actions: [["edit", "glyphicons-31-pencil", "Edit project"]]
 
 	function actionTriggered(name) {
-		console.log("action triggered: " + name)
+		switch (name) {
+			case "edit":
+				projectEdit.activate(pv.model)
+				projectEdit.x = 0
+				projectEdit.width = pv.width
+				projectEdit.height = pv.height
+				break;
+		}
 	}
 
 	Flickable {
@@ -26,7 +33,7 @@ ScrollView {
 
 			Repeater {
 				id: itemsrepeater
-				model: projectViewState.getServers(pv.displayId)
+				model: projectViewState.getServers(pv.model.id)
 
 				Rectangle {
 					width: 180; height: 180
@@ -55,7 +62,7 @@ ScrollView {
 					anchors.fill: parent
 					onClicked: {
 						expandAnimation.start()
-						addRect.activate()
+						projectEdit.activate(pv.model)
 					}
 				}
 			}
@@ -64,28 +71,28 @@ ScrollView {
 				id: expandAnimation
 				loops: 1
 				PropertyAnimation {
-					target: addRect
+					target: projectEdit
 					properties: "width"
 					from: addIcon.width
 					to: window.width
 					duration: 200
 				}
 				PropertyAnimation {
-					target: addRect
+					target: projectEdit
 					properties: "height"
 					from: addIcon.height
 					to: window.height
 					duration: 200
 				}
 				PropertyAnimation {
-					target: addRect
+					target: projectEdit
 					properties: "x"
 					from: addIcon.x
 					to: 0
 					duration: 200
 				}
 				PropertyAnimation {
-					target: addRect
+					target: projectEdit
 					properties: "y"
 					from: addIcon.y
 					to: 0
@@ -94,7 +101,7 @@ ScrollView {
 			}
 		}
 		ProjectEdit {
-			id: addRect
+			id: projectEdit
 		}
 	}
 }

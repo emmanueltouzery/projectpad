@@ -3,8 +3,8 @@ import QtQuick.Controls 1.2
 
 ScrollView {
 	anchors.fill: parent
-	property int displayId /* displayId is ignored in this screen */
-	signal loadView(string name, int displayId, variant displayPath)
+	property variant model /* model is ignored in this screen */
+	signal loadView(string name, variant model, variant displayPath)
 	Flickable {
 		width: parent.width
 		contentHeight: flow.implicitHeight
@@ -31,8 +31,7 @@ ScrollView {
 					MouseArea {
 						anchors.fill: parent
 						onClicked: {
-							loadView("ProjectView.qml", modelData.id, [modelData.name])
-
+							loadView("ProjectView.qml", modelData, [modelData.name])
 						}
 					}
 				}
@@ -50,7 +49,7 @@ ScrollView {
 					anchors.fill: parent
 					onClicked: {
 						expandAnimation.start()
-						projectEdit.activate()
+						projectEdit.activate({name: "Project name"})
 					}
 				}
 			}

@@ -6,7 +6,7 @@ Rectangle {
 	width: parent.width
 	height: 32
 
-	signal loadView(string name, int displayId, variant displayPath)
+	signal loadView(string name, variant model, variant displayPath)
 
 	/**
 	 * List of sublevels in the hierarchy

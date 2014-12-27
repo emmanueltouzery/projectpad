@@ -8,7 +8,10 @@ Rectangle {
 	id: projectEdit
 	color: "light grey"
 
-	function activate() {
+	property variant model : {"name": "Project name"}
+
+	function activate(_model) {
+		projectEdit.model = _model
 		projectNameEntry.selectAll()
 		projectNameEntry.forceActiveFocus()
 	}
@@ -33,7 +36,7 @@ Rectangle {
 			TextInput {
 				font.pointSize: 22
 				id: projectNameEntry
-				text: "Project name"
+				text: projectEdit.model.name
 				anchors.fill: parent
 			}
 		}
