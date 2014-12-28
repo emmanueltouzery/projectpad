@@ -48,47 +48,22 @@ ScrollView {
 				MouseArea {
 					anchors.fill: parent
 					onClicked: {
-						expandAnimation.start()
-						projectEdit.activate({name: "Project name"})
+						popup.setContents("Add project", projectEditComponent,
+								function(projectEdit) {
+									projectEdit.activate({name: "Project name"})
+								},
+								function(projectEdit) {
+									projectEdit.onOk()
+								})
 					}
 				}
 			}
-
-			ParallelAnimation {
-				id: expandAnimation
-				loops: 1
-				PropertyAnimation {
-					target: projectEdit
-					properties: "width"
-					from: addIcon.width
-					to: window.width
-					duration: 200
-				}
-				PropertyAnimation {
-					target: projectEdit
-					properties: "height"
-					from: addIcon.height
-					to: window.height
-					duration: 200
-				}
-				PropertyAnimation {
-					target: projectEdit
-					properties: "x"
-					from: addIcon.x
-					to: 0
-					duration: 200
-				}
-				PropertyAnimation {
-					target: projectEdit
-					properties: "y"
-					from: addIcon.y
-					to: 0
-					duration: 200
-				}
-			}
 		}
-		ProjectEdit {
-			id: projectEdit
+		Component {
+			id: projectEditComponent
+			ProjectEdit {
+				id: projectEdit
+			}
 		}
 	}
 }

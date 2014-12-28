@@ -8,11 +8,18 @@ Rectangle {
 	z: 1
 	property var curCallback
 
-	function setContents(title, contents, callback) {
+	function setContents(title, contents, initCallback, okCallback) {
 		popupTitle.text = title
 		popupContentsLoader.sourceComponent = contents
-		okButton.clicked.connect(callback)
-		curCallback = callback
+		initCallback(popupContentsLoader.item)
+		var f = function() {
+			okCallback(popupContentsLoader.item)
+			okButton.clicked.disconnect(curCallback)
+			popup.visible = false
+		}
+		okButton.clicked.connect(f)
+		curCallback = f
+		popup.visible = true
 	}
 
 	Rectangle {

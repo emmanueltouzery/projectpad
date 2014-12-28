@@ -16,16 +16,18 @@ ScrollView {
 	function actionTriggered(name) {
 		switch (name) {
 			case "edit":
-				projectEdit.activate(pv.model)
-				projectEdit.x = 0
-				projectEdit.width = pv.width
-				projectEdit.height = pv.height
+				popup.setContents("Edit project", projectEditComponent,
+						function (projectEdit) {
+							projectEdit.activate(pv.model)
+						},
+						function (projectEdit) {
+							projectEdit.onOk()
+						})
 				break;
 			case "addsrv":
 				popup.setContents("Add server", addServerContents, function() {
 					console.log("OK")
 				})
-				popup.visible = true
 				break;
 		}
 	}
@@ -57,59 +59,12 @@ ScrollView {
 					}
 				}
 			}
-
-			Rectangle {
-				width: 180; height: 180
-				color: "light grey"
-				id: addIcon
-
-				Text {
-					text: "+"
-				}
-				MouseArea {
-					anchors.fill: parent
-					onClicked: {
-						expandAnimation.start()
-						projectEdit.activate(pv.model)
-					}
-				}
-			}
-
-			ParallelAnimation {
-				id: expandAnimation
-				loops: 1
-				PropertyAnimation {
-					target: projectEdit
-					properties: "width"
-					from: addIcon.width
-					to: window.width
-					duration: 200
-				}
-				PropertyAnimation {
-					target: projectEdit
-					properties: "height"
-					from: addIcon.height
-					to: window.height
-					duration: 200
-				}
-				PropertyAnimation {
-					target: projectEdit
-					properties: "x"
-					from: addIcon.x
-					to: 0
-					duration: 200
-				}
-				PropertyAnimation {
-					target: projectEdit
-					properties: "y"
-					from: addIcon.y
-					to: 0
-					duration: 200
-				}
-			}
 		}
-		ProjectEdit {
-			id: projectEdit
+		Component {
+			id: projectEditComponent
+			ProjectEdit {
+				id: projectEdit
+			}
 		}
 		Component {
 			id: addServerContents

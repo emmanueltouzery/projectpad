@@ -3,8 +3,7 @@ import QtQuick.Controls 1.2
 import QtQuick.Layouts 1.1
 
 Rectangle {
-	width: 180; height: 180
-	x: -400
+	anchors.fill: parent
 	id: projectEdit
 	color: "light grey"
 
@@ -16,9 +15,14 @@ Rectangle {
 		projectNameEntry.forceActiveFocus()
 	}
 
-	function closePopup() {
-		projectEdit.width = 180
-		projectEdit.x = -400
+	function onOk() {
+		if (model.id) {
+			projectEdit.model = projectListState.updateProject(model, projectNameEntry.text)
+			loadView("ProjectView.qml", projectEdit.model, [projectEdit.model.name])
+		} else {
+			projectListState.addProject(projectNameEntry.text)
+		}
+		/* TODO now directly open the new project */
 	}
 
 	GridLayout {
@@ -39,25 +43,6 @@ Rectangle {
 				text: projectEdit.model.name
 				anchors.fill: parent
 			}
-		}
-
-		Button {
-			text: "OK"
-			onClicked: {
-				if (model.id) {
-					projectEdit.model = projectListState.updateProject(model, projectNameEntry.text)
-					loadView("ProjectView.qml", projectEdit.model, [projectEdit.model.name])
-				} else {
-					projectListState.addProject(projectNameEntry.text)
-				}
-				projectEdit.closePopup()
-				/* TODO now directly open the new project */
-			}
-		}
-
-		Button {
-			text: "Cancel"
-			onClicked: projectEdit.closePopup()
 		}
 	}
 }
