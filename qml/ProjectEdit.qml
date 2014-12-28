@@ -26,8 +26,12 @@ Rectangle {
 	}
 
 	GridLayout {
-		anchors.fill: parent
+		y: 10
+		anchors.left: parent.left
+		anchors.right: parent.right
+		anchors.margins: 10
 		columns: 2
+		height: 40
 
 		Text {
 			text: "Project name:"
@@ -36,9 +40,8 @@ Rectangle {
 		Rectangle {
 			color: "white"
 			width: 200
-			height: 40
+			height: 24
 			TextInput {
-				font.pointSize: 22
 				id: projectNameEntry
 				text: projectEdit.model.name
 				anchors.fill: parent
