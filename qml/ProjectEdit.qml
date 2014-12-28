@@ -44,7 +44,12 @@ Rectangle {
 		Button {
 			text: "OK"
 			onClicked: {
-				projectListState.addProject(projectNameEntry.text)
+				if (model.id) {
+					projectEdit.model = projectListState.updateProject(model, projectNameEntry.text)
+					loadView("ProjectView.qml", projectEdit.model, [projectEdit.model.name])
+				} else {
+					projectListState.addProject(projectNameEntry.text)
+				}
 				projectEdit.closePopup()
 				/* TODO now directly open the new project */
 			}

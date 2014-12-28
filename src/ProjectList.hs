@@ -8,6 +8,8 @@ import qualified Database.Persist as P
 import Data.Typeable
 import Database.Esqueleto
 import Data.Text (Text)
+import Data.List
+import Data.Maybe
 
 import Model
 
@@ -21,16 +23,29 @@ readProjects = select $ from $ \p -> do
 	orderBy [asc (p ^. ProjectName)]
 	return p
 
-addProject :: SqlBackend -> SignalKey (IO ())-> ObjRef ProjectListState -> Text -> IO ()
-addProject sqlBackend changeKey state text = do
-	newProjects <- runSqlBackend sqlBackend $ do
-		P.insert (Project text "")
-		readProjects
+reReadProjects :: SqlBackend -> SignalKey (IO ()) -> ObjRef ProjectListState -> IO ()
+reReadProjects sqlBackend changeKey state = do
+	newProjects <- runSqlBackend sqlBackend readProjects
 	-- update the model (also makes sure the new project
 	-- is inserted respecting my sorting)
 	let newQmlProjects = mapM newObjectDC newProjects
 	modifyMVar_ (projects $ fromObjRef state) $ const newQmlProjects
 	fireSignal changeKey state
+
+addProject :: SqlBackend -> SignalKey (IO ()) -> ObjRef ProjectListState -> Text -> IO ()
+addProject sqlBackend changeKey state text = do
+	runSqlBackend sqlBackend $ P.insert (Project text "")
+	reReadProjects sqlBackend changeKey state
+
+updateProject :: SqlBackend -> SignalKey (IO ()) -> ObjRef ProjectListState
+	-> ObjRef (Entity Project) -> Text -> IO (ObjRef (Entity Project))
+updateProject sqlBackend changeKey state project name = do
+	let idKey = entityKey $ fromObjRef project
+	runSqlBackend sqlBackend $ P.update idKey [ProjectName P.=. name]
+	reReadProjects sqlBackend changeKey state
+	newProjectList <- readMVar $ projects (fromObjRef state)
+	let mUpdatedProjectEntity = find ((== idKey) . entityKey . fromObjRef) newProjectList
+	return $ fromMaybe (error "Can't find project after update?") mUpdatedProjectEntity
 
 createProjectListState :: SqlBackend -> IO (ObjRef ProjectListState)
 createProjectListState sqlBackend = do
@@ -39,7 +54,8 @@ createProjectListState sqlBackend = do
 		[
 			defPropertySigRO "projects" changeKey
 				$ readMVar . projects . fromObjRef,
-			defMethod "addProject" (addProject sqlBackend changeKey)
+			defMethod "addProject" (addProject sqlBackend changeKey),
+			defMethod "updateProject" (updateProject sqlBackend changeKey)
 		]
 	prj <- runSqlBackend sqlBackend readProjects
 	objPrj <- mapM newObjectDC prj
