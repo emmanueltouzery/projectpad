@@ -9,7 +9,9 @@ ScrollView {
 	signal loadView(string name, variant model, variant displayPath)
 	property variant model
 
-	property variant actions: [["edit", "glyphicons-31-pencil", "Edit project"]]
+	property variant actions: [
+		["addsrv", "glyphicons-470-server-new", "Add server"],
+		["edit", "glyphicons-31-pencil", "Edit project"]]
 
 	function actionTriggered(name) {
 		switch (name) {
@@ -18,6 +20,10 @@ ScrollView {
 				projectEdit.x = 0
 				projectEdit.width = pv.width
 				projectEdit.height = pv.height
+				break;
+			case "addsrv":
+				popup.setContents(addServerContents)
+				popup.visible = true
 				break;
 		}
 	}
@@ -102,6 +108,12 @@ ScrollView {
 		}
 		ProjectEdit {
 			id: projectEdit
+		}
+		Component {
+			id: addServerContents
+			Text {
+				text : "yupi"
+			}
 		}
 	}
 }

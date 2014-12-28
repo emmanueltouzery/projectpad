@@ -34,4 +34,9 @@ Window {
 		target: loader.item
 		onLoadView: loadViewAction(name, model, displayPath)
 	}
+
+	Popup {
+		id: popup
+		visible: false
+	}
 }
