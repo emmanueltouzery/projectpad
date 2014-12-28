@@ -12,7 +12,6 @@ Window {
 	function loadViewAction(name, model, displayPath) {
 		loader.setSource(name, {"model": model})
 		toolbar.displayPath = displayPath
-		toolbar.actions = loader.item.actions
 	}
 
 	Toolbar {
@@ -27,12 +26,21 @@ Window {
 		height: parent.height-toolbar.height
 		id: loader
 		source: "ProjectList.qml"
+		onLoaded: {
+			// putting it here ensures it's called
+			// also for the first screen of the app
+			// which is not displayed as the result
+			// of a click.
+			toolbar.actions = loader.item.actions
+		}
 	}
 	signal loadView(string name, variant model, variant displayPath)
 
 	Connections {
 		target: loader.item
-		onLoadView: loadViewAction(name, model, displayPath)
+		onLoadView: {
+			loadViewAction(name, model, displayPath)
+		}
 	}
 
 	Popup {

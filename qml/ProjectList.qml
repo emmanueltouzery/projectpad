@@ -4,6 +4,24 @@ import QtQuick.Controls 1.2
 ScrollView {
 	anchors.fill: parent
 	property variant model /* model is ignored in this screen */
+
+	property variant actions: [
+		["addprj", "glyphicons-146-folder-plus", "Add project"]]
+
+	function actionTriggered(name) {
+		switch (name) {
+			case "addprj":
+				popup.setContents("Add project", projectEditComponent,
+						function(projectEdit) {
+							projectEdit.activate({name: "Project name"})
+						},
+						function(projectEdit) {
+							projectEdit.onOk()
+						})
+				break;
+		}
+	}
+
 	signal loadView(string name, variant model, variant displayPath)
 	Flickable {
 		width: parent.width
@@ -33,28 +51,6 @@ ScrollView {
 						onClicked: {
 							loadView("ProjectView.qml", modelData, [modelData.name])
 						}
-					}
-				}
-			}
-
-			Rectangle {
-				width: 180; height: 180
-				color: "light grey"
-				id: addIcon
-
-				Text {
-					text: "+"
-				}
-				MouseArea {
-					anchors.fill: parent
-					onClicked: {
-						popup.setContents("Add project", projectEditComponent,
-								function(projectEdit) {
-									projectEdit.activate({name: "Project name"})
-								},
-								function(projectEdit) {
-									projectEdit.onOk()
-								})
 					}
 				}
 			}
