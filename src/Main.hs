@@ -54,9 +54,9 @@ createContext :: SqlBackend -> IO (ObjRef AppState)
 createContext sqlBackend = do
 	rootClass <- newClass
 		[
-			defPropertyRO "projectListState"
+			defPropertyConst "projectListState"
 				$ return . projectListState . fromObjRef,
-			defPropertyRO "projectViewState"
+			defPropertyConst "projectViewState"
 				$ return . projectViewState . fromObjRef
 		]
 	rootContext <- AppState

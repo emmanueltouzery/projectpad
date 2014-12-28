@@ -10,7 +10,6 @@ Window {
 	id: window
 
 	function loadViewAction(name, model, displayPath) {
-		console.log("load view")
 		loader.setSource(name, {"model": model})
 		toolbar.displayPath = displayPath
 		toolbar.actions = loader.item.actions
