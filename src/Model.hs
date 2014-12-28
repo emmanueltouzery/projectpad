@@ -57,8 +57,8 @@ getStandardClassMembers :: (Marshal tr, ToBackendKey SqlBackend record, Typeable
 	[(String, record -> tr)] -> [Member (GetObjType (ObjRef (Entity record)))]
 getStandardClassMembers pairs = (idProperty:others)
 	where
-		idProperty = defPropertyRO "id" (return . int64to32 . fromSqlKey . entityKey . fromObjRef)
-		others = fmap (\(name, f) -> defPropertyRO name (return . f . entityVal . fromObjRef)) pairs
+		idProperty = defPropertyConst "id" (return . int64to32 . fromSqlKey . entityKey . fromObjRef)
+		others = fmap (\(name, f) -> defPropertyConst name (return . f . entityVal . fromObjRef)) pairs
 
 -- TODO generate this with TH?
 instance DefaultClass (Entity Project) where
