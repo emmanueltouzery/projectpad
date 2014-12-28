@@ -22,7 +22,9 @@ ScrollView {
 				projectEdit.height = pv.height
 				break;
 			case "addsrv":
-				popup.setContents(addServerContents)
+				popup.setContents("Add server", addServerContents, function() {
+					console.log("OK")
+				})
 				popup.visible = true
 				break;
 		}

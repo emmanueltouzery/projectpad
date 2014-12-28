@@ -6,13 +6,16 @@ Rectangle {
 	anchors.fill: parent
 	color: "#aa000000"
 	z: 1
+	property var curCallback
 
-	function setContents(contents) {
+	function setContents(title, contents, callback) {
+		popupTitle.text = title
 		popupContentsLoader.sourceComponent = contents
+		okButton.clicked.connect(callback)
+		curCallback = callback
 	}
 
 	Rectangle {
-		id: popup
 		anchors.horizontalCenter: parent.horizontalCenter
 		y: 40
 		width: 580
@@ -29,13 +32,19 @@ Rectangle {
 			radius: 5
 	
 			Button {
+				id: cancelButton
 				text: "Cancel"
 				x: 5
 				style: NormalButtonStyle {}
 				anchors.verticalCenter: parent.verticalCenter
+				onClicked: {
+					popup.visible = false
+					okButton.clicked.disconnect(curCallback)
+				}
 			}
 	
 			Text {
+				id: popupTitle
 				text: "Title"
 				anchors.horizontalCenter: parent.horizontalCenter
 				anchors.verticalCenter: parent.verticalCenter
@@ -43,6 +52,7 @@ Rectangle {
 			}
 	
 			Button {
+				id: okButton
 				text: "OK"
 				anchors.right: parent.right
 				anchors.rightMargin: 5
