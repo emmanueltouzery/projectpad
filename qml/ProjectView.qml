@@ -25,9 +25,11 @@ ScrollView {
 						})
 				break;
 			case "addsrv":
-				popup.setContents("Add server", addServerContents, function() {
-					console.log("OK")
-				})
+				popup.setContents("Add server", addServerContents,
+						function() {
+						}, function() {
+							console.log("OK")
+						})
 				break;
 		}
 	}
@@ -68,8 +70,8 @@ ScrollView {
 		}
 		Component {
 			id: addServerContents
-			Text {
-				text : "yupi"
+			ServerEdit {
+				id: serverEdit
 			}
 		}
 	}
