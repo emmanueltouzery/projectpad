@@ -18,7 +18,8 @@ CREATE TABLE server (id INTEGER PRIMARY KEY,
 	username TEXT NOT NULL,
 	password TEXT NOT NULL,
 	project_id INTEGER NOT NULL,
-	type INTEGER NOT NULL,
+	type TEXT NOT NULL,
+	access_type TEXT NOT NULL,
 	FOREIGN KEY(project_id) REFERENCES project(id));
 
 CREATE TABLE project (id INTEGER PRIMARY KEY,

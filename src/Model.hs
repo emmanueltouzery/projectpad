@@ -34,6 +34,7 @@ Server
 	username Text
 	password Password
 	type ServerType
+	accessType ServerAccessType
 	projectId ProjectId
 	deriving Show Typeable
 Project

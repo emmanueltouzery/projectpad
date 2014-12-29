@@ -50,13 +50,14 @@ getCurProject (fromObjRef -> state) = fromMaybe (error "No current project!")
 	<$> readMVar (curProjectId state)
 
 addServer :: SqlBackend -> ObjRef ProjectViewState
-	-> Text -> IpAddress -> Text -> Text -> Text -> IO ()
+	-> Text -> IpAddress -> Text -> Text -> Text -> Text -> IO ()
 addServer sqlBackend stateRef
-	sDesc ipAddr username password serverTypeT = do
+	sDesc ipAddr username password serverTypeT serverAccessTypeT = do
 	pId <- getCurProject stateRef
 	let pidKey = toSqlKey $ fromIntegral pId
 	let srvType = read $ T.unpack serverTypeT
-	let server = Server sDesc ipAddr username password srvType pidKey
+	let srvAccessType = read $ T.unpack serverAccessTypeT
+	let server = Server sDesc ipAddr username password srvType srvAccessType pidKey
 	runSqlBackend sqlBackend $ P.insert server
 	updateProjectViewCache sqlBackend stateRef pId
 

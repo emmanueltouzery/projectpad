@@ -12,7 +12,11 @@ data InterestType = PoiApplication | PoiLogFile | PoiDataFile
 	deriving (Show, Read, Eq, Typeable)
 derivePersistField "InterestType"
 
+data ServerAccessType = SrvSsh | SrvRdp
+	deriving (Show, Read, Eq, Typeable)
+derivePersistField "ServerAccessType"
+
 -- app would be bug tracking, CI...
-data ServerType = SrvSsh | SrvRdp | SrvDatabase | SrvApplication
+data ServerType = SrvDatabase | SrvApplication
 	deriving (Show, Read, Eq, Typeable)
 derivePersistField "ServerType"

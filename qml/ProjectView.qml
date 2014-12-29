@@ -26,9 +26,9 @@ ScrollView {
 				break;
 			case "addsrv":
 				popup.setContents("Add server", addServerContents,
-						function() {
-						}, function() {
-							console.log("OK")
+						function(serverEdit) {
+						}, function(serverEdit) {
+							serverEdit.onOk()
 						})
 				break;
 		}
