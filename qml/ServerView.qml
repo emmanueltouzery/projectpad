@@ -10,27 +10,17 @@ ScrollView {
 	property variant model
 
 	property variant actions: [
-		["addsrv", "glyphicons-470-server-new", "Add server"],
-		["edit", "glyphicons-31-pencil", "Edit project"]]
+		["edit", "glyphicons-31-pencil", "Edit server"]]
 
 	function actionTriggered(name) {
 		switch (name) {
 			case "edit":
-				popup.setContents("Edit project", projectEditComponent,
-						function (projectEdit) {
-							projectEdit.activate(pv.model)
+				popup.setContents("Edit server", serverEditComponent,
+						function (serverEdit) {
+							serverEdit.activate(pv.model)
 						},
-						function (projectEdit) {
-							projectEdit.onOk()
-						})
-				break;
-			case "addsrv":
-				popup.setContents("Add server", addServerContents,
-						function(serverEdit) {
-						}, function(serverEdit) {
+						function (serverEdit) {
 							serverEdit.onOk()
-							// force refresh
-							itemsrepeater.model = projectViewState.getServers(pv.model.id)
 						})
 				break;
 		}
@@ -47,7 +37,7 @@ ScrollView {
 
 			Repeater {
 				id: itemsrepeater
-				model: projectViewState.getServers(pv.model.id)
+				model: serverViewState.getPois(pv.model.id)
 
 				Rectangle {
 					width: 180; height: 180
@@ -59,20 +49,13 @@ ScrollView {
 					MouseArea {
 						anchors.fill: parent
 						onClicked: {
-							loadView("ServerView.qml", modelData, [pv.model.name, modelData.desc])
 						}
 					}
 				}
 			}
 		}
 		Component {
-			id: projectEditComponent
-			ProjectEdit {
-				id: projectEdit
-			}
-		}
-		Component {
-			id: addServerContents
+			id: serverEditComponent
 			ServerEdit {
 				id: serverEdit
 			}
