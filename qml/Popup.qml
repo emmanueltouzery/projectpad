@@ -23,11 +23,12 @@ Rectangle {
 	}
 
 	Rectangle {
+		id: popupWindow
 		anchors.horizontalCenter: parent.horizontalCenter
 		y: 40
 		width: 580
 		color: Qt.lighter("light gray", 1.15)
-		height: 500
+		height: popupHeader.height + popupContentsLoader.height
 		z: 2
 		radius: 5
 	
@@ -72,7 +73,7 @@ Rectangle {
 			id: popupContentsLoader
 			width: parent.width
 			y: popupHeader.height
-			height: popup.height - popupHeader.height
+			onLoaded: height = item.preferredHeight
 		}
 	}
 

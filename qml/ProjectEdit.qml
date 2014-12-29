@@ -3,9 +3,11 @@ import QtQuick.Controls 1.2
 import QtQuick.Layouts 1.1
 
 Rectangle {
-	anchors.fill: parent
+	anchors.left: parent.left
+	anchors.right: parent.right
 	id: projectEdit
 	color: "light grey"
+	property int preferredHeight: 120
 
 	property variant model : {"name": "Project name"}
 
