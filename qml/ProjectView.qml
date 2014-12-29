@@ -29,6 +29,8 @@ ScrollView {
 						function(serverEdit) {
 						}, function(serverEdit) {
 							serverEdit.onOk()
+							// force refresh
+							itemsrepeater.model = projectViewState.getServers(pv.model.id)
 						})
 				break;
 		}
