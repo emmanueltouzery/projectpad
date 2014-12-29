@@ -3,8 +3,6 @@ import QtQuick.Controls 1.2
 import QtQuick.Layouts 1.1
 
 Rectangle {
-	anchors.left: parent.left
-	anchors.right: parent.right
 	color: "light grey"
 	property int preferredHeight: 280
 
