@@ -37,15 +37,10 @@ Rectangle {
 			text: "Project name:"
 		}
 
-		Rectangle {
-			color: "white"
-			width: 200
-			height: 24
-			TextInput {
-				id: projectNameEntry
-				text: projectEdit.model.name
-				anchors.fill: parent
-			}
+		TextField {
+			Layout.fillWidth: true
+			id: projectNameEntry
+			text: projectEdit.model.name
 		}
 	}
 }
