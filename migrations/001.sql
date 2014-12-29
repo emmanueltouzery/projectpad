@@ -1,16 +1,18 @@
-CREATE TABLE command_to_run (id INTEGER PRIMARY KEY,
+CREATE TABLE server_point_of_interest (id INTEGER PRIMARY KEY,
 	desc TEXT NOT NULL,
 	path TEXT NOT NULL,
 	text TEXT NOT NULL,
-	server_id INTEGER NULL,
+	interest_type TEXT NOT NULL,
+	server_id INTEGER NOT NULL,
 	FOREIGN KEY(server_id) REFERENCES server(id));
 
-CREATE TABLE point_of_interest (id INTEGER PRIMARY KEY,
-	description TEXT NOT NULL COLLATE NOCASE,
-	location TEXT NOT NULL,
-	interest_type INTEGER NOT NULL,
-	server_id INTEGER NULL,
-	FOREIGN KEY(server_id) REFERENCES server(id));
+CREATE TABLE project_point_of_interest (id INTEGER PRIMARY KEY,
+	desc TEXT NOT NULL,
+	path TEXT NOT NULL,
+	text TEXT NOT NULL,
+	interest_type TEXT NOT NULL,
+	project_id INTEGER NOT NULL,
+	FOREIGN KEY(project_id) REFERENCES project(id));
 
 CREATE TABLE server (id INTEGER PRIMARY KEY,
 	desc TEXT NOT NULL COLLATE NOCASE,

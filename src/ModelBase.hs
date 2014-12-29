@@ -8,7 +8,7 @@ import Data.Typeable
 type Password = Text
 type IpAddress = Text
 
-data InterestType = PoiApplication | PoiLogFile | PoiDataFile
+data InterestType = PoiApplication | PoiLogFile | PoiDataFile | PoiCommandToRun
 	deriving (Show, Read, Eq, Typeable)
 derivePersistField "InterestType"
 

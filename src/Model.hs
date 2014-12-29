@@ -15,19 +15,22 @@ import Data.Int
 
 import ModelBase
 
+-- TODO add DataFile (for instance a key)
 mkPersist sqlSettings [persistLowerCase|
-CommandToRun
+ServerPointOfInterest
 	desc String
 	path String
 	text String
-	serverId ServerId Maybe
-	deriving Show
-PointOfInterest
-	description String
-	location FilePath
 	interestType InterestType
-	serverId ServerId Maybe
+	serverId ServerId
 	deriving Show
+ProjectPointOfInterest
+	desc String
+	path String
+	text String
+	interestType InterestType
+	projectId ProjectId
+	deriving Show Typeable
 Server
 	desc Text
 	ip IpAddress
