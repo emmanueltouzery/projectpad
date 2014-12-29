@@ -18,16 +18,16 @@ import ModelBase
 -- TODO add DataFile (for instance a key)
 mkPersist sqlSettings [persistLowerCase|
 ServerPointOfInterest
-	desc String
-	path String
-	text String
+	desc Text
+	path Text
+	text Text
 	interestType InterestType
 	serverId ServerId
-	deriving Show
+	deriving Show Typeable
 ProjectPointOfInterest
-	desc String
-	path String
-	text String
+	desc Text
+	path Text
+	text Text
 	interestType InterestType
 	projectId ProjectId
 	deriving Show Typeable
@@ -70,6 +70,9 @@ instance DefaultClass (Entity Project) where
 
 instance DefaultClass (Entity Server) where
 	classMembers = getStandardClassMembers [("desc", serverDesc)]
+
+instance DefaultClass (Entity ServerPointOfInterest) where
+	classMembers = getStandardClassMembers [("desc", serverPointOfInterestDesc)]
 
 deriving instance Typeable Entity
 deriving instance Typeable Key

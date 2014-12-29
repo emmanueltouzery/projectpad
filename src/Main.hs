@@ -35,6 +35,7 @@ import Model
 import Schema
 import ProjectList
 import ProjectView
+import ServerView
 
 main :: IO ()
 main = do
@@ -47,7 +48,8 @@ main = do
 data AppState = AppState
 	{
 		projectListState :: ObjRef ProjectListState,
-		projectViewState :: ObjRef ProjectViewState
+		projectViewState :: ObjRef ProjectViewState,
+		serverViewState :: ObjRef ServerViewState
 	} deriving Typeable
 
 createContext :: SqlBackend -> IO (ObjRef AppState)
@@ -57,11 +59,14 @@ createContext sqlBackend = do
 			defPropertyConst "projectListState"
 				$ return . projectListState . fromObjRef,
 			defPropertyConst "projectViewState"
-				$ return . projectViewState . fromObjRef
+				$ return . projectViewState . fromObjRef,
+			defPropertyConst "serverViewState"
+				$ return . serverViewState . fromObjRef
 		]
 	rootContext <- AppState
 		<$> createProjectListState sqlBackend
 		<*> createProjectViewState sqlBackend
+		<*> createServerViewState sqlBackend
 	newObject rootClass rootContext
 
 
