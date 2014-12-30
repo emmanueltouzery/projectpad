@@ -29,10 +29,28 @@ Rectangle {
 	}
 
 	function onOk() {
-		projectViewState.addServer(serverDescription.text, ipAddress.text,
+		if (model.id) {
+			serverEdit.model = projectViewState.updateServer(
+				model, serverDescription.text, ipAddress.text,
+				username.text, password.text,
+				serverTypeItems.get(serverType.currentIndex).value,
+				serverAccessTypeItems.get(serverAccessType.currentIndex).value);
+			// need also the project name in the breadcrumbs!
+			var project;
+			for (var i=0;i<projectListState.projects.length;i++) {
+				var curPrj = projectListState.projects[i];
+				if (curPrj.id === parseInt(serverEdit.model.projectId)) {
+					project = curPrj;
+					break;
+				}
+			}
+			loadView("ServerView.qml", serverEdit.model, [project.name, serverEdit.model.desc])
+		} else {
+			projectViewState.addServer(serverDescription.text, ipAddress.text,
 				username.text, password.text,
 				serverTypeItems.get(serverType.currentIndex).value,
 				serverAccessTypeItems.get(serverAccessType.currentIndex).value)
+		}
 	}
 
 	GridLayout {

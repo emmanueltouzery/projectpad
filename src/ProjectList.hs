@@ -33,8 +33,8 @@ reReadProjects sqlBackend changeKey state = do
 	fireSignal changeKey state
 
 addProject :: SqlBackend -> SignalKey (IO ()) -> ObjRef ProjectListState -> Text -> IO ()
-addProject sqlBackend changeKey state text = do
-	runSqlBackend sqlBackend $ P.insert (Project text "")
+addProject sqlBackend changeKey state txt = do
+	runSqlBackend sqlBackend $ P.insert (Project txt "")
 	reReadProjects sqlBackend changeKey state
 
 updateProject :: SqlBackend -> SignalKey (IO ()) -> ObjRef ProjectListState

@@ -10,6 +10,8 @@ import qualified Database.Persist as P
 import Data.Typeable
 import Data.Text (Text)
 import qualified Data.Text as T
+import Data.List
+import Data.Maybe
 
 import ModelBase
 import Model
@@ -54,7 +56,7 @@ addServer sqlBackend stateRef
 	updateServersCache sqlBackend stateRef
 
 updateServer :: SqlBackend -> ObjRef ProjectViewState -> ObjRef (Entity Server)
-	-> Text -> IpAddress -> Text -> Text -> Text -> Text -> IO ()
+	-> Text -> IpAddress -> Text -> Text -> Text -> Text -> IO (ObjRef (Entity Server))
 updateServer sqlBackend stateRef serverRef
 	sDesc ipAddr username password serverTypeT serverAccessTypeT = do
 	let srvType = read $ T.unpack serverTypeT
@@ -67,6 +69,10 @@ updateServer sqlBackend stateRef serverRef
 			ServerType P.=. srvType, ServerAccessType P.=. srvAccessType
 		]
 	updateServersCache sqlBackend stateRef
+	newServerList <- fromMaybe (error "No servers after update?")
+		<$> (readMVar $ servers (fromObjRef stateRef))
+	let mUpdatedServerEntity = find ((== idKey) . entityKey . fromObjRef) newServerList
+	return $ fromMaybe (error "Can't find server after update?") mUpdatedServerEntity
 
 createProjectViewState :: SqlBackend -> IO (ObjRef ProjectViewState)
 createProjectViewState sqlBackend = do

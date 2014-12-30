@@ -78,7 +78,8 @@ instance DefaultClass (Entity Server) where
 		("username", serverUsername),
 		("password", serverPassword),
 		("type", text . serverType),
-		("accessType", text . serverAccessType)]
+		("accessType", text . serverAccessType),
+		("projectId", text . fromSqlKey . serverProjectId)] -- TODO FK as text...
 
 instance DefaultClass (Entity ServerPointOfInterest) where
 	classMembers = getStandardClassMembers [("desc", serverPointOfInterestDesc)]
