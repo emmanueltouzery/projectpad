@@ -19,6 +19,7 @@ data ServerViewState = ServerViewState
 
 instance DynParentHolder ServerViewState where
 	dynParentId = curServerId
+	clearAllChildrenCaches state = swapMVar_ (pois state) []
 
 instance CacheHolder ServerPointOfInterest ServerViewState where
 	cacheChildren = pois

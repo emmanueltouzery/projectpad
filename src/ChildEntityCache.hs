@@ -8,8 +8,12 @@ import Graphics.QML
 import Data.Maybe
 import Control.Applicative
 
+swapMVar_ :: MVar a -> a -> IO ()
+swapMVar_ a b = swapMVar a b >> return ()
+
 class DynParentHolder a where
 	dynParentId :: a -> MVar (Maybe Int)
+	clearAllChildrenCaches :: a -> IO ()
 
 class DynParentHolder a => CacheHolder b a where
 	cacheChildren :: a -> MVar [ObjRef (Entity b)]
@@ -22,9 +26,11 @@ updateCache :: (CacheHolder b a, DefaultClass (Entity b)) =>
 	ObjRef a -> [Entity b] -> Int -> IO ()
 updateCache state_ newChildren parentId = do
 	let state = fromObjRef state_
-	let newQmlChildren = mapM newObjectDC newChildren
-	modifyMVar_ (dynParentId state) $ const (return $ Just parentId)
-	modifyMVar_ (cacheChildren state) $ const newQmlChildren
+	newQmlChildren <- mapM newObjectDC newChildren
+	swapMVar_ (dynParentId state) (Just parentId)
+	clearAllChildrenCaches state
+	-- update this cache
+	swapMVar_ (cacheChildren state) newQmlChildren
 	-- maybe i need to fire a signal for hsqml so it updates the objref?
 
 getChildren :: (CacheHolder b a, DefaultClass (Entity b)) =>

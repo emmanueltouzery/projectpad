@@ -23,6 +23,7 @@ data ProjectViewState = ProjectViewState
 
 instance DynParentHolder ProjectViewState where
 	dynParentId = curProjectId
+	clearAllChildrenCaches state = swapMVar_ (servers state) []
 
 instance CacheHolder Server ProjectViewState where
 	cacheChildren = servers
