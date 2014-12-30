@@ -8,10 +8,11 @@ import Data.Time.Clock
 import Data.ByteString
 import Database.Persist.TH
 import Data.Typeable
-import Data.Text
 import Graphics.QML
 import Database.Persist.Sql
 import Data.Int
+import Data.Text (Text)
+import qualified Data.Text as T
 
 import ModelBase
 
@@ -68,8 +69,16 @@ getStandardClassMembers pairs = (idProperty:others)
 instance DefaultClass (Entity Project) where
 	classMembers = getStandardClassMembers [("name", projectName)]
 
+text :: Show a => a -> Text
+text = T.pack . show
+
 instance DefaultClass (Entity Server) where
-	classMembers = getStandardClassMembers [("desc", serverDesc)]
+	classMembers = getStandardClassMembers [("desc", serverDesc),
+		("serverIp", serverIp),
+		("username", serverUsername),
+		("password", serverPassword),
+		("type", text . serverType),
+		("accessType", text . serverAccessType)]
 
 instance DefaultClass (Entity ServerPointOfInterest) where
 	classMembers = getStandardClassMembers [("desc", serverPointOfInterestDesc)]

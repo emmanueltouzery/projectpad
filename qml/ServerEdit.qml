@@ -3,8 +3,30 @@ import QtQuick.Controls 1.2
 import QtQuick.Layouts 1.1
 
 Rectangle {
+	id: serverEdit
 	color: "light grey"
 	property int preferredHeight: 280
+
+	property variant model: {"desc": "New server", "serverIp": "",
+					"username": "", "password": "",
+					"type": "", "accessType": ""}
+
+	function activate(_model) {
+		serverEdit.model = _model
+		serverType.currentIndex = listModelGetValueIndex(serverType.model, _model.type)
+		serverAccessType.currentIndex = listModelGetValueIndex(serverAccessType.model, _model.accessType)
+		serverDescription.selectAll()
+		serverDescription.forceActiveFocus()
+	}
+
+	function listModelGetValueIndex(listModel, value) {
+		for (var i=0;i<listModel.count;i++) {
+			if (listModel.get(i).value === value) {
+				return i;
+			}
+		}
+		return 0
+	}
 
 	function onOk() {
 		projectViewState.addServer(serverDescription.text, ipAddress.text,
@@ -26,6 +48,7 @@ Rectangle {
 		TextField {
 			id: serverDescription
 			Layout.fillWidth: true
+			text: serverEdit.model.desc
 		}
 
 		Text {
@@ -34,6 +57,7 @@ Rectangle {
 		TextField {
 			id: ipAddress
 			Layout.fillWidth: true
+			text: serverEdit.model.serverIp
 		}
 
 		Text {
@@ -42,6 +66,7 @@ Rectangle {
 		TextField {
 			id: username
 			Layout.fillWidth: true
+			text: serverEdit.model.username
 		}
 
 		Text {
@@ -51,6 +76,7 @@ Rectangle {
 			id: password
 			echoMode: TextInput.Password
 			Layout.fillWidth: true
+			text: serverEdit.model.password
 		}
 
 		Text {
