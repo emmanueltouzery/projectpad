@@ -42,13 +42,6 @@ readServers projectId = select $ from $ \s -> do
 	orderBy [asc (s ^. ServerDesc)]
 	return s
 
-updateServersCache :: CacheHolder Server a => SqlBackend -> ObjRef a -> IO ()
-updateServersCache sqlBackend stateRef = do
-	pId <- getCurParentId stateRef
-	newServers <- runSqlBackend sqlBackend (readServers pId)
-	updateCache stateRef newServers
-	return ()
-
 addServer :: SqlBackend -> ObjRef ProjectViewState
 	-> Text -> IpAddress -> Text -> Text -> Text -> Text -> IO ()
 addServer sqlBackend stateRef
@@ -59,7 +52,7 @@ addServer sqlBackend stateRef
 	let srvAccessType = read $ T.unpack serverAccessTypeT
 	let server = Server sDesc ipAddr username password srvType srvAccessType pidKey
 	runSqlBackend sqlBackend $ P.insert server
-	updateServersCache sqlBackend stateRef
+	updateCacheQuery sqlBackend stateRef readServers
 
 updateServer :: SqlBackend -> ObjRef ProjectViewState -> ObjRef (Entity Server)
 	-> Text -> IpAddress -> Text -> Text -> Text -> Text -> IO (ObjRef (Entity Server))
@@ -74,7 +67,7 @@ updateServer sqlBackend stateRef serverRef
 			ServerUsername P.=. username, ServerPassword P.=. password,
 			ServerType P.=. srvType, ServerAccessType P.=. srvAccessType
 		]
-	updateServersCache sqlBackend stateRef
+	updateCacheQuery sqlBackend stateRef readServers
 	newServerList <- fromMaybe (error "No servers after update?")
 		<$> (readMVar $ servers (fromObjRef stateRef))
 	let mUpdatedServerEntity = find ((== idKey) . entityKey . fromObjRef) newServerList
@@ -86,13 +79,6 @@ readPois projectId = select $ from $ \poi -> do
 	orderBy [asc (poi ^. ProjectPointOfInterestDesc)]
 	return poi
 
-updatePoisCache :: CacheHolder ProjectPointOfInterest a => SqlBackend -> ObjRef a -> IO ()
-updatePoisCache sqlBackend stateRef = do
-	pId <- getCurParentId stateRef
-	newPois <- runSqlBackend sqlBackend (readPois pId)
-	updateCache stateRef newPois
-	return ()
-
 addProjectPoi :: SqlBackend -> ObjRef ProjectViewState
 	-> Text -> Text -> Text -> Text -> IO ()
 addProjectPoi sqlBackend stateRef
@@ -102,7 +88,7 @@ addProjectPoi sqlBackend stateRef
 	let pidKey = toSqlKey $ fromIntegral pId
 	let poi = ProjectPointOfInterest pDesc path txt interestType pidKey
 	runSqlBackend sqlBackend $ P.insert poi
-	updatePoisCache sqlBackend stateRef
+	updateCacheQuery sqlBackend stateRef readPois
 
 createProjectViewState :: SqlBackend -> IO (ObjRef ProjectViewState)
 createProjectViewState sqlBackend = do

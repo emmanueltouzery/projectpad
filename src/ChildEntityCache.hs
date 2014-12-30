@@ -8,6 +8,8 @@ import Graphics.QML
 import Data.Maybe as M
 import Control.Applicative
 
+import Model (runSqlBackend)
+
 swapMVar_ :: MVar a -> a -> IO ()
 swapMVar_ a b = swapMVar a b >> return ()
 
@@ -28,6 +30,14 @@ updateCache state_ newChildren = do
 	newQmlChildren <- mapM newObjectDC newChildren
 	swapMVar_ (cacheChildren $ fromObjRef state_) (Just newQmlChildren)
 	return newQmlChildren
+
+updateCacheQuery :: (CacheHolder b a, DefaultClass (Entity b)) =>
+	SqlBackend -> ObjRef a -> (Int -> SqlPersistM [Entity b]) -> IO ()
+updateCacheQuery sqlBackend stateRef reader = do
+	pId <- getCurParentId stateRef
+	newData <- runSqlBackend sqlBackend (reader pId)
+	updateCache stateRef newData
+	return ()
 
 -- read children from the cache for a certain parent id.
 -- if the cache is for another parent id, reset the cache
