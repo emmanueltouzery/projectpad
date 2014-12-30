@@ -84,6 +84,9 @@ instance DefaultClass (Entity Server) where
 instance DefaultClass (Entity ServerPointOfInterest) where
 	classMembers = getStandardClassMembers [("desc", serverPointOfInterestDesc)]
 
+instance DefaultClass (Entity ProjectPointOfInterest) where
+	classMembers = getStandardClassMembers [("desc", projectPointOfInterestDesc)]
+
 deriving instance Typeable Entity
 deriving instance Typeable Key
 

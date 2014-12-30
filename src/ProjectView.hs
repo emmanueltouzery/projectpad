@@ -20,15 +20,21 @@ import ChildEntityCache
 data ProjectViewState = ProjectViewState
 	{
 		curProjectId :: MVar (Maybe Int),
-		servers :: MVar (Maybe [ObjRef (Entity Server)])
+		servers :: MVar (Maybe [ObjRef (Entity Server)]),
+		pois :: MVar (Maybe [ObjRef (Entity ProjectPointOfInterest)])
 	} deriving Typeable
 
 instance DynParentHolder ProjectViewState where
 	dynParentId = curProjectId
-	clearAllChildrenCaches state = swapMVar_ (servers state) Nothing
+	clearAllChildrenCaches state = do
+		swapMVar_ (servers state) Nothing
+		swapMVar_ (pois state) Nothing
 
 instance CacheHolder Server ProjectViewState where
 	cacheChildren = servers
+
+instance CacheHolder ProjectPointOfInterest ProjectViewState where
+	cacheChildren = pois
 
 readServers :: Int -> SqlPersistM [Entity Server]
 readServers projectId = select $ from $ \s -> do
@@ -74,16 +80,44 @@ updateServer sqlBackend stateRef serverRef
 	let mUpdatedServerEntity = find ((== idKey) . entityKey . fromObjRef) newServerList
 	return $ fromMaybe (error "Can't find server after update?") mUpdatedServerEntity
 
+readPois :: Int -> SqlPersistM [Entity ProjectPointOfInterest]
+readPois projectId = select $ from $ \poi -> do
+	where_ (poi ^. ProjectPointOfInterestProjectId ==. val (toSqlKey32 projectId))
+	orderBy [asc (poi ^. ProjectPointOfInterestDesc)]
+	return poi
+
+updatePoisCache :: CacheHolder ProjectPointOfInterest a => SqlBackend -> ObjRef a -> IO ()
+updatePoisCache sqlBackend stateRef = do
+	pId <- getCurParentId stateRef
+	newPois <- runSqlBackend sqlBackend (readPois pId)
+	updateCache stateRef newPois
+	return ()
+
+addProjectPoi :: SqlBackend -> ObjRef ProjectViewState
+	-> Text -> Text -> Text -> Text -> IO ()
+addProjectPoi sqlBackend stateRef
+	pDesc path txt interestTypeT = do
+	let interestType = read $ T.unpack interestTypeT
+	pId <- getCurParentId stateRef
+	let pidKey = toSqlKey $ fromIntegral pId
+	let poi = ProjectPointOfInterest pDesc path txt interestType pidKey
+	runSqlBackend sqlBackend $ P.insert poi
+	updatePoisCache sqlBackend stateRef
+
 createProjectViewState :: SqlBackend -> IO (ObjRef ProjectViewState)
 createProjectViewState sqlBackend = do
 	projectViewState <- ProjectViewState
 		<$> newMVar Nothing
 		<*> newMVar Nothing
+		<*> newMVar Nothing
 	let ioReadServers = \pId -> runSqlBackend sqlBackend (readServers pId)
+	let ioReadPois = \pId -> runSqlBackend sqlBackend (readPois pId)
 	projectViewClass <- newClass
 		[
 			defMethod "getServers" (getChildren ioReadServers),
 			defMethod "addServer" (addServer sqlBackend),
-			defMethod "updateServer" (updateServer sqlBackend)
+			defMethod "updateServer" (updateServer sqlBackend),
+			defMethod "getPois" (getChildren ioReadPois),
+			defMethod "addProjectPoi" (addProjectPoi sqlBackend)
 		]
 	newObject projectViewClass projectViewState
