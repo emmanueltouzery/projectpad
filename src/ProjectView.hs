@@ -1,5 +1,5 @@
 {-# LANGUAGE OverloadedStrings, DeriveDataTypeable, TypeFamilies #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE MultiParamTypeClasses, FlexibleContexts #-}
 module ProjectView where
 
 import Control.Applicative
@@ -18,12 +18,12 @@ import ChildEntityCache
 data ProjectViewState = ProjectViewState
 	{
 		curProjectId :: MVar (Maybe Int),
-		servers :: MVar [ObjRef (Entity Server)]
+		servers :: MVar (Maybe [ObjRef (Entity Server)])
 	} deriving Typeable
 
 instance DynParentHolder ProjectViewState where
 	dynParentId = curProjectId
-	clearAllChildrenCaches state = swapMVar_ (servers state) []
+	clearAllChildrenCaches state = swapMVar_ (servers state) Nothing
 
 instance CacheHolder Server ProjectViewState where
 	cacheChildren = servers
@@ -33,6 +33,13 @@ readServers projectId = select $ from $ \s -> do
 	where_ (s ^. ServerProjectId ==. val (toSqlKey32 projectId))
 	orderBy [asc (s ^. ServerDesc)]
 	return s
+
+updateServersCache :: CacheHolder Server a => SqlBackend -> ObjRef a -> IO ()
+updateServersCache sqlBackend stateRef = do
+	pId <- getCurParentId stateRef
+	newServers <- runSqlBackend sqlBackend (readServers pId)
+	updateCache stateRef newServers
+	return ()
 
 addServer :: SqlBackend -> ObjRef ProjectViewState
 	-> Text -> IpAddress -> Text -> Text -> Text -> Text -> IO ()
@@ -44,18 +51,33 @@ addServer sqlBackend stateRef
 	let srvAccessType = read $ T.unpack serverAccessTypeT
 	let server = Server sDesc ipAddr username password srvType srvAccessType pidKey
 	runSqlBackend sqlBackend $ P.insert server
-	newServers <- runSqlBackend sqlBackend (readServers pId)
-	updateCache stateRef newServers pId
+	updateServersCache sqlBackend stateRef
+
+updateServer :: SqlBackend -> ObjRef ProjectViewState -> ObjRef (Entity Server)
+	-> Text -> IpAddress -> Text -> Text -> Text -> Text -> IO ()
+updateServer sqlBackend stateRef serverRef
+	sDesc ipAddr username password serverTypeT serverAccessTypeT = do
+	let srvType = read $ T.unpack serverTypeT
+	let srvAccessType = read $ T.unpack serverAccessTypeT
+	let idKey = entityKey $ fromObjRef serverRef
+	runSqlBackend sqlBackend $ P.update idKey
+		[
+			ServerDesc P.=. sDesc, ServerIp P.=. ipAddr,
+			ServerUsername P.=. username, ServerPassword P.=. password,
+			ServerType P.=. srvType, ServerAccessType P.=. srvAccessType
+		]
+	updateServersCache sqlBackend stateRef
 
 createProjectViewState :: SqlBackend -> IO (ObjRef ProjectViewState)
 createProjectViewState sqlBackend = do
 	projectViewState <- ProjectViewState
 		<$> newMVar Nothing
-		<*> newMVar []
+		<*> newMVar Nothing
 	let ioReadServers = \pId -> runSqlBackend sqlBackend (readServers pId)
 	projectViewClass <- newClass
 		[
 			defMethod "getServers" (getChildren ioReadServers),
-			defMethod "addServer" (addServer sqlBackend)
+			defMethod "addServer" (addServer sqlBackend),
+			defMethod "updateServer" (updateServer sqlBackend)
 		]
 	newObject projectViewClass projectViewState

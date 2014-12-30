@@ -14,12 +14,12 @@ import ChildEntityCache
 data ServerViewState = ServerViewState
 	{
 		curServerId :: MVar (Maybe Int),
-		pois :: MVar [ObjRef (Entity ServerPointOfInterest)]
+		pois :: MVar (Maybe [ObjRef (Entity ServerPointOfInterest)])
 	} deriving Typeable
 
 instance DynParentHolder ServerViewState where
 	dynParentId = curServerId
-	clearAllChildrenCaches state = swapMVar_ (pois state) []
+	clearAllChildrenCaches state = swapMVar_ (pois state) Nothing
 
 instance CacheHolder ServerPointOfInterest ServerViewState where
 	cacheChildren = pois
@@ -34,7 +34,7 @@ createServerViewState :: SqlBackend -> IO (ObjRef ServerViewState)
 createServerViewState sqlBackend = do
 	serverViewState <- ServerViewState
 		<$> newMVar Nothing
-		<*> newMVar []
+		<*> newMVar Nothing
 	let ioReadPois = \sId -> runSqlBackend sqlBackend (readPointOfInterests sId)
 	serverViewClass <- newClass
 		[
