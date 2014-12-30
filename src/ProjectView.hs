@@ -96,14 +96,12 @@ createProjectViewState sqlBackend = do
 		<$> newMVar Nothing
 		<*> newMVar Nothing
 		<*> newMVar Nothing
-	let ioReadServers = \pId -> runSqlBackend sqlBackend (readServers pId)
-	let ioReadPois = \pId -> runSqlBackend sqlBackend (readPois pId)
 	projectViewClass <- newClass
 		[
-			defMethod "getServers" (getChildren ioReadServers),
+			defMethod "getServers" (getChildren sqlBackend readServers),
 			defMethod "addServer" (addServer sqlBackend),
 			defMethod "updateServer" (updateServer sqlBackend),
-			defMethod "getPois" (getChildren ioReadPois),
+			defMethod "getPois" (getChildren sqlBackend readPois),
 			defMethod "addProjectPoi" (addProjectPoi sqlBackend)
 		]
 	newObject projectViewClass projectViewState

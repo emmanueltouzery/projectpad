@@ -43,8 +43,8 @@ updateCacheQuery sqlBackend stateRef reader = do
 -- if the cache is for another parent id, reset the cache
 -- for the new parent id, and refill it before returning the value.
 getChildren :: (CacheHolder b a, DefaultClass (Entity b)) =>
-	(Int -> IO [Entity b]) -> ObjRef a -> Int -> IO [ObjRef (Entity b)]
-getChildren readChildren _state parentId = do
+	SqlBackend -> (Int -> SqlPersistM [Entity b]) -> ObjRef a -> Int -> IO [ObjRef (Entity b)]
+getChildren sqlBackend readChildren _state parentId = do
 	let state = fromObjRef _state
 	pId <- readMVar (dynParentId state)
 	when (not $ pId == Just parentId) $ do
@@ -53,4 +53,6 @@ getChildren readChildren _state parentId = do
 	cachedData <- readMVar (cacheChildren state)
 	case cachedData of
 		Just x -> return x
-		Nothing -> readChildren parentId >>= updateCache _state
+		Nothing -> do
+			children <- runSqlBackend sqlBackend (readChildren parentId)
+			updateCache _state children

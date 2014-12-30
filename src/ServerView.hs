@@ -35,9 +35,8 @@ createServerViewState sqlBackend = do
 	serverViewState <- ServerViewState
 		<$> newMVar Nothing
 		<*> newMVar Nothing
-	let ioReadPois = \sId -> runSqlBackend sqlBackend (readPointOfInterests sId)
 	serverViewClass <- newClass
 		[
-			defMethod "getPois" (getChildren ioReadPois)
+			defMethod "getPois" (getChildren sqlBackend readPointOfInterests)
 		]
 	newObject serverViewClass serverViewState
