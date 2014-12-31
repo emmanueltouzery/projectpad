@@ -11,6 +11,7 @@ ScrollView {
 
 	property variant actions: [
 		["addsrv", "glyphicons-470-server-new", "Add server"],
+		["addpoi", "glyphicons-336-pushpin", "Add point of interest"],
 		["edit", "glyphicons-31-pencil", "Edit project"]]
 
 	function actionTriggered(name) {
@@ -26,13 +27,21 @@ ScrollView {
 				break;
 			case "addsrv":
 				popup.setContents("Add server", addServerContents,
-						function(serverEdit) {
-						}, function(serverEdit) {
+						function (serverEdit) {
+						},
+						function (serverEdit) {
 							serverEdit.onOk()
 							// force refresh
 							itemsrepeater.model = projectViewState.getServers(pv.model.id)
 						})
 				break;
+			case "addpoi":
+				popup.setContents("Add point of interest", addPoiContents,
+						function (poiEdit) {
+						},
+						function (poiEdit) {
+							poiEdit.onOk();
+						})
 		}
 	}
 
@@ -75,6 +84,12 @@ ScrollView {
 			id: addServerContents
 			ServerEdit {
 				id: serverEdit
+			}
+		}
+		Component {
+			id: addPoiContents
+			PoiEdit {
+				id: poiEdit
 			}
 		}
 	}
