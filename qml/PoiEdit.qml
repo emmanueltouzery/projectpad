@@ -49,6 +49,29 @@ Rectangle {
 		}
 	}
 
+	function onServerOk() {
+		if (model.id) {
+			// poiEdit.model = projectViewState.updateServer(
+			// 	model, serverDescription.text, ipAddress.text,
+			// 	username.text, password.text,
+			// 	serverTypeItems.get(serverType.currentIndex).value,
+			// 	serverAccessTypeItems.get(serverAccessType.currentIndex).value);
+			// // need also the project name in the breadcrumbs!
+			// var project;
+			// for (var i=0;i<projectListState.projects.length;i++) {
+			// 	var curPrj = projectListState.projects[i];
+			// 	if (curPrj.id === parseInt(poiEdit.model.projectId)) {
+			// 		project = curPrj;
+			// 		break;
+			// 	}
+			// }
+			// loadView("ServerView.qml", poiEdit.model, [project.name, poiEdit.model.desc])
+		} else {
+			serverViewState.addServerPoi(poiDescription.text, path.text,
+				text.text, interestTypeItems.get(interestType.currentIndex).value)
+		}
+	}
+
 	GridLayout {
 		y: 10
 		anchors.left: parent.left

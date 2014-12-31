@@ -7,6 +7,9 @@ import Control.Concurrent.MVar
 import Graphics.QML
 import Database.Esqueleto
 import Data.Typeable
+import Data.Text (Text)
+import qualified Data.Text as T
+import qualified Database.Persist as P
 
 import Model
 import ChildEntityCache
@@ -30,6 +33,17 @@ readPointOfInterests serverId = select $ from $ \p -> do
 	orderBy [asc (p ^. ServerPointOfInterestDesc)]
 	return p
 
+addServerPoi :: SqlBackend -> ObjRef ServerViewState
+	-> Text -> Text -> Text -> Text -> IO ()
+addServerPoi sqlBackend stateRef
+	pDesc path txt interestTypeT = do
+	let interestType = read $ T.unpack interestTypeT
+	pId <- getCurParentId stateRef
+	let pidKey = toSqlKey $ fromIntegral pId
+	let poi = ServerPointOfInterest pDesc path txt interestType pidKey
+	runSqlBackend sqlBackend $ P.insert poi
+	updateCacheQuery sqlBackend stateRef readPointOfInterests
+
 createServerViewState :: SqlBackend -> IO (ObjRef ServerViewState)
 createServerViewState sqlBackend = do
 	serverViewState <- ServerViewState
@@ -37,6 +51,7 @@ createServerViewState sqlBackend = do
 		<*> newMVar Nothing
 	serverViewClass <- newClass
 		[
-			defMethod "getPois" (getChildren sqlBackend readPointOfInterests)
+			defMethod "getPois" (getChildren sqlBackend readPointOfInterests),
+			defMethod "addServerPoi" (addServerPoi sqlBackend)
 		]
 	newObject serverViewClass serverViewState
