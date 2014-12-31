@@ -1,35 +1,26 @@
 import QtQuick 2.0
+import QtQuick.Controls 1.3
 
-Rectangle {
+Button {
+	property string iconName
+	property string btnText
+
 	width: text.width+23
-	height: 32
-	border.width: 1
-	border.color: "black"
-
-	property string text;
-	property string iconName;
-	signal clicked;
 
 	Image {
 		x: 3
 		y: (parent.height - 16)/2
-		width : 16
+		source: '../glyphicons-free/' + parent.iconName + '.png'
+		width: 16
 		height: 16
 		smooth: true
-		source: "../glyphicons-free/" + parent.iconName + ".png"
 	}
 
 	Text {
 		x: 20
 		id: text
-		text: parent.text
+		text: parent.btnText
 		height: parent.height
 		verticalAlignment: Text.AlignVCenter
 	}
-
-	MouseArea {
-		id: mousearea
-		anchors.fill: parent
-	}
-	Component.onCompleted: mousearea.clicked.connect(clicked)
 }

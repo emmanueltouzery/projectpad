@@ -2,9 +2,16 @@ import QtQuick 2.0
 
 Rectangle {
 	id: toolbarRoot
-	color: 'light gray'
+	color: {
+		if (editMode) {
+			return '#4a90d9';
+		} else {
+			return 'light gray';
+		}
+	}
 	width: parent.width
 	height: 32
+	property bool editMode: false
 
 	signal loadView(string name, variant model, variant displayPath)
 
@@ -31,7 +38,7 @@ Rectangle {
 		spacing: 5
 
 		IconButton {
-			text: 'home'
+			btnText: 'home'
 			iconName: 'glyphicons-21-home'
 			onClicked: loadView("ProjectList.qml", null, [])
 		}
@@ -53,7 +60,7 @@ Rectangle {
 			model: actions
 			IconButton {
 				iconName: modelData[1]
-				text: modelData[2]
+				btnText: modelData[2]
 				onClicked: actionTriggered(modelData[0])
 			}
 		}
