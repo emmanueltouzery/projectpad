@@ -32,7 +32,6 @@ Rectangle {
 	signal actionTriggered(string name);
 
 	Flow {
-		x: 5
 		width: parent.width-x
 		height: parent.height
 		spacing: 5
@@ -41,6 +40,9 @@ Rectangle {
 			btnText: 'home'
 			iconName: 'glyphicons-21-home'
 			onClicked: loadView("ProjectList.qml", null, [])
+			visible: !toolbarRoot.editMode
+			style: normalButtonStyle
+			height: toolbarRoot.height
 		}
 		Repeater {
 			model: displayPath
@@ -49,6 +51,7 @@ Rectangle {
 				text: modelData
 				height: toolbarRoot.height
 				verticalAlignment: Text.AlignVCenter
+				visible: !toolbarRoot.editMode
 			}
 		}
 	}
@@ -62,7 +65,28 @@ Rectangle {
 				iconName: modelData[1]
 				btnText: modelData[2]
 				onClicked: actionTriggered(modelData[0])
+				visible: !toolbarRoot.editMode
+				style: normalButtonStyle
+				height: toolbarRoot.height
 			}
 		}
+		IconButton {
+			id: editModeBtn
+			iconName: 'glyphicons-31-pencil'
+			btnText: 'Edit mode'
+			checkable: true
+			style: checked ? defaultButtonStyle : normalButtonStyle
+			onClicked: toolbarRoot.editMode = editModeBtn.checked
+			height: toolbarRoot.height
+		}
+	}
+
+	Component {
+		id: defaultButtonStyle
+		DefaultButtonStyle {}
+	}
+	Component {
+		id: normalButtonStyle
+		NormalButtonStyle {}
 	}
 }
