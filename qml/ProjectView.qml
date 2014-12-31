@@ -41,6 +41,7 @@ ScrollView {
 						},
 						function (poiEdit) {
 							poiEdit.onOk();
+							poisrepeater.model = projectViewState.getPois(pv.model.id)
 						})
 		}
 	}
@@ -69,6 +70,26 @@ ScrollView {
 						anchors.fill: parent
 						onClicked: {
 							loadView("ServerView.qml", modelData, [pv.model.name, modelData.desc])
+						}
+					}
+				}
+			}
+
+			Repeater {
+				id: poisrepeater
+				model: projectViewState.getPois(pv.model.id)
+
+				Rectangle {
+					width: 180; height: 180
+					color: "light gray"
+
+					Text {
+						text: modelData.desc
+					}
+					MouseArea {
+						anchors.fill: parent
+						onClicked: {
+							//loadView("ServerView.qml", modelData, [pv.model.name, modelData.desc])
 						}
 					}
 				}
