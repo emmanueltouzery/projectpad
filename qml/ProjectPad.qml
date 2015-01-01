@@ -23,7 +23,14 @@ Window {
 	Loader {
 		width: parent.width
 		y: toolbar.height
-		height: parent.height-toolbar.height
+		height: {
+			var baseHeight = parent.height-toolbar.height
+			if (toolbar.editMode) {
+				return baseHeight-editModeActionBar.height
+			} else {
+				return baseHeight
+			}
+		}
 		id: loader
 		source: "ProjectList.qml"
 		onLoaded: {
@@ -34,6 +41,13 @@ Window {
 			toolbar.actions = loader.item.actions
 		}
 	}
+
+	EditModeActionBar {
+		id: editModeActionBar
+		y: loader.y + loader.height
+		visible: toolbar.editMode
+	}
+
 	signal loadView(string name, variant model, variant displayPath)
 
 	Connections {
