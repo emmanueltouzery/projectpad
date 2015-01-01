@@ -18,6 +18,7 @@ Window {
 		id: toolbar
 		onLoadView: loadViewAction(name, model, displayPath)
 		onActionTriggered: loader.item.actionTriggered(name)
+		onEditModeChanged: loader.item.editMode = toolbar.editMode
 	}
 
 	Loader {

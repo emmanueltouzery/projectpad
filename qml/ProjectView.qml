@@ -2,17 +2,27 @@ import QtQuick 2.0
 import QtQuick.Window 2.0
 import QtQuick.Controls 1.2
 import QtQuick.Layouts 1.1
+import "selection.js" as Select
 
 ScrollView {
 	id: pv
 	anchors.fill: parent
 	signal loadView(string name, variant model, variant displayPath)
+	signal selectionChange(variant selection)
 	property variant model
+
+	property bool editMode
 
 	property variant actions: [
 		["addsrv", "glyphicons-470-server-new", "Add server"],
 		["addpoi", "glyphicons-336-pushpin", "Add point of interest"],
 		["edit", "glyphicons-31-pencil", "Edit project"]]
+
+	onSelectionChange: {
+		Select.updateSelectDisplay(itemsrepeater)
+		Select.updateSelectDisplay(poisrepeater)
+	}
+	onEditModeChanged: Select.clearSelection(pv.selectionChange)
 
 	function actionTriggered(name) {
 		switch (name) {
@@ -60,8 +70,12 @@ ScrollView {
 				model: projectViewState.getServers(pv.model.id)
 
 				Rectangle {
+					property int modelId: modelData.id
+					property bool selected: false
 					width: 180; height: 180
 					color: "light blue"
+					border.width: selected ? 4 : 0
+					border.color: "green"
 
 					Text {
 						text: modelData.desc
@@ -69,7 +83,9 @@ ScrollView {
 					MouseArea {
 						anchors.fill: parent
 						onClicked: {
-							loadView("ServerView.qml", modelData, [pv.model.name, modelData.desc])
+							Select.handleClick(pv.selectionChange, modelData.id, function() {
+								loadView("ServerView.qml", modelData, [pv.model.name, modelData.desc])
+							})
 						}
 					}
 				}
@@ -80,8 +96,12 @@ ScrollView {
 				model: projectViewState.getPois(pv.model.id)
 
 				Rectangle {
+					property int modelId: 1000000 + modelData.id
+					property bool selected: false
 					width: 180; height: 180
 					color: "light gray"
+					border.width: selected ? 4 : 0
+					border.color: "green"
 
 					Text {
 						text: modelData.desc
@@ -89,7 +109,9 @@ ScrollView {
 					MouseArea {
 						anchors.fill: parent
 						onClicked: {
-							//loadView("ServerView.qml", modelData, [pv.model.name, modelData.desc])
+							Select.handleClick(selectionChange, 1000000 + modelData.id, function() {
+								//loadView("ServerView.qml", modelData, [pv.model.name, modelData.desc])
+							})
 						}
 					}
 				}

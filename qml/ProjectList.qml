@@ -1,12 +1,16 @@
 import QtQuick 2.0
 import QtQuick.Controls 1.2
+import "selection.js" as Select
 
 ScrollView {
+	id: projectList
 	anchors.fill: parent
 	property variant model /* model is ignored in this screen */
 
 	property variant actions: [
 		["addprj", "glyphicons-146-folder-plus", "Add project"]]
+
+	property bool editMode
 
 	function actionTriggered(name) {
 		switch (name) {
@@ -22,7 +26,12 @@ ScrollView {
 		}
 	}
 
+	signal selectionChange(variant selection)
 	signal loadView(string name, variant model, variant displayPath)
+
+	onSelectionChange: Select.updateSelectDisplay(itemsrepeater)
+	onEditModeChanged: Select.clearSelection(projectList.selectionChange)
+
 	Flickable {
 		width: parent.width
 		contentHeight: flow.implicitHeight
@@ -41,7 +50,11 @@ ScrollView {
 
 				Rectangle {
 					width: 180; height: 180
+					property int modelId: modelData.id
+					property bool selected: false
 					color: "light blue"
+					border.width: selected ? 4 : 0
+					border.color: "green"
 
 					Text {
 						text: modelData.name
@@ -49,7 +62,9 @@ ScrollView {
 					MouseArea {
 						anchors.fill: parent
 						onClicked: {
-							loadView("ProjectView.qml", modelData, [modelData.name])
+							Select.handleClick(projectList.selectionChange, modelData.id, function() {
+								loadView("ProjectView.qml", modelData, [modelData.name])
+							})
 						}
 					}
 				}
