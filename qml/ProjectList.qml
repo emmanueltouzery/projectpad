@@ -34,6 +34,9 @@ ScrollView {
 							projectEdit.onOk()
 						})
 				break;
+			case "delete":
+				projectListState.deleteProjects(Select.selectedItems)
+				break;
 		}
 	}
 

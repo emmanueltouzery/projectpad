@@ -47,6 +47,12 @@ updateProject sqlBackend changeKey state project name = do
 	let mUpdatedProjectEntity = find ((== idKey) . entityKey . fromObjRef) newProjectList
 	return $ fromMaybe (error "Can't find project after update?") mUpdatedProjectEntity
 
+deleteProjects :: SqlBackend -> SignalKey (IO ()) -> ObjRef ProjectListState -> [Int] -> IO ()
+deleteProjects sqlBackend changeKey state projectIds = do
+	let keys = fmap (toSqlKey . fromIntegral) projectIds :: [Key Project]
+	mapM_ (\k -> runSqlBackend sqlBackend $ P.delete k) keys
+	reReadProjects sqlBackend changeKey state
+
 createProjectListState :: SqlBackend -> IO (ObjRef ProjectListState)
 createProjectListState sqlBackend = do
 	changeKey <- newSignalKey
@@ -55,7 +61,8 @@ createProjectListState sqlBackend = do
 			defPropertySigRO "projects" changeKey
 				$ readMVar . projects . fromObjRef,
 			defMethod "addProject" (addProject sqlBackend changeKey),
-			defMethod "updateProject" (updateProject sqlBackend changeKey)
+			defMethod "updateProject" (updateProject sqlBackend changeKey),
+			defMethod "deleteProjects" (deleteProjects sqlBackend changeKey)
 		]
 	prj <- runSqlBackend sqlBackend readProjects
 	objPrj <- mapM newObjectDC prj
