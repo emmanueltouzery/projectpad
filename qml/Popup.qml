@@ -22,6 +22,12 @@ Rectangle {
 		popup.visible = true
 	}
 
+	function setContentsDelete(title, contents, initCallback, okCallback) {
+		setContents(title, contents, initCallback, okCallback);
+		okButton.text = "Delete"
+		okButton.style = dangerButtonStyle
+	}
+
 	Rectangle {
 		id: popupWindow
 		anchors.horizontalCenter: parent.horizontalCenter
@@ -81,5 +87,10 @@ Rectangle {
 	 * preventing the user from clicking in the greyed out areas. */
 	MouseArea {
 		anchors.fill: parent
+	}
+
+	Component {
+		id: dangerButtonStyle
+		DangerButtonStyle {}
 	}
 }

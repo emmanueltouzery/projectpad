@@ -31,6 +31,29 @@ Rectangle {
 			style: NormalButtonStyle {}
 			height: editModeActionBar.height
 			enabled: selectionCount > 0
+			onClicked: {
+				popup.setContentsDelete("Sure to delete?", confirmDeleteComponent,
+					function (deleteDialog) {
+					},
+					function (deleteDialog) {
+					})
+			}
+		}
+	}
+
+	Component {
+		id: confirmDeleteComponent
+		Rectangle {
+			color: "dark grey"
+			height: 60
+			Text {
+				id: deleteText
+				x: 15
+				width: parent.width-15
+				height: parent.height
+				text: "Are you sure to delete?"
+				verticalAlignment: Text.AlignVCenter
+			}
 		}
 	}
 }
