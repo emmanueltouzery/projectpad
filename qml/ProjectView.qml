@@ -76,6 +76,7 @@ ScrollView {
 						},
 						function (poiEdit) {
 							poiEdit.onOk();
+							// force refresh
 							poisrepeater.model = projectViewState.getPois(pv.model.id)
 						})
 				break;
@@ -85,7 +86,14 @@ ScrollView {
 							function(i) { return i >=1000000}),
 						function(x) { return x-1000000 })
 				projectViewState.deleteProjectPois(projectPois)
+				// force refresh
 				poisrepeater.model = projectViewState.getPois(pv.model.id)
+
+				var serverPois = Utils.filter(Select.selectedItems,
+							function(i) { return i < 1000000})
+				projectViewState.deleteServers(serverPois)
+				// force refresh
+				itemsrepeater.model = projectViewState.getServers(pv.model.id)
 				break;
 		}
 	}

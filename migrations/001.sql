@@ -4,7 +4,7 @@ CREATE TABLE server_point_of_interest (id INTEGER PRIMARY KEY,
 	text TEXT NOT NULL,
 	interest_type TEXT NOT NULL,
 	server_id INTEGER NOT NULL,
-	FOREIGN KEY(server_id) REFERENCES server(id));
+	FOREIGN KEY(server_id) REFERENCES server(id) ON DELETE CASCADE);
 
 CREATE TABLE project_point_of_interest (id INTEGER PRIMARY KEY,
 	desc TEXT NOT NULL,
@@ -12,7 +12,7 @@ CREATE TABLE project_point_of_interest (id INTEGER PRIMARY KEY,
 	text TEXT NOT NULL,
 	interest_type TEXT NOT NULL,
 	project_id INTEGER NOT NULL,
-	FOREIGN KEY(project_id) REFERENCES project(id));
+	FOREIGN KEY(project_id) REFERENCES project(id) ON DELETE CASCADE);
 
 CREATE TABLE server (id INTEGER PRIMARY KEY,
 	desc TEXT NOT NULL COLLATE NOCASE,
@@ -22,7 +22,7 @@ CREATE TABLE server (id INTEGER PRIMARY KEY,
 	project_id INTEGER NOT NULL,
 	type TEXT NOT NULL,
 	access_type TEXT NOT NULL,
-	FOREIGN KEY(project_id) REFERENCES project(id));
+	FOREIGN KEY(project_id) REFERENCES project(id) ON DELETE CASCADE);
 
 CREATE TABLE project (id INTEGER PRIMARY KEY,
 	name TEXT NOT NULL COLLATE NOCASE,
