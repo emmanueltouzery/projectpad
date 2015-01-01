@@ -8,7 +8,7 @@ import "utils.js" as Utils
 ScrollView {
 	id: pv
 	anchors.fill: parent
-	signal loadView(string name, variant model, variant displayPath)
+	signal loadView(string name, variant model)
 	signal selectionChange(variant selection)
 	property variant model
 
@@ -19,6 +19,17 @@ ScrollView {
 
 	onSelectionChange: Select.updateSelectDisplay(poisrepeater)
 	onEditModeChanged: Select.clearSelection(pv.selectionChange)
+
+	function getBreadCrumbs() {
+		var projectModel = Utils.findById(projectListState.projects, parseInt(model.projectId))
+		return {pathLinks:
+			[
+				{screen: "ProjectView.qml", 
+				model: projectModel,
+				display: projectModel.name}
+			],
+			title: model.desc}
+	}
 
 	function editPoi(sId) {
 		var curPoi = Utils.findById(serverViewState.getPois(pv.model.id), sId)

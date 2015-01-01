@@ -1,4 +1,5 @@
 import QtQuick 2.0
+import QtQuick.Controls 1.2
 
 Rectangle {
 	id: toolbarRoot
@@ -13,13 +14,7 @@ Rectangle {
 	height: 32
 	property bool editMode: false
 
-	signal loadView(string name, variant model, variant displayPath)
-
-	/**
-	 * List of sublevels in the hierarchy
-	 * (breadcrumbs) -- string[]
-	 */
-	property variant displayPath: []
+	signal loadView(string name, variant model)
 
 	/**
 	 * actions to display in the toolbar
@@ -29,30 +24,39 @@ Rectangle {
 	 */
 	property variant actions: []
 
+	property variant pathLinks: []
+
+	property string title: ""
+
 	signal actionTriggered(string name);
 
 	Flow {
 		width: parent.width-x
 		height: parent.height
-		spacing: 5
 
 		IconButton {
 			btnText: 'home'
 			iconName: 'glyphicons-21-home'
-			onClicked: loadView("ProjectList.qml", null, [])
+			onClicked: loadView("ProjectList.qml", null)
 			visible: !toolbarRoot.editMode
 			style: normalButtonStyle
 			height: toolbarRoot.height
 		}
 		Repeater {
-			model: displayPath
+			model: pathLinks
 
-			Text {
-				text: modelData
+			Button {
+				text: modelData.display
 				height: toolbarRoot.height
-				verticalAlignment: Text.AlignVCenter
 				visible: !toolbarRoot.editMode
+				onClicked: loadView(modelData.screen, modelData.model)
 			}
+		}
+		Text {
+			text: title
+			height: toolbarRoot.height
+			verticalAlignment: Text.AlignVCenter
+			visible: !toolbarRoot.editMode
 		}
 	}
 

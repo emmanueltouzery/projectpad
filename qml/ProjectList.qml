@@ -13,6 +13,10 @@ ScrollView {
 
 	property bool editMode
 
+	function getBreadCrumbs() {
+		return {pathLinks: [], title: ''};
+	}
+
 	function actionTriggered(name) {
 		switch (name) {
 			case "addprj":
@@ -41,7 +45,7 @@ ScrollView {
 	}
 
 	signal selectionChange(variant selection)
-	signal loadView(string name, variant model, variant displayPath)
+	signal loadView(string name, variant model)
 
 	onSelectionChange: Select.updateSelectDisplay(itemsrepeater)
 	onEditModeChanged: Select.clearSelection(projectList.selectionChange)
@@ -77,7 +81,7 @@ ScrollView {
 						anchors.fill: parent
 						onClicked: {
 							Select.handleClick(projectList.selectionChange, modelData.id, function() {
-								loadView("ProjectView.qml", modelData, [modelData.name])
+								loadView("ProjectView.qml", modelData)
 							})
 						}
 					}

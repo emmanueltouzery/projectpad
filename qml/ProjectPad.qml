@@ -9,14 +9,13 @@ Window {
 	visible: true;
 	id: window
 
-	function loadViewAction(name, model, displayPath) {
+	function loadViewAction(name, model) {
 		loader.setSource(name, {"model": model})
-		toolbar.displayPath = displayPath
 	}
 
 	Toolbar {
 		id: toolbar
-		onLoadView: loadViewAction(name, model, displayPath)
+		onLoadView: loadViewAction(name, model)
 		onActionTriggered: loader.item.actionTriggered(name)
 		onEditModeChanged: loader.item.editMode = toolbar.editMode
 	}
@@ -40,6 +39,9 @@ Window {
 			// which is not displayed as the result
 			// of a click.
 			toolbar.actions = loader.item.actions
+			var breadcrumbsInfo = loader.item.getBreadCrumbs()
+			toolbar.pathLinks = breadcrumbsInfo.pathLinks
+			toolbar.title = breadcrumbsInfo.title
 		}
 	}
 
@@ -51,12 +53,12 @@ Window {
 		onActionExecuted: toolbar.editMode = false
 	}
 
-	signal loadView(string name, variant model, variant displayPath)
+	signal loadView(string name, variant model)
 
 	Connections {
 		target: loader.item
 		onLoadView: {
-			loadViewAction(name, model, displayPath)
+			loadViewAction(name, model)
 		}
 		onSelectionChange: editModeActionBar.selectionCount = selection.length
 	}
