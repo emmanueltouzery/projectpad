@@ -56,6 +56,7 @@ Window {
 		onLoadView: {
 			loadViewAction(name, model, displayPath)
 		}
+		onSelectionChange: editModeActionBar.selectionCount = selection.length
 	}
 
 	Popup {

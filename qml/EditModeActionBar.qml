@@ -7,6 +7,8 @@ Rectangle {
 	width: parent.width
 	height: 32
 
+	property int selectionCount: 0
+
 	Flow {
 		anchors.right: parent.right
 
@@ -15,12 +17,14 @@ Rectangle {
 			text: 'Edit'
 			style: NormalButtonStyle {}
 			height: editModeActionBar.height
+			enabled: selectionCount === 1
 		}
 		Button {
 			id: deleteBtn
 			text: 'Delete'
 			style: NormalButtonStyle {}
 			height: editModeActionBar.height
+			enabled: selectionCount > 0
 		}
 	}
 }

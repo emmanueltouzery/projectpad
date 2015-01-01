@@ -10,7 +10,7 @@ function removeFromSelection(item) {
 
 function clearSelection(signal) {
 	selectedItems.splice(0, selectedItems.length)
-	signal([])
+	signal(selectedItems)
 }
 
 function isSelected(item) {
