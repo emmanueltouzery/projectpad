@@ -79,6 +79,14 @@ ScrollView {
 							poisrepeater.model = projectViewState.getPois(pv.model.id)
 						})
 				break;
+			case "delete":
+				var projectPois = Utils.map(
+						Utils.filter(Select.selectedItems,
+							function(i) { return i >=1000000}),
+						function(x) { return x-1000000 })
+				projectViewState.deleteProjectPois(projectPois)
+				poisrepeater.model = projectViewState.getPois(pv.model.id)
+				break;
 		}
 	}
 

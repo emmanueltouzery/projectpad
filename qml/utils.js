@@ -15,3 +15,21 @@ function listModelGetValueIndex(listModel, value) {
 	}
 	return 0
 }
+
+function filter(list, predicate) {
+	var result = []
+	for (var i=0;i<list.length;i++) {
+		if (predicate(list[i])) {
+			result.push(list[i])
+		}
+	}
+	return result
+}
+
+function map(list, transform) {
+	var result = []
+	for (var i=0;i<list.length;i++) {
+		result.push(transform(list[i]))
+	}
+	return result
+}

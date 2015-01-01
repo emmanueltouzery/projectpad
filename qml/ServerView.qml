@@ -51,7 +51,6 @@ ScrollView {
 				serverViewState.deleteServerPois(Select.selectedItems)
 				poisrepeater.model = serverViewState.getPois(pv.model.id)
 				break;
-			break;
 		}
 	}
 
