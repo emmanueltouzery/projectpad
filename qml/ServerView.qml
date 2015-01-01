@@ -3,6 +3,7 @@ import QtQuick.Window 2.0
 import QtQuick.Controls 1.2
 import QtQuick.Layouts 1.1
 import "selection.js" as Select
+import "utils.js" as Utils
 
 ScrollView {
 	id: pv
@@ -19,16 +20,32 @@ ScrollView {
 	onSelectionChange: Select.updateSelectDisplay(poisrepeater)
 	onEditModeChanged: Select.clearSelection(pv.selectionChange)
 
+	function editPoi(sId) {
+		var curPoi = Utils.findById(serverViewState.getPois(pv.model.id), sId)
+		popup.setContents("Edit point of interest", editPoiComponent,
+				function (poiEdit) {
+					poiEdit.activate(curPoi)
+				},
+				function (poiEdit) {
+					poiEdit.onServerOk()
+					// force refresh
+					poisrepeater.model = serverViewState.getPois(pv.model.id)
+				})
+	}
+
 	function actionTriggered(name) {
 		switch (name) {
 			case "addpoi":
-				popup.setContents("Add point of interest", addPoiContents,
+				popup.setContents("Add point of interest", editPoiComponent,
 						function (poiEdit) {
 						},
 						function (poiEdit) {
 							poiEdit.onServerOk();
 							poisrepeater.model = serverViewState.getPois(pv.model.id)
 						})
+			break;
+			case "edit":
+				editPoi(Select.selectedItems[0])
 			break;
 		}
 	}
@@ -68,7 +85,7 @@ ScrollView {
 			}
 		}
 		Component {
-			id: addPoiContents
+			id: editPoiComponent
 			PoiEdit {
 				id: poiEdit
 			}

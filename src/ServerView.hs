@@ -10,6 +10,8 @@ import Data.Typeable
 import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Database.Persist as P
+import Data.Maybe
+import Data.List
 
 import Model
 import ChildEntityCache
@@ -27,8 +29,8 @@ instance DynParentHolder ServerViewState where
 instance CacheHolder ServerPointOfInterest ServerViewState where
 	cacheChildren = pois
 
-readPointOfInterests :: Int -> SqlPersistM [Entity ServerPointOfInterest]
-readPointOfInterests serverId = select $ from $ \p -> do
+readPois :: Int -> SqlPersistM [Entity ServerPointOfInterest]
+readPois serverId = select $ from $ \p -> do
 	where_ (p ^. ServerPointOfInterestServerId ==. val (toSqlKey32 serverId))
 	orderBy [asc (p ^. ServerPointOfInterestDesc)]
 	return p
@@ -42,7 +44,25 @@ addServerPoi sqlBackend stateRef
 	let pidKey = toSqlKey $ fromIntegral pId
 	let poi = ServerPointOfInterest pDesc path txt interestType pidKey
 	runSqlBackend sqlBackend $ P.insert poi
-	updateCacheQuery sqlBackend stateRef readPointOfInterests
+	updateCacheQuery sqlBackend stateRef readPois
+
+updateServerPoi :: SqlBackend -> ObjRef ServerViewState -> ObjRef (Entity ServerPointOfInterest)
+	-> Text -> Text -> Text -> Text -> IO (ObjRef (Entity ServerPointOfInterest))
+updateServerPoi sqlBackend stateRef poiRef
+	pDesc path txt interestTypeT = do
+	let interestType = read $ T.unpack interestTypeT
+	let idKey = entityKey $ fromObjRef poiRef
+	runSqlBackend sqlBackend $ P.update idKey
+		[
+			ServerPointOfInterestDesc P.=. pDesc, ServerPointOfInterestPath P.=. path,
+			ServerPointOfInterestText P.=. txt,
+			ServerPointOfInterestInterestType P.=. interestType
+		]
+	updateCacheQuery sqlBackend stateRef readPois
+	newPoiList <- fromMaybe (error "No pois after update?")
+		<$> (readMVar $ pois (fromObjRef stateRef))
+	let mUpdatedPoiEntity = find ((== idKey) . entityKey . fromObjRef) newPoiList
+	return $ fromMaybe (error "Can't find poid after update?") mUpdatedPoiEntity
 
 createServerViewState :: SqlBackend -> IO (ObjRef ServerViewState)
 createServerViewState sqlBackend = do
@@ -51,7 +71,8 @@ createServerViewState sqlBackend = do
 		<*> newMVar Nothing
 	serverViewClass <- newClass
 		[
-			defMethod "getPois" (getChildren sqlBackend readPointOfInterests),
-			defMethod "addServerPoi" (addServerPoi sqlBackend)
+			defMethod "getPois" (getChildren sqlBackend readPois),
+			defMethod "addServerPoi" (addServerPoi sqlBackend),
+			defMethod "updateServerPoi" (updateServerPoi sqlBackend)
 		]
 	newObject serverViewClass serverViewState
