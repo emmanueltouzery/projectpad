@@ -6,3 +6,12 @@ function findById(list, id) {
 	}
 	return null
 }
+
+function listModelGetValueIndex(listModel, value) {
+	for (var i=0;i<listModel.count;i++) {
+		if (listModel.get(i).value === value) {
+			return i;
+		}
+	}
+	return 0
+}

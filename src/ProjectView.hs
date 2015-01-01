@@ -90,6 +90,24 @@ addProjectPoi sqlBackend stateRef
 	runSqlBackend sqlBackend $ P.insert poi
 	updateCacheQuery sqlBackend stateRef readPois
 
+updateProjectPoi :: SqlBackend -> ObjRef ProjectViewState -> ObjRef (Entity ProjectPointOfInterest)
+	-> Text -> Text -> Text -> Text -> IO (ObjRef (Entity ProjectPointOfInterest))
+updateProjectPoi sqlBackend stateRef poiRef
+	pDesc path txt interestTypeT = do
+	let interestType = read $ T.unpack interestTypeT
+	let idKey = entityKey $ fromObjRef poiRef
+	runSqlBackend sqlBackend $ P.update idKey
+		[
+			ProjectPointOfInterestDesc P.=. pDesc, ProjectPointOfInterestPath P.=. path,
+			ProjectPointOfInterestText P.=. txt,
+			ProjectPointOfInterestInterestType P.=. interestType
+		]
+	updateCacheQuery sqlBackend stateRef readPois
+	newPoiList <- fromMaybe (error "No pois after update?")
+		<$> (readMVar $ pois (fromObjRef stateRef))
+	let mUpdatedPoiEntity = find ((== idKey) . entityKey . fromObjRef) newPoiList
+	return $ fromMaybe (error "Can't find poid after update?") mUpdatedPoiEntity
+
 createProjectViewState :: SqlBackend -> IO (ObjRef ProjectViewState)
 createProjectViewState sqlBackend = do
 	projectViewState <- ProjectViewState
@@ -102,6 +120,7 @@ createProjectViewState sqlBackend = do
 			defMethod "addServer" (addServer sqlBackend),
 			defMethod "updateServer" (updateServer sqlBackend),
 			defMethod "getPois" (getChildren sqlBackend readPois),
-			defMethod "addProjectPoi" (addProjectPoi sqlBackend)
+			defMethod "addProjectPoi" (addProjectPoi sqlBackend),
+			defMethod "updateProjectPoi" (updateProjectPoi sqlBackend)
 		]
 	newObject projectViewClass projectViewState

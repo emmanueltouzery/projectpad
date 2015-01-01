@@ -1,6 +1,7 @@
 import QtQuick 2.0
 import QtQuick.Controls 1.2
 import QtQuick.Layouts 1.1
+import "utils.js" as Utils
 
 Rectangle {
 	id: serverEdit
@@ -13,19 +14,10 @@ Rectangle {
 
 	function activate(_model) {
 		serverEdit.model = _model
-		serverType.currentIndex = listModelGetValueIndex(serverType.model, _model.type)
-		serverAccessType.currentIndex = listModelGetValueIndex(serverAccessType.model, _model.accessType)
+		serverType.currentIndex = Utils.listModelGetValueIndex(serverType.model, _model.type)
+		serverAccessType.currentIndex = Utils.listModelGetValueIndex(serverAccessType.model, _model.accessType)
 		serverDescription.selectAll()
 		serverDescription.forceActiveFocus()
-	}
-
-	function listModelGetValueIndex(listModel, value) {
-		for (var i=0;i<listModel.count;i++) {
-			if (listModel.get(i).value === value) {
-				return i;
-			}
-		}
-		return 0
 	}
 
 	function onOk() {

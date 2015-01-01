@@ -37,11 +37,25 @@ ScrollView {
 				})
 	}
 
+	function editPoi(sId) {
+		var curPoi = Utils.findById(projectViewState.getPois(pv.model.id), sId)
+		popup.setContents("Edit point of interest", poiEditComponent,
+				function (poiEdit) {
+					poiEdit.activate(curPoi)
+				},
+				function (poiEdit) {
+					poiEdit.onOk()
+					// force refresh
+					poisrepeater.model = projectViewState.getPois(pv.model.id)
+				})
+	}
+
 	function actionTriggered(name) {
 		switch (name) {
 			case "edit":
 				var sId = Select.selectedItems[0]
 				if (sId > 1000000) {
+					editPoi(sId-1000000)
 				} else {
 					editServer(sId)
 				}
@@ -57,7 +71,7 @@ ScrollView {
 						})
 				break;
 			case "addpoi":
-				popup.setContents("Add point of interest", addPoiContents,
+				popup.setContents("Add point of interest", poiEditComponent,
 						function (poiEdit) {
 						},
 						function (poiEdit) {
@@ -142,7 +156,7 @@ ScrollView {
 			}
 		}
 		Component {
-			id: addPoiContents
+			id: poiEditComponent
 			PoiEdit {
 				id: poiEdit
 			}

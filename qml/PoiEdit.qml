@@ -1,6 +1,7 @@
 import QtQuick 2.0
 import QtQuick.Controls 1.2
 import QtQuick.Layouts 1.1
+import "utils.js" as Utils
 
 Rectangle {
 	id: poiEdit
@@ -12,37 +13,17 @@ Rectangle {
 
 	function activate(_model) {
 		poiEdit.model = _model
-		serverType.currentIndex = listModelGetValueIndex(serverType.model, _model.type)
+		interestType.currentIndex = Utils.listModelGetValueIndex(interestType.model, _model.interestType)
 		poiDescription.selectAll()
 		poiDescription.forceActiveFocus()
 	}
 
-	function listModelGetValueIndex(listModel, value) {
-		for (var i=0;i<listModel.count;i++) {
-			if (listModel.get(i).value === value) {
-				return i;
-			}
-		}
-		return 0
-	}
-
 	function onOk() {
 		if (model.id) {
-			// poiEdit.model = projectViewState.updateServer(
-			// 	model, serverDescription.text, ipAddress.text,
-			// 	username.text, password.text,
-			// 	serverTypeItems.get(serverType.currentIndex).value,
-			// 	serverAccessTypeItems.get(serverAccessType.currentIndex).value);
-			// // need also the project name in the breadcrumbs!
-			// var project;
-			// for (var i=0;i<projectListState.projects.length;i++) {
-			// 	var curPrj = projectListState.projects[i];
-			// 	if (curPrj.id === parseInt(poiEdit.model.projectId)) {
-			// 		project = curPrj;
-			// 		break;
-			// 	}
-			// }
-			// loadView("ServerView.qml", poiEdit.model, [project.name, poiEdit.model.desc])
+			poiEdit.model = projectViewState.updateProjectPoi(
+				model, poiDescription.text, path.text,
+				text.text,
+				interestTypeItems.get(interestType.currentIndex).value)
 		} else {
 			projectViewState.addProjectPoi(poiDescription.text, path.text,
 				text.text, interestTypeItems.get(interestType.currentIndex).value)
@@ -51,21 +32,10 @@ Rectangle {
 
 	function onServerOk() {
 		if (model.id) {
-			// poiEdit.model = projectViewState.updateServer(
-			// 	model, serverDescription.text, ipAddress.text,
-			// 	username.text, password.text,
-			// 	serverTypeItems.get(serverType.currentIndex).value,
-			// 	serverAccessTypeItems.get(serverAccessType.currentIndex).value);
-			// // need also the project name in the breadcrumbs!
-			// var project;
-			// for (var i=0;i<projectListState.projects.length;i++) {
-			// 	var curPrj = projectListState.projects[i];
-			// 	if (curPrj.id === parseInt(poiEdit.model.projectId)) {
-			// 		project = curPrj;
-			// 		break;
-			// 	}
-			// }
-			// loadView("ServerView.qml", poiEdit.model, [project.name, poiEdit.model.desc])
+			poiEdit.model = serverViewState.updateServerPoi(
+				model, poiDescription.text, path.text,
+				text.text,
+				interestTypeItems.get(interestType.currentIndex).value)
 		} else {
 			serverViewState.addServerPoi(poiDescription.text, path.text,
 				text.text, interestTypeItems.get(interestType.currentIndex).value)

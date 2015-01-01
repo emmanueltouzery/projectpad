@@ -82,10 +82,18 @@ instance DefaultClass (Entity Server) where
 		("projectId", text . fromSqlKey . serverProjectId)] -- TODO FK as text...
 
 instance DefaultClass (Entity ServerPointOfInterest) where
-	classMembers = getStandardClassMembers [("desc", serverPointOfInterestDesc)]
+	classMembers = getStandardClassMembers [
+		("desc", serverPointOfInterestDesc),
+		("path", serverPointOfInterestPath),
+		("text", serverPointOfInterestText),
+		("interestType", text . serverPointOfInterestInterestType)]
 
 instance DefaultClass (Entity ProjectPointOfInterest) where
-	classMembers = getStandardClassMembers [("desc", projectPointOfInterestDesc)]
+	classMembers = getStandardClassMembers [
+		("desc", projectPointOfInterestDesc),
+		("path", projectPointOfInterestPath),
+		("text", projectPointOfInterestText),
+		("interestType", text . projectPointOfInterestInterestType)]
 
 deriving instance Typeable Entity
 deriving instance Typeable Key
