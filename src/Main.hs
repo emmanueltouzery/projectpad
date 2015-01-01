@@ -30,6 +30,7 @@ import Graphics.QML
 import Data.Typeable
 import Database.Sqlite
 import System.Log.FastLogger
+import Data.Text (Text)
 
 import Model
 import Schema
@@ -39,11 +40,16 @@ import ServerView
 
 main :: IO ()
 main = do
-	conn <- open "projectpad.db"
-	let logger = \_ _ _ -> print . fromLogStr
-	sqlBackend <- wrapConnection conn logger
+	sqlBackend <- getSqlBackend "projectpad.db"
 	runSqlBackend sqlBackend upgradeSchema
 	displayApp sqlBackend
+
+getSqlBackend :: Text -> IO SqlBackend
+getSqlBackend t = do
+	conn <- open t
+	prepare conn "PRAGMA foreign_keys = ON;" >>= step
+	let logger = \_ _ _ -> print . fromLogStr
+	wrapConnection conn logger
 
 data AppState = AppState
 	{
