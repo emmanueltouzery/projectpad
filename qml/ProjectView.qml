@@ -3,6 +3,7 @@ import QtQuick.Window 2.0
 import QtQuick.Controls 1.2
 import QtQuick.Layouts 1.1
 import "selection.js" as Select
+import "utils.js" as Utils
 
 ScrollView {
 	id: pv
@@ -23,16 +24,27 @@ ScrollView {
 	}
 	onEditModeChanged: Select.clearSelection(pv.selectionChange)
 
+	function editServer(sId) {
+		var curServer = Utils.findById(projectViewState.getServers(pv.model.id), sId)
+		popup.setContents("Edit server", serverEditComponent,
+				function (serverEdit) {
+					serverEdit.activate(curServer)
+				},
+				function (serverEdit) {
+					serverEdit.onOk()
+					// force refresh
+					itemsrepeater.model = projectViewState.getServers(pv.model.id)
+				})
+	}
+
 	function actionTriggered(name) {
 		switch (name) {
 			case "edit":
-				popup.setContents("Edit project", projectEditComponent,
-						function (projectEdit) {
-							projectEdit.activate(pv.model)
-						},
-						function (projectEdit) {
-							projectEdit.onOk()
-						})
+				var sId = Select.selectedItems[0]
+				if (sId > 1000000) {
+				} else {
+					editServer(sId)
+				}
 				break;
 			case "addsrv":
 				popup.setContents("Add server", addServerContents,
@@ -52,6 +64,7 @@ ScrollView {
 							poiEdit.onOk();
 							poisrepeater.model = projectViewState.getPois(pv.model.id)
 						})
+				break;
 		}
 	}
 
@@ -124,6 +137,12 @@ ScrollView {
 		}
 		Component {
 			id: addServerContents
+			ServerEdit {
+				id: serverEdit
+			}
+		}
+		Component {
+			id: serverEditComponent
 			ServerEdit {
 				id: serverEdit
 			}

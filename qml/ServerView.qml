@@ -14,23 +14,13 @@ ScrollView {
 	property bool editMode
 
 	property variant actions: [
-		["addpoi", "glyphicons-336-pushpin", "Add point of interest"],
-		["edit", "glyphicons-31-pencil", "Edit server"]]
+		["addpoi", "glyphicons-336-pushpin", "Add point of interest"]]
 
 	onSelectionChange: Select.updateSelectDisplay(poisrepeater)
 	onEditModeChanged: Select.clearSelection(pv.selectionChange)
 
 	function actionTriggered(name) {
 		switch (name) {
-			case "edit":
-				popup.setContents("Edit server", serverEditComponent,
-						function (serverEdit) {
-							serverEdit.activate(pv.model)
-						},
-						function (serverEdit) {
-							serverEdit.onOk()
-						})
-				break;
 			case "addpoi":
 				popup.setContents("Add point of interest", addPoiContents,
 						function (poiEdit) {
@@ -39,6 +29,7 @@ ScrollView {
 							poiEdit.onServerOk();
 							poisrepeater.model = serverViewState.getPois(pv.model.id)
 						})
+			break;
 		}
 	}
 
@@ -74,12 +65,6 @@ ScrollView {
 						}
 					}
 				}
-			}
-		}
-		Component {
-			id: serverEditComponent
-			ServerEdit {
-				id: serverEdit
 			}
 		}
 		Component {
