@@ -64,6 +64,12 @@ updateServerPoi sqlBackend stateRef poiRef
 	let mUpdatedPoiEntity = find ((== idKey) . entityKey . fromObjRef) newPoiList
 	return $ fromMaybe (error "Can't find poid after update?") mUpdatedPoiEntity
 
+deleteServerPois :: SqlBackend -> ObjRef ServerViewState -> [Int] -> IO ()
+deleteServerPois sqlBackend stateRef serverPoiIds = do
+	let keys = fmap (toSqlKey . fromIntegral) serverPoiIds :: [Key ServerPointOfInterest]
+	mapM_ (\k -> runSqlBackend sqlBackend $ P.delete k) keys
+	updateCacheQuery sqlBackend stateRef readPois
+
 createServerViewState :: SqlBackend -> IO (ObjRef ServerViewState)
 createServerViewState sqlBackend = do
 	serverViewState <- ServerViewState
@@ -73,6 +79,7 @@ createServerViewState sqlBackend = do
 		[
 			defMethod "getPois" (getChildren sqlBackend readPois),
 			defMethod "addServerPoi" (addServerPoi sqlBackend),
-			defMethod "updateServerPoi" (updateServerPoi sqlBackend)
+			defMethod "updateServerPoi" (updateServerPoi sqlBackend),
+			defMethod "deleteServerPois" (deleteServerPois sqlBackend)
 		]
 	newObject serverViewClass serverViewState

@@ -43,9 +43,14 @@ ScrollView {
 							poiEdit.onServerOk();
 							poisrepeater.model = serverViewState.getPois(pv.model.id)
 						})
-			break;
+				break;
 			case "edit":
 				editPoi(Select.selectedItems[0])
+				break;
+			case "delete":
+				serverViewState.deleteServerPois(Select.selectedItems)
+				poisrepeater.model = serverViewState.getPois(pv.model.id)
+				break;
 			break;
 		}
 	}

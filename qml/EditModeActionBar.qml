@@ -36,6 +36,8 @@ Rectangle {
 					function (deleteDialog) {
 					},
 					function (deleteDialog) {
+						modeActionBarAction("delete")
+						actionExecuted()
 					})
 			}
 		}
