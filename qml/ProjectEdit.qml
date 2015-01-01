@@ -18,7 +18,6 @@ Rectangle {
 	function onOk() {
 		if (model.id) {
 			projectEdit.model = projectListState.updateProject(model, projectNameEntry.text)
-			loadView("ProjectView.qml", projectEdit.model, [projectEdit.model.name])
 		} else {
 			projectListState.addProject(projectNameEntry.text)
 		}

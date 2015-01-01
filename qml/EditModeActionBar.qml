@@ -8,6 +8,8 @@ Rectangle {
 	height: 32
 
 	property int selectionCount: 0
+	signal modeActionBarAction(string type)
+	signal actionExecuted()
 
 	Flow {
 		anchors.right: parent.right
@@ -18,6 +20,10 @@ Rectangle {
 			style: NormalButtonStyle {}
 			height: editModeActionBar.height
 			enabled: selectionCount === 1
+			onClicked: {
+				modeActionBarAction("edit")
+				actionExecuted()
+			}
 		}
 		Button {
 			id: deleteBtn

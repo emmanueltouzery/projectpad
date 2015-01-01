@@ -1,6 +1,7 @@
 import QtQuick 2.0
 import QtQuick.Controls 1.2
 import "selection.js" as Select
+import "utils.js" as Utils
 
 ScrollView {
 	id: projectList
@@ -20,6 +21,16 @@ ScrollView {
 							projectEdit.activate({name: "Project name"})
 						},
 						function(projectEdit) {
+							projectEdit.onOk()
+						})
+				break;
+			case "edit":
+				popup.setContents("Edit project", projectEditComponent,
+						function (projectEdit) {
+							var curProject = Utils.findById(projectListState.projects, Select.selectedItems[0])
+							projectEdit.activate(curProject)
+						},
+						function (projectEdit) {
 							projectEdit.onOk()
 						})
 				break;

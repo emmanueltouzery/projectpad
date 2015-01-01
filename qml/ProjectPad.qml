@@ -47,6 +47,8 @@ Window {
 		id: editModeActionBar
 		y: loader.y + loader.height
 		visible: toolbar.editMode
+		onModeActionBarAction: loader.item.actionTriggered(type)
+		onActionExecuted: toolbar.editMode = false
 	}
 
 	signal loadView(string name, variant model, variant displayPath)

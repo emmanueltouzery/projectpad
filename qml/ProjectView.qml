@@ -15,8 +15,7 @@ ScrollView {
 
 	property variant actions: [
 		["addsrv", "glyphicons-470-server-new", "Add server"],
-		["addpoi", "glyphicons-336-pushpin", "Add point of interest"],
-		["edit", "glyphicons-31-pencil", "Edit project"]]
+		["addpoi", "glyphicons-336-pushpin", "Add point of interest"]]
 
 	onSelectionChange: {
 		Select.updateSelectDisplay(itemsrepeater)

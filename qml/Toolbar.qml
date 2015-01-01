@@ -81,6 +81,8 @@ Rectangle {
 		}
 	}
 
+	onEditModeChanged: editModeBtn.checked = editMode
+
 	Component {
 		id: defaultButtonStyle
 		DefaultButtonStyle {}
