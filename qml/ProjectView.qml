@@ -47,7 +47,7 @@ ScrollView {
 				}
 				break;
 			case "addsrv":
-				popup.setContents("Add server", addServerContents,
+				popup.setContents("Add server", serverEditComponent,
 						function (serverEdit) {
 						},
 						function (serverEdit) {
@@ -133,12 +133,6 @@ ScrollView {
 			id: projectEditComponent
 			ProjectEdit {
 				id: projectEdit
-			}
-		}
-		Component {
-			id: addServerContents
-			ServerEdit {
-				id: serverEdit
 			}
 		}
 		Component {
