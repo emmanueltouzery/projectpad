@@ -9,6 +9,8 @@ Rectangle {
 	property var curCallback
 
 	function setContents(title, contents, initCallback, okCallback) {
+		okButton.text = "OK"
+		okButton.style = defaultButtonStyle
 		popupTitle.text = title
 		popupContentsLoader.sourceComponent = contents
 		initCallback(popupContentsLoader.item)
@@ -70,7 +72,7 @@ Rectangle {
 				text: "OK"
 				anchors.right: parent.right
 				anchors.rightMargin: 5
-				style: DefaultButtonStyle {}
+				style: defaultButtonStyle
 				anchors.verticalCenter: parent.verticalCenter
 			}
 		}
@@ -87,6 +89,11 @@ Rectangle {
 	 * preventing the user from clicking in the greyed out areas. */
 	MouseArea {
 		anchors.fill: parent
+	}
+
+	Component {
+		id: defaultButtonStyle
+		DefaultButtonStyle {}
 	}
 
 	Component {
