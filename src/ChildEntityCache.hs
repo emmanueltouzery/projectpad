@@ -66,3 +66,15 @@ addHelper sqlBackend stateRef reader entityGetter = do
 	pIdKey <- toSqlKey . fromIntegral <$> getCurParentId stateRef
 	runSqlBackend sqlBackend $ P.insert $ entityGetter pIdKey
 	updateCacheQuery sqlBackend stateRef reader
+
+convertKey :: (ToBackendKey SqlBackend a) => Int -> Key a
+convertKey = toSqlKey . fromIntegral
+
+deleteHelper :: (CacheHolder b a, DefaultClass (Entity b),
+		PersistEntity b, PersistEntityBackend b ~ SqlBackend) =>
+        	(Int -> Key b) -> (Int -> SqlPersistM [Entity b])
+		-> SqlBackend -> ObjRef a -> [Int] -> IO ()
+deleteHelper keyConverter reader sqlBackend stateRef serverIds = do
+	let keys = fmap keyConverter serverIds
+	mapM_ (\k -> runSqlBackend sqlBackend $ P.delete k) keys
+	updateCacheQuery sqlBackend stateRef reader

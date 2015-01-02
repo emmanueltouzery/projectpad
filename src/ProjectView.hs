@@ -71,10 +71,7 @@ updateServer sqlBackend stateRef serverRef
 	return $ fromMaybe (error "Can't find server after update?") mUpdatedServerEntity
 
 deleteServers :: SqlBackend -> ObjRef ProjectViewState -> [Int] -> IO ()
-deleteServers sqlBackend stateRef serverIds = do
-	let keys = fmap (toSqlKey . fromIntegral) serverIds :: [Key Server]
-	mapM_ (\k -> runSqlBackend sqlBackend $ P.delete k) keys
-	updateCacheQuery sqlBackend stateRef readServers
+deleteServers = deleteHelper convertKey readServers
 
 readPois :: Int -> SqlPersistM [Entity ProjectPointOfInterest]
 readPois projectId = select $ from $ \poi -> do
@@ -109,10 +106,7 @@ updateProjectPoi sqlBackend stateRef poiRef
 	return $ fromMaybe (error "Can't find poid after update?") mUpdatedPoiEntity
 
 deleteProjectPois :: SqlBackend -> ObjRef ProjectViewState -> [Int] -> IO ()
-deleteProjectPois sqlBackend stateRef projectPoiIds = do
-	let keys = fmap (toSqlKey . fromIntegral) projectPoiIds :: [Key ProjectPointOfInterest]
-	mapM_ (\k -> runSqlBackend sqlBackend $ P.delete k) keys
-	updateCacheQuery sqlBackend stateRef readPois
+deleteProjectPois = deleteHelper convertKey readPois
 
 createProjectViewState :: SqlBackend -> IO (ObjRef ProjectViewState)
 createProjectViewState sqlBackend = do

@@ -12,6 +12,7 @@ import Data.List
 import Data.Maybe
 
 import Model
+import ChildEntityCache
 
 data ProjectListState = ProjectListState
 	{
@@ -49,7 +50,7 @@ updateProject sqlBackend changeKey state project name = do
 
 deleteProjects :: SqlBackend -> SignalKey (IO ()) -> ObjRef ProjectListState -> [Int] -> IO ()
 deleteProjects sqlBackend changeKey state projectIds = do
-	let keys = fmap (toSqlKey . fromIntegral) projectIds :: [Key Project]
+	let keys = fmap convertKey projectIds :: [Key Project]
 	mapM_ (\k -> runSqlBackend sqlBackend $ P.delete k) keys
 	reReadProjects sqlBackend changeKey state
 
