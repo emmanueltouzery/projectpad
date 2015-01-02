@@ -10,8 +10,6 @@ import Data.Typeable
 import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Database.Persist as P
-import Data.Maybe
-import Data.List
 
 import Model
 import ChildEntityCache
@@ -48,18 +46,12 @@ updateServerPoi :: SqlBackend -> ObjRef ServerViewState -> ObjRef (Entity Server
 updateServerPoi sqlBackend stateRef poiRef
 	pDesc path txt interestTypeT = do
 	let interestType = read $ T.unpack interestTypeT
-	let idKey = entityKey $ fromObjRef poiRef
-	runSqlBackend sqlBackend $ P.update idKey
+	updateHelper sqlBackend stateRef poiRef readPois pois
 		[
 			ServerPointOfInterestDesc P.=. pDesc, ServerPointOfInterestPath P.=. path,
 			ServerPointOfInterestText P.=. txt,
 			ServerPointOfInterestInterestType P.=. interestType
 		]
-	updateCacheQuery sqlBackend stateRef readPois
-	newPoiList <- fromMaybe (error "No pois after update?")
-		<$> (readMVar $ pois (fromObjRef stateRef))
-	let mUpdatedPoiEntity = find ((== idKey) . entityKey . fromObjRef) newPoiList
-	return $ fromMaybe (error "Can't find poid after update?") mUpdatedPoiEntity
 
 deleteServerPois :: SqlBackend -> ObjRef ServerViewState -> [Int] -> IO ()
 deleteServerPois = deleteHelper convertKey readPois

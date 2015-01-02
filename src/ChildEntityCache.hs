@@ -8,6 +8,7 @@ import Graphics.QML
 import Data.Maybe as M
 import Control.Applicative
 import qualified Database.Persist as P
+import Data.List
 
 import Model (runSqlBackend)
 
@@ -66,6 +67,19 @@ addHelper sqlBackend stateRef reader entityGetter = do
 	pIdKey <- toSqlKey . fromIntegral <$> getCurParentId stateRef
 	runSqlBackend sqlBackend $ P.insert $ entityGetter pIdKey
 	updateCacheQuery sqlBackend stateRef reader
+
+updateHelper :: (CacheHolder b a, DefaultClass (Entity b), PersistEntity b,
+	PersistEntityBackend b ~ SqlBackend) =>
+	SqlBackend -> ObjRef a -> ObjRef (Entity b) -> (Int -> SqlPersistM [Entity b])
+	-> (a -> MVar (Maybe [ObjRef (Entity b)])) -> [P.Update b] -> IO (ObjRef (Entity b))
+updateHelper sqlBackend stateRef entityRef reader stateReader updateValues= do
+	let idKey = entityKey $ fromObjRef entityRef
+	runSqlBackend sqlBackend $ P.update idKey updateValues
+	updateCacheQuery sqlBackend stateRef reader
+	newEntityList <- fromMaybe (error "No entities after update?")
+		<$> (readMVar $ stateReader (fromObjRef stateRef))
+	let mUpdatedEntity = find ((== idKey) . entityKey . fromObjRef) newEntityList
+	return $ fromMaybe (error "Can't find entity after update?") mUpdatedEntity
 
 convertKey :: (ToBackendKey SqlBackend a) => Int -> Key a
 convertKey = toSqlKey . fromIntegral

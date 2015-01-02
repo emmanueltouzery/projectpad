@@ -10,8 +10,6 @@ import qualified Database.Persist as P
 import Data.Typeable
 import Data.Text (Text)
 import qualified Data.Text as T
-import Data.List
-import Data.Maybe
 
 import ModelBase
 import Model
@@ -57,18 +55,12 @@ updateServer sqlBackend stateRef serverRef
 	sDesc ipAddr username password serverTypeT serverAccessTypeT = do
 	let srvType = read $ T.unpack serverTypeT
 	let srvAccessType = read $ T.unpack serverAccessTypeT
-	let idKey = entityKey $ fromObjRef serverRef
-	runSqlBackend sqlBackend $ P.update idKey
+	updateHelper sqlBackend stateRef serverRef readServers servers
 		[
 			ServerDesc P.=. sDesc, ServerIp P.=. ipAddr,
 			ServerUsername P.=. username, ServerPassword P.=. password,
 			ServerType P.=. srvType, ServerAccessType P.=. srvAccessType
 		]
-	updateCacheQuery sqlBackend stateRef readServers
-	newServerList <- fromMaybe (error "No servers after update?")
-		<$> (readMVar $ servers (fromObjRef stateRef))
-	let mUpdatedServerEntity = find ((== idKey) . entityKey . fromObjRef) newServerList
-	return $ fromMaybe (error "Can't find server after update?") mUpdatedServerEntity
 
 deleteServers :: SqlBackend -> ObjRef ProjectViewState -> [Int] -> IO ()
 deleteServers = deleteHelper convertKey readServers
@@ -92,18 +84,12 @@ updateProjectPoi :: SqlBackend -> ObjRef ProjectViewState -> ObjRef (Entity Proj
 updateProjectPoi sqlBackend stateRef poiRef
 	pDesc path txt interestTypeT = do
 	let interestType = read $ T.unpack interestTypeT
-	let idKey = entityKey $ fromObjRef poiRef
-	runSqlBackend sqlBackend $ P.update idKey
+	updateHelper sqlBackend stateRef poiRef readPois pois
 		[
 			ProjectPointOfInterestDesc P.=. pDesc, ProjectPointOfInterestPath P.=. path,
 			ProjectPointOfInterestText P.=. txt,
 			ProjectPointOfInterestInterestType P.=. interestType
 		]
-	updateCacheQuery sqlBackend stateRef readPois
-	newPoiList <- fromMaybe (error "No pois after update?")
-		<$> (readMVar $ pois (fromObjRef stateRef))
-	let mUpdatedPoiEntity = find ((== idKey) . entityKey . fromObjRef) newPoiList
-	return $ fromMaybe (error "Can't find poid after update?") mUpdatedPoiEntity
 
 deleteProjectPois :: SqlBackend -> ObjRef ProjectViewState -> [Int] -> IO ()
 deleteProjectPois = deleteHelper convertKey readPois
