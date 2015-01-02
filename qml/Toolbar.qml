@@ -39,7 +39,7 @@ Rectangle {
 			iconName: 'glyphicons-21-home'
 			onClicked: loadView("ProjectList.qml", null)
 			visible: !toolbarRoot.editMode
-			style: normalButtonStyle
+			style: breadcbrumbsButton
 			height: toolbarRoot.height
 		}
 		Repeater {
@@ -50,13 +50,18 @@ Rectangle {
 				height: toolbarRoot.height
 				visible: !toolbarRoot.editMode
 				onClicked: loadView(modelData.screen, modelData.model)
+				style: breadcbrumbsButton
 			}
 		}
-		Text {
+		ExclusiveGroup { id: tabPositionGroup }
+		Button {
 			text: title
 			height: toolbarRoot.height
-			verticalAlignment: Text.AlignVCenter
-			visible: !toolbarRoot.editMode
+			visible: title.length > 0 && !toolbarRoot.editMode
+			checkable: true
+			checked: true
+			exclusiveGroup: tabPositionGroup
+			style: breadcbrumbsButton
 		}
 	}
 
@@ -94,5 +99,9 @@ Rectangle {
 	Component {
 		id: normalButtonStyle
 		NormalButtonStyle {}
+	}
+	Component {
+		id: breadcbrumbsButton
+		BreadcrumbsButton {}
 	}
 }
