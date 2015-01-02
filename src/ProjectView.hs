@@ -46,13 +46,10 @@ addServer :: SqlBackend -> ObjRef ProjectViewState
 	-> Text -> IpAddress -> Text -> Text -> Text -> Text -> IO ()
 addServer sqlBackend stateRef
 	sDesc ipAddr username password serverTypeT serverAccessTypeT = do
-	pId <- getCurParentId stateRef
-	let pidKey = toSqlKey $ fromIntegral pId
 	let srvType = read $ T.unpack serverTypeT
 	let srvAccessType = read $ T.unpack serverAccessTypeT
-	let server = Server sDesc ipAddr username password srvType srvAccessType pidKey
-	runSqlBackend sqlBackend $ P.insert server
-	updateCacheQuery sqlBackend stateRef readServers
+	addHelper sqlBackend stateRef readServers
+		$ Server sDesc ipAddr username password srvType srvAccessType
 
 updateServer :: SqlBackend -> ObjRef ProjectViewState -> ObjRef (Entity Server)
 	-> Text -> IpAddress -> Text -> Text -> Text -> Text -> IO (ObjRef (Entity Server))
@@ -90,11 +87,8 @@ addProjectPoi :: SqlBackend -> ObjRef ProjectViewState
 addProjectPoi sqlBackend stateRef
 	pDesc path txt interestTypeT = do
 	let interestType = read $ T.unpack interestTypeT
-	pId <- getCurParentId stateRef
-	let pidKey = toSqlKey $ fromIntegral pId
-	let poi = ProjectPointOfInterest pDesc path txt interestType pidKey
-	runSqlBackend sqlBackend $ P.insert poi
-	updateCacheQuery sqlBackend stateRef readPois
+	addHelper sqlBackend stateRef readPois
+		$ ProjectPointOfInterest pDesc path txt interestType
 
 updateProjectPoi :: SqlBackend -> ObjRef ProjectViewState -> ObjRef (Entity ProjectPointOfInterest)
 	-> Text -> Text -> Text -> Text -> IO (ObjRef (Entity ProjectPointOfInterest))

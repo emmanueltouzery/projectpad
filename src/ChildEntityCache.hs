@@ -1,4 +1,4 @@
-{-# LANGUAGE MultiParamTypeClasses, FlexibleContexts, ViewPatterns #-}
+{-# LANGUAGE MultiParamTypeClasses, FlexibleContexts, ViewPatterns, TypeFamilies #-}
 module ChildEntityCache where
 
 import Control.Concurrent.MVar
@@ -7,6 +7,7 @@ import Control.Monad
 import Graphics.QML
 import Data.Maybe as M
 import Control.Applicative
+import qualified Database.Persist as P
 
 import Model (runSqlBackend)
 
@@ -56,3 +57,12 @@ getChildren sqlBackend readChildren _state parentId = do
 		Nothing -> do
 			children <- runSqlBackend sqlBackend (readChildren parentId)
 			updateCache _state children
+
+-- helper used when adding an entity to DB.
+addHelper :: (CacheHolder b a, DefaultClass (Entity b), 
+	ToBackendKey SqlBackend record, PersistEntity s, PersistEntityBackend s ~ SqlBackend) =>
+	SqlBackend -> ObjRef a -> (Int -> SqlPersistM [Entity b]) -> (Key record -> s) -> IO ()
+addHelper sqlBackend stateRef reader entityGetter = do
+	pIdKey <- toSqlKey . fromIntegral <$> getCurParentId stateRef
+	runSqlBackend sqlBackend $ P.insert $ entityGetter pIdKey
+	updateCacheQuery sqlBackend stateRef reader

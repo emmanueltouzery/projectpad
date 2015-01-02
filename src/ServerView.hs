@@ -40,11 +40,8 @@ addServerPoi :: SqlBackend -> ObjRef ServerViewState
 addServerPoi sqlBackend stateRef
 	pDesc path txt interestTypeT = do
 	let interestType = read $ T.unpack interestTypeT
-	pId <- getCurParentId stateRef
-	let pidKey = toSqlKey $ fromIntegral pId
-	let poi = ServerPointOfInterest pDesc path txt interestType pidKey
-	runSqlBackend sqlBackend $ P.insert poi
-	updateCacheQuery sqlBackend stateRef readPois
+	addHelper sqlBackend stateRef readPois
+		$ ServerPointOfInterest pDesc path txt interestType
 
 updateServerPoi :: SqlBackend -> ObjRef ServerViewState -> ObjRef (Entity ServerPointOfInterest)
 	-> Text -> Text -> Text -> Text -> IO (ObjRef (Entity ServerPointOfInterest))
