@@ -1,4 +1,4 @@
-{-# LANGUAGE OverloadedStrings, DeriveDataTypeable, TypeFamilies #-}
+{-# LANGUAGE OverloadedStrings, DeriveDataTypeable, TypeFamilies, ViewPatterns, ScopedTypeVariables #-}
 module Main where
 
 -- the DB init should be done in a try block
@@ -31,6 +31,10 @@ import Data.Typeable
 import Database.Sqlite
 import System.Log.FastLogger
 import Data.Text (Text)
+import qualified Data.Text as T
+import System.IO
+import System.Directory
+import Control.Exception
 
 import Model
 import Schema
@@ -38,10 +42,12 @@ import ProjectList
 import ProjectView
 import ServerView
 
+dbFileName :: Text
+dbFileName = "projectpad.db"
+
 main :: IO ()
 main = do
-	sqlBackend <- getSqlBackend "projectpad.db"
-	runSqlBackend sqlBackend upgradeSchema
+	sqlBackend <- getSqlBackend dbFileName
 	displayApp sqlBackend
 
 getSqlBackend :: Text -> IO SqlBackend
@@ -58,10 +64,38 @@ data AppState = AppState
 		serverViewState :: ObjRef ServerViewState
 	} deriving Typeable
 
+-- might fail on windows if sqlite reserves exclusive
+-- access to the file.
+isDbInitialized :: ObjRef AppState -> IO Bool
+isDbInitialized _ = do
+	let path = T.unpack dbFileName
+	fileExists <- doesFileExist path
+	if not fileExists
+		then return False
+		else (>0) <$> withFile path ReadMode hFileSize
+
+data UnlockResult = Ok
+	| WrongPassword
+	deriving (Read, Show)
+
+setupPasswordAndUpgradeDb :: SqlBackend -> SignalKey (IO ())
+	-> ObjRef ProjectListState -> ObjRef AppState -> Text -> IO Text
+setupPasswordAndUpgradeDb sqlBackend changeKey state _ password = T.pack . show <$> do
+	upgrade <- try $ runSqlBackend sqlBackend $ do
+		rawExecute (T.concat ["PRAGMA key = '", password, "'"]) []
+		upgradeSchema
+	case upgrade of
+		(Left (_ :: SomeException)) -> return WrongPassword
+		Right _ -> reReadProjects sqlBackend changeKey state >> return Ok
+
 createContext :: SqlBackend -> IO (ObjRef AppState)
 createContext sqlBackend = do
+	(projectState, projectsChangeSignal) <- createProjectListState sqlBackend
 	rootClass <- newClass
 		[
+			defMethod "isDbInitialized" isDbInitialized,
+			defMethod "setupPasswordAndUpgradeDb" (setupPasswordAndUpgradeDb
+				sqlBackend projectsChangeSignal projectState),
 			defPropertyConst "projectListState"
 				$ return . projectListState . fromObjRef,
 			defPropertyConst "projectViewState"
@@ -70,7 +104,7 @@ createContext sqlBackend = do
 				$ return . serverViewState . fromObjRef
 		]
 	rootContext <- AppState
-		<$> createProjectListState sqlBackend
+		<$> (return projectState)
 		<*> createProjectViewState sqlBackend
 		<*> createServerViewState sqlBackend
 	newObject rootClass rootContext

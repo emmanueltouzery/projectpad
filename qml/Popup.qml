@@ -7,8 +7,10 @@ Rectangle {
 	color: "#aa000000"
 	z: 1
 	property var curCallback
+	property bool implicitClose: true
 
 	function setContents(title, contents, initCallback, okCallback) {
+		implicitClose = true
 		okButton.text = "OK"
 		okButton.style = defaultButtonStyle
 		popupTitle.text = title
@@ -16,8 +18,10 @@ Rectangle {
 		initCallback(popupContentsLoader.item)
 		var f = function() {
 			okCallback(popupContentsLoader.item)
-			okButton.clicked.disconnect(curCallback)
-			popup.visible = false
+			if (implicitClose) {
+				okButton.clicked.disconnect(curCallback)
+				popup.visible = false
+			}
 		}
 		okButton.clicked.connect(f)
 		curCallback = f
@@ -25,9 +29,20 @@ Rectangle {
 	}
 
 	function setContentsDelete(title, contents, initCallback, okCallback) {
+		implicitClose = true
 		setContents(title, contents, initCallback, okCallback);
 		okButton.text = "Delete"
 		okButton.style = dangerButtonStyle
+	}
+
+	function setContentsNoCancel(title, contents, initCallback, okCallback) {
+		setContents(title, contents, initCallback, okCallback);
+		cancelButton.visible = false
+	}
+
+	function doClose() {
+		okButton.clicked.disconnect(curCallback)
+		popup.visible = false
 	}
 
 	Rectangle {

@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings, TemplateHaskell #-}
 
-module Schema (upgradeSchema) where
+module Schema (upgradeSchema, getDbVersion) where
 
 import Control.Error
 import Control.Applicative

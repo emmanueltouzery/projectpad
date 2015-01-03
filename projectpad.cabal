@@ -20,8 +20,7 @@ executable projectpad
   -- other-modules:       
   -- other-extensions:    
   build-depends:       base >=4.7 && <4.8,
-                       -- TODO move to sqlcipher
-                       persistent-sqlite,
+                       persistent-sqlcipher,
                        persistent,
                        persistent-template,
                        esqueleto,
@@ -35,7 +34,8 @@ executable projectpad
                        text,
                        containers,
                        template-haskell,
-                       fast-logger
+                       fast-logger,
+                       directory
   hs-source-dirs:      src
   ghc-options:         -Wall -threaded -fno-warn-unused-do-bind
   default-language:    Haskell2010

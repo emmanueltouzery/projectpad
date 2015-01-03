@@ -32,7 +32,6 @@ Window {
 			}
 		}
 		id: loader
-		source: "ProjectList.qml"
 		onLoaded: {
 			// putting it here ensures it's called
 			// also for the first screen of the app
@@ -66,5 +65,35 @@ Window {
 	Popup {
 		id: popup
 		visible: false
+	}
+
+	Component.onCompleted: {
+		var popupComponent;
+		if (isDbInitialized()) {
+			popupComponent = enterPasswordComponent
+		} else {
+			popupComponent = firstPasswordComponent
+		}
+		popup.setContentsNoCancel("Welcome", popupComponent,
+			function (passwdDialog) {
+				popup.implicitClose = false
+			},
+			function (passwdDialog) {
+				passwdDialog.onOk(passwdDialog, popup)
+			})
+	}
+
+	Component {
+		id: enterPasswordComponent
+		PasswordEnter {
+			onLoadView: loadViewAction(name, model)
+		}
+	}
+
+	Component {
+		id: firstPasswordComponent
+		FirstPasswordEnter {
+			onLoadView: loadViewAction(name, model)
+		}
 	}
 }
