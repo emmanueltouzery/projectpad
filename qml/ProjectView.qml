@@ -67,6 +67,7 @@ ScrollView {
 			case "addsrv":
 				popup.setContents("Add server", serverEditComponent,
 						function (serverEdit) {
+							serverEdit.activate(serverEdit.getDefaultModel())
 						},
 						function (serverEdit) {
 							serverEdit.onOk()
@@ -77,6 +78,7 @@ ScrollView {
 			case "addpoi":
 				popup.setContents("Add point of interest", poiEditComponent,
 						function (poiEdit) {
+							poiEdit.activate(poiEdit.getDefaultModel())
 						},
 						function (poiEdit) {
 							poiEdit.onOk();

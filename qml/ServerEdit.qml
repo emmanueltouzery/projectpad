@@ -8,9 +8,13 @@ Rectangle {
 	color: "light grey"
 	property int preferredHeight: 280
 
-	property variant model: {"desc": "New server", "serverIp": "",
-					"username": "", "password": "",
-					"type": "", "accessType": ""}
+	property variant model: getDefaultModel()
+       
+	function getDefaultModel() {
+		return {"desc": "New server", "serverIp": "",
+			"username": "", "password": "",
+			"type": "", "accessType": ""}
+	}
 
 	function activate(_model) {
 		serverEdit.model = _model

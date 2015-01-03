@@ -8,8 +8,12 @@ Rectangle {
 	color: "light grey"
 	property int preferredHeight: 200
 
-	property variant model: {"desc": "New point of interest", "path": "",
+	property variant model: getDefaultModel()
+
+	function getDefaultModel() {
+		return {"desc": "New point of interest", "path": "",
 					"text": "", "interestType": ""}
+	}
 
 	function activate(_model) {
 		poiEdit.model = _model

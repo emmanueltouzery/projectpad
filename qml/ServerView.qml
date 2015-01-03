@@ -49,6 +49,7 @@ ScrollView {
 			case "addpoi":
 				popup.setContents("Add point of interest", editPoiComponent,
 						function (poiEdit) {
+							poiEdit.activate(poiEdit.getDefaultModel())
 						},
 						function (poiEdit) {
 							poiEdit.onServerOk();
