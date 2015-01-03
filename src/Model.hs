@@ -60,7 +60,7 @@ toSqlKey32 = toSqlKey . fromIntegral
 getStandardClassMembers :: (Marshal tr, ToBackendKey SqlBackend record, Typeable record,
 	 MarshalMode tr ICanReturnTo () ~ Yes) =>
 	[(String, record -> tr)] -> [Member (GetObjType (ObjRef (Entity record)))]
-getStandardClassMembers pairs = (idProperty:others)
+getStandardClassMembers pairs = idProperty:others
 	where
 		idProperty = defPropertyConst "id" (return . int64to32 . fromSqlKey . entityKey . fromObjRef)
 		others = fmap (\(name, f) -> defPropertyConst name (return . f . entityVal . fromObjRef)) pairs

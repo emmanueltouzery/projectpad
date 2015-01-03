@@ -51,7 +51,7 @@ updateProject sqlBackend changeKey state project name = do
 deleteProjects :: SqlBackend -> SignalKey (IO ()) -> ObjRef ProjectListState -> [Int] -> IO ()
 deleteProjects sqlBackend changeKey state projectIds = do
 	let keys = fmap convertKey projectIds :: [Key Project]
-	mapM_ (\k -> runSqlBackend sqlBackend $ P.delete k) keys
+	mapM_ (runSqlBackend sqlBackend . P.delete) keys
 	reReadProjects sqlBackend changeKey state
 
 createProjectListState :: SqlBackend -> IO (ObjRef ProjectListState, SignalKey (IO ()))
@@ -67,4 +67,4 @@ createProjectListState sqlBackend = do
 		]
 	objPrj <- mapM newObjectDC []
 	projectListState <- ProjectListState <$> newMVar objPrj
-	(,) <$> newObject rootClass projectListState <*> (return changeKey)
+	(,) <$> newObject rootClass projectListState <*> return changeKey

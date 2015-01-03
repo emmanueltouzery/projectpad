@@ -13,7 +13,7 @@ import Data.List
 import Model (runSqlBackend)
 
 swapMVar_ :: MVar a -> a -> IO ()
-swapMVar_ a b = swapMVar a b >> return ()
+swapMVar_ a b = void (swapMVar a b)
 
 class DynParentHolder a where
 	dynParentId :: a -> MVar (Maybe Int)
@@ -49,7 +49,7 @@ getChildren :: (CacheHolder b a, DefaultClass (Entity b)) =>
 getChildren sqlBackend readChildren _state parentId = do
 	let state = fromObjRef _state
 	pId <- readMVar (dynParentId state)
-	when (not $ pId == Just parentId) $ do
+	when (pId /= Just parentId) $ do
 		swapMVar_ (dynParentId state) (Just parentId)
 		clearAllChildrenCaches state
 	cachedData <- readMVar (cacheChildren state)
@@ -77,7 +77,7 @@ updateHelper sqlBackend stateRef entityRef reader stateReader updateValues= do
 	runSqlBackend sqlBackend $ P.update idKey updateValues
 	updateCacheQuery sqlBackend stateRef reader
 	newEntityList <- fromMaybe (error "No entities after update?")
-		<$> (readMVar $ stateReader (fromObjRef stateRef))
+		<$> readMVar (stateReader (fromObjRef stateRef))
 	let mUpdatedEntity = find ((== idKey) . entityKey . fromObjRef) newEntityList
 	return $ fromMaybe (error "Can't find entity after update?") mUpdatedEntity
 
@@ -90,5 +90,5 @@ deleteHelper :: (CacheHolder b a, DefaultClass (Entity b),
 		-> SqlBackend -> ObjRef a -> [Int] -> IO ()
 deleteHelper keyConverter reader sqlBackend stateRef serverIds = do
 	let keys = fmap keyConverter serverIds
-	mapM_ (\k -> runSqlBackend sqlBackend $ P.delete k) keys
+	mapM_ (runSqlBackend sqlBackend . P.delete) keys
 	updateCacheQuery sqlBackend stateRef reader

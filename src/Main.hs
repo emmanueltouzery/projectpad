@@ -1,4 +1,4 @@
-{-# LANGUAGE OverloadedStrings, DeriveDataTypeable, TypeFamilies, ViewPatterns, ScopedTypeVariables #-}
+{-# LANGUAGE OverloadedStrings, DeriveDataTypeable, TypeFamilies, ScopedTypeVariables #-}
 module Main where
 
 -- the DB init should be done in a try block
@@ -58,7 +58,7 @@ getSqlBackend t = do
 	-- add: import System.Log.FastLogger
 	-- and use this callback:
 	-- print . fromLogStr
-	let logger = \_ _ _ -> const $ return ()
+	let logger _ _ _ = const $ return ()
 	wrapConnection conn logger
 
 data AppState = AppState
@@ -108,7 +108,7 @@ createContext sqlBackend = do
 				$ return . serverViewState . fromObjRef
 		]
 	rootContext <- AppState
-		<$> (return projectState)
+		<$> return projectState
 		<*> createProjectViewState sqlBackend
 		<*> createServerViewState sqlBackend
 	newObject rootClass rootContext

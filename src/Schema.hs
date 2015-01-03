@@ -15,6 +15,7 @@ import qualified Data.Map as Map
 import Database.Persist.Sqlite
 import Database.Esqueleto
 import Data.Int
+import Control.Arrow ((***))
 
 import Model
 
@@ -26,7 +27,7 @@ upgradeSchema = do
 
 migrations :: Map Int Text
 migrations = Map.fromList $
-	map (\(a,b) -> (parseMigrationName a, TE.decodeUtf8 b)) $(embedDir "migrations")
+	map (parseMigrationName *** TE.decodeUtf8) $(embedDir "migrations")
 
 parseMigrationName :: FilePath -> Int
 parseMigrationName name = fromMaybe (error $ "Invalid migration filename: " ++ name) convertMaybe
@@ -63,4 +64,4 @@ applyUpgrade version = do
 	let migrationText = fromMaybe (error $ "Can't find migration " ++ show version)
 		(Map.lookup version migrations)
 	let commands = filter (not . T.null) (T.strip <$> T.splitOn ";" migrationText)
-	mapM_ (flip rawExecute []) commands
+	mapM_ (`rawExecute` []) commands
