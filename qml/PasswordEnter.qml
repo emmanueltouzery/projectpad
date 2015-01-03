@@ -20,7 +20,6 @@ Rectangle {
 
 	function onOk(passwdDialog, popup) {
 		var unlockResult = setupPasswordAndUpgradeDb(passwordText.text)
-		console.log(unlockResult)
 		switch (unlockResult) {
 			case "WrongPassword":
 				introText.text = "Wrong password! Try again."

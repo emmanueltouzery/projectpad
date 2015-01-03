@@ -8,6 +8,7 @@ Rectangle {
 	z: 1
 	property var curCallback
 	property bool implicitClose: true
+	Keys.onReturnPressed: curCallback()
 
 	function setContents(title, contents, initCallback, okCallback) {
 		implicitClose = true
@@ -25,11 +26,13 @@ Rectangle {
 		}
 		okButton.clicked.connect(f)
 		curCallback = f
+		cancelButton.visible = true
 		popup.visible = true
 	}
 
 	function setContentsDelete(title, contents, initCallback, okCallback) {
 		implicitClose = true
+		cancelButton.visible = true
 		setContents(title, contents, initCallback, okCallback);
 		okButton.text = "Delete"
 		okButton.style = dangerButtonStyle

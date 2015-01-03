@@ -77,6 +77,7 @@ Window {
 		popup.setContentsNoCancel("Welcome", popupComponent,
 			function (passwdDialog) {
 				popup.implicitClose = false
+				passwdDialog.activate()
 			},
 			function (passwdDialog) {
 				passwdDialog.onOk(passwdDialog, popup)

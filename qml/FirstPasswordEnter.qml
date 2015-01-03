@@ -29,7 +29,6 @@ Rectangle {
 		}
 
 		var setupResult = setupPasswordAndUpgradeDb(passwordText.text)
-		console.log(setupResult)
 		switch (setupResult) {
 			case "Ok":
 				popup.doClose()
