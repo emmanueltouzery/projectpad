@@ -48,6 +48,7 @@ Rectangle {
 		Rectangle {
 			color: "dark grey"
 			height: 60
+			property int preferredHeight: 60
 			Text {
 				id: deleteText
 				x: 15
