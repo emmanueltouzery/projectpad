@@ -29,7 +29,7 @@ import Control.Applicative
 import Graphics.QML
 import Data.Typeable
 import Database.Sqlite
-import System.Log.FastLogger
+
 import Data.Text (Text)
 import qualified Data.Text as T
 import System.IO
@@ -54,7 +54,11 @@ getSqlBackend :: Text -> IO SqlBackend
 getSqlBackend t = do
 	conn <- open t
 	prepare conn "PRAGMA foreign_keys = ON;" >>= step
-	let logger = \_ _ _ -> print . fromLogStr
+	-- to log the SQL queries as they're sent to the DB,
+	-- add: import System.Log.FastLogger
+	-- and use this callback:
+	-- print . fromLogStr
+	let logger = \_ _ _ -> const $ return ()
 	wrapConnection conn logger
 
 data AppState = AppState
