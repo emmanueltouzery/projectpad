@@ -29,7 +29,8 @@ import Control.Applicative
 import Graphics.QML
 import Data.Typeable
 import Database.Sqlite
-
+import Data.ByteString (ByteString)
+import qualified Data.ByteString as BS
 import Data.Text (Text)
 import qualified Data.Text as T
 import System.IO
@@ -44,6 +45,9 @@ import ServerView
 
 dbFileName :: Text
 dbFileName = "projectpad.db"
+
+sqLiteDiscrimitator :: ByteString
+sqLiteDiscrimitator = "SQLite format 3"
 
 main :: IO ()
 main = do
@@ -71,26 +75,47 @@ data AppState = AppState
 -- might fail on windows if sqlite reserves exclusive
 -- access to the file.
 isDbInitialized :: ObjRef AppState -> IO Bool
-isDbInitialized _ = do
+isDbInitialized _ = isDbInitialized'
+
+isDbInitialized' :: IO Bool
+isDbInitialized' = do
 	let path = T.unpack dbFileName
 	fileExists <- doesFileExist path
 	if not fileExists
 		then return False
-		else (>0) <$> withFile path ReadMode hFileSize
+		else (>0) <$> withFile path ReadMode hFileSize 
+
+-- might fail on windows if sqlite reserves exclusive
+-- access to the file.
+sanityCheckIsDbEncrypted :: IO Bool
+sanityCheckIsDbEncrypted = do
+	initialized <- isDbInitialized'
+	let path = T.unpack dbFileName
+	if (not initialized)
+		then return True
+		else do
+			fileStart <- withFile path ReadMode
+				(`BS.hGet` (BS.length sqLiteDiscrimitator))
+			return $ fileStart /= sqLiteDiscrimitator
 
 data UnlockResult = Ok
 	| WrongPassword
+	| DbNotEncrypted
 	deriving (Read, Show)
 
 setupPasswordAndUpgradeDb :: SqlBackend -> SignalKey (IO ())
 	-> ObjRef ProjectListState -> ObjRef AppState -> Text -> IO Text
-setupPasswordAndUpgradeDb sqlBackend changeKey state _ password = T.pack . show <$> do
-	upgrade <- try $ runSqlBackend sqlBackend $ do
-		rawExecute (T.concat ["PRAGMA key = '", password, "'"]) []
-		upgradeSchema
-	case upgrade of
-		(Left (_ :: SomeException)) -> return WrongPassword
-		Right _ -> reReadProjects sqlBackend changeKey state >> return Ok
+setupPasswordAndUpgradeDb sqlBackend changeKey state _ password = do
+	encrypted <- sanityCheckIsDbEncrypted
+	T.pack . show <$> if (not encrypted)
+		then return DbNotEncrypted
+		else do
+			upgrade <- try $ runSqlBackend sqlBackend $ do
+				rawExecute (T.concat ["PRAGMA key = '", password, "'"]) []
+				upgradeSchema
+			case upgrade of
+				(Left (_ :: SomeException)) -> return WrongPassword
+				Right _ -> reReadProjects sqlBackend changeKey state >> return Ok
 
 createContext :: SqlBackend -> IO (ObjRef AppState)
 createContext sqlBackend = do

@@ -28,6 +28,9 @@ Rectangle {
 				popup.doClose()
 				loadView("ProjectList.qml", null)
 				break;
+			case "DbNotEncrypted":
+				introText.text = "FATAL ERROR: db is not encrypted!"
+				break;
 		}
 	}
 

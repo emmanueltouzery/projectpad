@@ -34,8 +34,8 @@ Rectangle {
 				popup.doClose()
 				loadView("ProjectList.qml", null)
 				break;
-			case "DbNotEncrypted":
-				introText.text = "Error accessing the database!"
+			default:
+				introText.text = "Error accessing the database! " + setupResult
 				break;
 		}
 	}
