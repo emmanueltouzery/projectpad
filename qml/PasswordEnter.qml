@@ -19,6 +19,16 @@ Rectangle {
 	}
 
 	function onOk(passwdDialog, popup) {
+		if (passwordText.text.length == 0) {
+			// if we give to sqlcipher a 0-length password the first
+			// time, then run our test query, it fails and never
+			// recovers when we give passwords later.
+			// No such problem when we simply give a wrong but non-empty
+			// password.
+			// Also, we force the user to enter a password anyway.
+			introText.text = "You must enter a password"
+			return
+		}
 		var unlockResult = setupPasswordAndUpgradeDb(passwordText.text)
 		switch (unlockResult) {
 			case "WrongPassword":
