@@ -66,8 +66,56 @@ ScrollView {
 		}
 	}
 
+	Rectangle {
+		id: serverHeader
+		color: "light grey"
+		x: 0
+		width: parent.width
+		height: 70
+
+		Text {
+			text: model.desc
+			font.pointSize: 16
+			x: 10
+			height: 70
+			verticalAlignment: Text.AlignVCenter
+		}
+
+		Rectangle {
+			x: parent.width-width
+			width: Math.max(ipText.width, Math.max(usernameText.width, copyBtn.width))
+
+			Text {
+				id: ipText
+				text: model.serverIp
+			}
+
+			Text {
+				id: usernameText
+				text: model.username
+				y: 20
+			}
+
+			Button {
+				id: copyBtn
+				text: "Copy password"
+				y: 40
+				onClicked: {
+					passwordCopy.selectAll()
+					passwordCopy.copy()
+				}
+			}
+			TextField {
+				id: passwordCopy
+				text: model.password
+				visible: false
+			}
+		}
+	}
+
 	Flickable {
 		width: parent.width
+		anchors.topMargin: 70
 		contentHeight: flow.implicitHeight
 		Flow {
 			anchors.fill: parent
