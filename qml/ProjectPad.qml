@@ -41,6 +41,9 @@ Window {
 			var breadcrumbsInfo = loader.item.getBreadCrumbs()
 			toolbar.pathLinks = breadcrumbsInfo.pathLinks
 			toolbar.title = breadcrumbsInfo.title
+			if (loader.item.appContext !== undefined) {
+				loader.item.appContext = window
+			}
 		}
 	}
 
@@ -96,5 +99,17 @@ Window {
 		FirstPasswordEnter {
 			onLoadView: loadViewAction(name, model)
 		}
+	}
+	TextField {
+		id: passwordCopy
+		visible: false
+		readOnly: true
+	}
+
+	function copyItem(text) {
+		passwordCopy.text = text
+		passwordCopy.selectAll()
+		passwordCopy.copy()
+		passwordCopy.text = ""
 	}
 }

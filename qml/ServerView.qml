@@ -11,6 +11,7 @@ ScrollView {
 	signal loadView(string name, variant model)
 	signal selectionChange(variant selection)
 	property variant model
+	property variant appContext: null
 
 	property bool editMode
 
@@ -101,14 +102,8 @@ ScrollView {
 				text: "Copy password"
 				y: 40
 				onClicked: {
-					passwordCopy.selectAll()
-					passwordCopy.copy()
+					appContext.copyItem(model.password)
 				}
-			}
-			TextField {
-				id: passwordCopy
-				text: model.password
-				visible: false
 			}
 		}
 	}
