@@ -16,6 +16,8 @@ import Database.Persist.Sqlite
 import Database.Esqueleto
 import Data.Int
 import Control.Arrow ((***))
+import qualified Database.Persist as P
+import Data.Time
 
 import Model
 
@@ -65,3 +67,7 @@ applyUpgrade version = do
 		(Map.lookup version migrations)
 	let commands = filter (not . T.null) (T.strip <$> T.splitOn ";" migrationText)
 	mapM_ (`rawExecute` []) commands
+	-- insert in db version a record of the upgrade
+	time <- liftIO getCurrentTime
+	P.insert $ DbVersion version time
+	return ()
