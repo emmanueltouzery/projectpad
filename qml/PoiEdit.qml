@@ -91,7 +91,7 @@ Rectangle {
 				id: interestTypeItems
 				ListElement { text: "Application"; value: "PoiApplication"}
 				ListElement { text: "Log file"; value: "PoiLogFile"}
-				ListElement { text: "Data file"; value: "PoiDataFile"}
+				ListElement { text: "Config file"; value: "PoiConfigFile"}
 				ListElement { text: "Command to run"; value: "PoiCommandToRun"}
 			}
 		}

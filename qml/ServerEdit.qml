@@ -108,6 +108,7 @@ Rectangle {
 				id: serverAccessTypeItems
 				ListElement { text: "SSH"; value: "SrvAccessSsh"}
 				ListElement { text: "Remote desktop (RDP)"; value: "SrvAccessRdp"}
+				ListElement { text: "Website"; value: "SrvAccessWww"}
 			}
 		}
 	}

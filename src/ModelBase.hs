@@ -8,11 +8,11 @@ import Data.Typeable
 type Password = Text
 type IpAddress = Text
 
-data InterestType = PoiApplication | PoiLogFile | PoiDataFile | PoiCommandToRun
+data InterestType = PoiApplication | PoiLogFile | PoiConfigFile | PoiCommandToRun
 	deriving (Show, Read, Eq, Typeable)
 derivePersistField "InterestType"
 
-data ServerAccessType = SrvAccessSsh | SrvAccessRdp
+data ServerAccessType = SrvAccessSsh | SrvAccessRdp | SrvAccessWww
 	deriving (Show, Read, Eq, Typeable)
 derivePersistField "ServerAccessType"
 
