@@ -106,8 +106,8 @@ Rectangle {
 			Layout.fillWidth: true
 			model: ListModel {
 				id: serverAccessTypeItems
-				ListElement { text: "SSH"; value: "SrvSsh"}
-				ListElement { text: "Remote desktop (RDP)"; value: "SrvRdp"}
+				ListElement { text: "SSH"; value: "SrvAccessSsh"}
+				ListElement { text: "Remote desktop (RDP)"; value: "SrvAccessRdp"}
 			}
 		}
 	}

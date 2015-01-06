@@ -12,7 +12,7 @@ data InterestType = PoiApplication | PoiLogFile | PoiDataFile | PoiCommandToRun
 	deriving (Show, Read, Eq, Typeable)
 derivePersistField "InterestType"
 
-data ServerAccessType = SrvSsh | SrvRdp
+data ServerAccessType = SrvAccessSsh | SrvAccessRdp
 	deriving (Show, Read, Eq, Typeable)
 derivePersistField "ServerAccessType"
 
