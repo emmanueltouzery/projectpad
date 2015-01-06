@@ -9,6 +9,12 @@ Rectangle {
 	property var curCallback
 	property bool implicitClose: true
 	Keys.onReturnPressed: curCallback()
+	Keys.onEnterPressed: curCallback()
+	Keys.onEscapePressed: {
+		if (cancelButton.visible) {
+			doClose()
+		}
+	}
 
 	function setContents(title, contents, initCallback, okCallback) {
 		implicitClose = true
@@ -71,12 +77,9 @@ Rectangle {
 				x: 5
 				style: NormalButtonStyle {}
 				anchors.verticalCenter: parent.verticalCenter
-				onClicked: {
-					popup.visible = false
-					okButton.clicked.disconnect(curCallback)
-				}
+				onClicked: doClose()
 			}
-	
+
 			Text {
 				id: popupTitle
 				text: "Title"
