@@ -113,8 +113,10 @@ setupPasswordAndUpgradeDb sqlBackend changeKey state _ password = do
 			upgrade <- try $ runSqlBackend sqlBackend $ do
 				rawExecute (T.concat ["PRAGMA key = '", password, "'"]) []
 				upgradeSchema
+			-- print details to STDOUT in case of failure because maybe
+			-- it was the right password and the schema upgrade failed!
 			case upgrade of
-				(Left (_ :: SomeException)) -> return WrongPassword
+				(Left (x :: SomeException)) -> print x >> return WrongPassword
 				Right _ -> reReadProjects sqlBackend changeKey state >> return Ok
 
 createContext :: SqlBackend -> IO (ObjRef AppState)
