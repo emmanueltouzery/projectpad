@@ -16,9 +16,13 @@ ScrollView {
 	property bool editMode
 
 	property variant actions: [
-		["addpoi", "glyphicons-336-pushpin", "Add point of interest"]]
+		["addpoi", "glyphicons-336-pushpin", "Add point of interest"],
+		["addwww", "glyphicons-372-global", "Add website"]]
 
-	onSelectionChange: Select.updateSelectDisplay(poisrepeater)
+	onSelectionChange: {
+		Select.updateSelectDisplay(poisrepeater)
+		Select.updateSelectDisplay(wwwsrepeater)
+	}
 	onEditModeChanged: Select.clearSelection(pv.selectionChange)
 
 	function getBreadCrumbs() {
@@ -45,6 +49,19 @@ ScrollView {
 				})
 	}
 
+	function editSrvWww(sId) {
+		var curPoi = Utils.findById(serverViewState.getServerWebsites(pv.model.id), sId)
+		popup.setContents("Edit website", editSrvWwwComponent,
+				function (wwwEdit) {
+					wwwEdit.activate(curPoi)
+				},
+				function (wwwEdit) {
+					wwwEdit.onOk()
+					// force refresh
+					wwwsrepeater.model = serverViewState.getServerWebsites(pv.model.id)
+				})
+	}
+
 	function actionTriggered(name) {
 		switch (name) {
 			case "addpoi":
@@ -58,11 +75,35 @@ ScrollView {
 						})
 				break;
 			case "edit":
-				editPoi(Select.selectedItems[0])
+				var sId = Select.selectedItems[0]
+				if (sId > 1000000) {
+					editPoi(sId - 1000000)
+				} else {
+					editSrvWww(sId)
+				}
 				break;
 			case "delete":
-				serverViewState.deleteServerPois(Select.selectedItems)
+				var serverPois = Utils.map(
+						Utils.filter(Select.selectedItems,
+							function(i) { return i >=1000000}),
+						function(x) { return x-1000000 })
+				serverViewState.deleteServerPois(serverPois)
 				poisrepeater.model = serverViewState.getPois(pv.model.id)
+
+				var serverWwws = Utils.filter(Select.selectedItems,
+							function(i) { return i < 1000000})
+				serverViewState.deleteServerWebsites(serverWwws)
+				wwwsrepeater.model = serverViewState.getServerWebsites(pv.model.id)
+				break;
+			case "addwww":
+				popup.setContents("Add website", editSrvWwwComponent,
+						function (wwwEdit) {
+							wwwEdit.activate(wwwEdit.getDefaultModel())
+						},
+						function (wwwEdit) {
+							wwwEdit.onOk();
+							wwwsrepeater.model = serverViewState.getServerWebsites(pv.model.id)
+						})
 				break;
 		}
 	}
@@ -119,14 +160,14 @@ ScrollView {
 			id: flow
 
 			Repeater {
-				id: poisrepeater
-				model: serverViewState.getPois(pv.model.id)
+				id: wwwsrepeater
+				model: serverViewState.getServerWebsites(pv.model.id)
 
 				Rectangle {
 					property int modelId: modelData.id
 					property bool selected: false
 					width: 180; height: 180
-					color: "light gray"
+					color: "dark gray"
 					border.width: selected ? 4 : 0
 					border.color: "green"
 
@@ -142,11 +183,42 @@ ScrollView {
 					}
 				}
 			}
+
+			Repeater {
+				id: poisrepeater
+				model: serverViewState.getPois(pv.model.id)
+
+				Rectangle {
+					property int modelId: 1000000 + modelData.id
+					property bool selected: false
+					width: 180; height: 180
+					color: "light gray"
+					border.width: selected ? 4 : 0
+					border.color: "green"
+
+					Text {
+						text: modelData.desc
+					}
+					MouseArea {
+						anchors.fill: parent
+						onClicked: {
+							Select.handleClick(pv.selectionChange, 1000000 + modelData.id, function() {
+							})
+						}
+					}
+				}
+			}
 		}
 		Component {
 			id: editPoiComponent
 			PoiEdit {
 				id: poiEdit
+			}
+		}
+		Component {
+			id: editSrvWwwComponent
+			ServerWebsiteEdit {
+				id: wwwEdit
 			}
 		}
 	}

@@ -18,8 +18,8 @@ import ChildEntityCache
 data ProjectViewState = ProjectViewState
 	{
 		curProjectId :: MVar (Maybe Int),
-		servers :: MVar (Maybe [ObjRef (Entity Server)]),
-		pois :: MVar (Maybe [ObjRef (Entity ProjectPointOfInterest)])
+		servers :: EntityListCache Server,
+		pois :: EntityListCache ProjectPointOfInterest
 	} deriving Typeable
 
 instance DynParentHolder ProjectViewState where

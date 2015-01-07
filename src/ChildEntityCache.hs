@@ -12,6 +12,8 @@ import Data.List
 
 import Model (runSqlBackend)
 
+type EntityListCache a = MVar (Maybe [ObjRef (Entity a)])
+
 swapMVar_ :: MVar a -> a -> IO ()
 swapMVar_ a b = void (swapMVar a b)
 
@@ -20,7 +22,7 @@ class DynParentHolder a where
 	clearAllChildrenCaches :: a -> IO ()
 
 class DynParentHolder a => CacheHolder b a where
-	cacheChildren :: a -> MVar (Maybe [ObjRef (Entity b)])
+	cacheChildren :: a -> EntityListCache b
 
 getCurParentId :: DynParentHolder a => ObjRef a -> IO Int
 getCurParentId (fromObjRef -> state) = fromMaybe (error "No current parent ID!")
@@ -71,7 +73,7 @@ addHelper sqlBackend stateRef reader entityGetter = do
 updateHelper :: (CacheHolder b a, DefaultClass (Entity b), PersistEntity b,
 	PersistEntityBackend b ~ SqlBackend) =>
 	SqlBackend -> ObjRef a -> ObjRef (Entity b) -> (Int -> SqlPersistM [Entity b])
-	-> (a -> MVar (Maybe [ObjRef (Entity b)])) -> [P.Update b] -> IO (ObjRef (Entity b))
+	-> (a -> EntityListCache b) -> [P.Update b] -> IO (ObjRef (Entity b))
 updateHelper sqlBackend stateRef entityRef reader stateReader updateValues= do
 	let idKey = entityKey $ fromObjRef entityRef
 	runSqlBackend sqlBackend $ P.update idKey updateValues
