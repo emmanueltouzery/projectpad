@@ -13,7 +13,7 @@ function listModelGetValueIndex(listModel, value) {
 			return i;
 		}
 	}
-	return 0
+	return -1
 }
 
 function filter(list, predicate) {

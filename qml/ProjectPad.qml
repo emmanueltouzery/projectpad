@@ -112,4 +112,39 @@ Window {
 		passwordCopy.copy()
 		passwordCopy.text = ""
 	}
+
+	function errorMessage(txt) {
+		toast.msgText = txt
+		toastOpacity.running = true
+	}
+
+	Rectangle {
+		id: toast
+		opacity: 0
+		color: "#c9302c"
+		z: 2
+		anchors.horizontalCenter: parent.horizontalCenter
+		width: 450
+		height: 80
+		property string msgText: ""
+		radius: 10
+		Text {
+			id: errorText
+			text: parent.msgText
+			x: 15
+			width: parent.width-15
+			height: parent.height
+			verticalAlignment: Text.AlignVCenter
+			wrapMode: Text.WordWrap
+		}
+	}
+	NumberAnimation {
+		id: toastOpacity
+		property: "opacity"
+		easing.type: Easing.InExpo
+		duration: 5000
+		from: 1.0
+		to: 0.0
+		target: toast
+	}
 }

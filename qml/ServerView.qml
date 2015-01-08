@@ -100,19 +100,27 @@ ScrollView {
 				}
 				break;
 			case "delete":
+				var serverDbs = Utils.map(
+						Utils.filter(Select.selectedItems,
+							function(i) { return i >=500000 && i < 1000000}),
+						function(x) { return x-500000 })
+				for (var i=0;i<serverDbs.length;i++) {
+					var serverDbId = serverDbs[i]
+					var serverDb = Utils.findById(dbsrepeater.model, serverDbId)
+					var msg = serverViewState.canDeleteServerDatabase(serverDb)
+					if (msg !== null) {
+						appContext.errorMessage(msg)
+						return
+					}
+				}
+				serverViewState.deleteServerDatabases(serverDbs)
+				dbsrepeater.model = serverViewState.getServerDatabases(pv.model.id)
 				var serverPois = Utils.map(
 						Utils.filter(Select.selectedItems,
 							function(i) { return i >=1000000}),
 						function(x) { return x-1000000 })
 				serverViewState.deleteServerPois(serverPois)
 				poisrepeater.model = serverViewState.getPois(pv.model.id)
-
-				var serverDbs = Utils.map(
-						Utils.filter(Select.selectedItems,
-							function(i) { return i >=500000 && i < 1000000}),
-						function(x) { return x-500000 })
-				serverViewState.deleteServerDatabases(serverDbs)
-				dbsrepeater.model = serverViewState.getServerDatabases(pv.model.id)
 
 				var serverWwws = Utils.filter(Select.selectedItems,
 							function(i) { return i < 500000})

@@ -12,23 +12,37 @@ Rectangle {
 
 	function getDefaultModel() {
 		return {"desc": "New server website", "url": "",
-					"username": "", "password": ""}
+					"username": "", "password": "", "serverDatabaseId": -1}
 	}
 
 	function activate(_model) {
 		srvWebsiteEdit.model = _model
 		description.selectAll()
 		description.forceActiveFocus()
+
+		var dbs = serverViewState.getAllDatabases()
+		database.model.clear()
+			database.model.append({"text": "No database", "value": -1})
+		for (var i=0;i<dbs.length;i++) {
+			var db = dbs[i]
+			database.model.append({"text": db.name, "value": db.id})
+		}
+		var actualIndex = Utils.listModelGetValueIndex(database.model, parseInt(_model.serverDatabaseId))
+		database.currentIndex = Math.max(actualIndex, 0) // want "No db" if nothing.
 	}
 
 	function onOk() {
+		var dbId = database.model.get(database.currentIndex).value
+		if (dbId === -1) {
+			dbId = null
+		}
 		if (model.id) {
 			srvWebsiteEdit.model = serverViewState.updateServerWebsite(
 				model, description.text, url.text,
-				username.text, password.text)
+				username.text, password.text, dbId)
 		} else {
 			serverViewState.addServerWebsite(description.text, url.text,
-				username.text, password.text)
+				username.text, password.text, dbId)
 		}
 	}
 
@@ -74,6 +88,16 @@ Rectangle {
 			echoMode: TextInput.Password
 			Layout.fillWidth: true
 			text: srvWebsiteEdit.model.password
+		}
+
+		Text {
+			text: "Database:"
+		}
+		ComboBox {
+			id: database
+			Layout.fillWidth: true
+			textRole: "text"
+			model: ListModel {}
 		}
 
 	}

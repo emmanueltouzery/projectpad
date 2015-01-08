@@ -13,6 +13,7 @@ import Database.Persist.Sql
 import Data.Int
 import Data.Text (Text)
 import qualified Data.Text as T
+import Data.Maybe
 
 import ModelBase
 
@@ -46,6 +47,7 @@ ServerWebsite
 	url Text
 	username Text
 	password Password
+	serverDatabaseId ServerDatabaseId Maybe
 	serverId ServerId
 	deriving Show Typeable
 ServerDatabase
@@ -107,7 +109,9 @@ instance DefaultClass (Entity ServerWebsite) where
 		("desc", serverWebsiteDesc),
 		("url", serverWebsiteUrl),
 		("username", serverWebsiteUsername),
-		("password", serverWebsitePassword)]
+		("password", serverWebsitePassword),
+		("serverDatabaseId", (fromMaybe "") . (fmap (text . fromSqlKey))
+			. serverWebsiteServerDatabaseId)] -- TODO FK as text...
 
 instance DefaultClass (Entity ServerDatabase) where
 	classMembers = getStandardClassMembers [

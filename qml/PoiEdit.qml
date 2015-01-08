@@ -17,7 +17,7 @@ Rectangle {
 
 	function activate(_model) {
 		poiEdit.model = _model
-		interestType.currentIndex = Utils.listModelGetValueIndex(interestType.model, _model.interestType)
+		interestType.currentIndex = Math.max(0, Utils.listModelGetValueIndex(interestType.model, _model.interestType))
 		poiDescription.selectAll()
 		poiDescription.forceActiveFocus()
 	}

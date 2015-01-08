@@ -1,5 +1,5 @@
 {-# LANGUAGE OverloadedStrings, DeriveDataTypeable, TypeFamilies #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE MultiParamTypeClasses, ViewPatterns #-}
 module ServerView where
 
 import Control.Applicative
@@ -74,21 +74,24 @@ readServerWebsites serverId = select $ from $ \p -> do
 	return p
 
 addServerWebsite :: SqlBackend -> ObjRef ServerViewState
-	-> Text -> Text -> Text -> Text -> IO ()
+	-> Text -> Text -> Text -> Text -> Maybe Int -> IO ()
 addServerWebsite sqlBackend stateRef
-	pDesc url username password = do
+	pDesc url username password mDatabaseId = do
+	let mDatabaseKey = fmap toSqlKey32 mDatabaseId
 	addHelper sqlBackend stateRef readServerWebsites
-		$ ServerWebsite pDesc url username password
+		$ ServerWebsite pDesc url username password mDatabaseKey
 
 updateServerWebsite :: SqlBackend -> ObjRef ServerViewState -> ObjRef (Entity ServerWebsite)
-	-> Text -> Text -> Text -> Text -> IO (ObjRef (Entity ServerWebsite))
+	-> Text -> Text -> Text -> Text -> Maybe Int -> IO (ObjRef (Entity ServerWebsite))
 updateServerWebsite sqlBackend stateRef srvWwwRef
-	pDesc url username password = do
+	pDesc url username password mDatabaseId = do
+	let mDatabaseKey = fmap toSqlKey32 mDatabaseId
 	updateHelper sqlBackend stateRef srvWwwRef readServerWebsites serverWebsites
 		[
 			ServerWebsiteDesc P.=. pDesc, ServerWebsiteUrl P.=. url,
 			ServerWebsiteUsername P.=. username,
-			ServerWebsitePassword P.=. password
+			ServerWebsitePassword P.=. password,
+			ServerWebsiteServerDatabaseId P.=. mDatabaseKey
 		]
 
 deleteServerWebsites :: SqlBackend -> ObjRef ServerViewState -> [Int] -> IO ()
@@ -118,8 +121,29 @@ updateServerDatabase sqlBackend stateRef srvDbRef
 			ServerDatabasePassword P.=. password
 		]
 
+canDeleteServerDatabase :: SqlBackend -> ObjRef ServerViewState
+	-> ObjRef (Entity ServerDatabase) -> IO (Maybe Text)
+canDeleteServerDatabase sqlBackend _ (fromObjRef -> serverDb) = do
+	websites <- runSqlBackend sqlBackend (select $ from $ \w -> do
+		where_ (w ^. ServerWebsiteServerDatabaseId ==. val (Just $ entityKey serverDb))
+		return w)
+	if null websites
+		then return Nothing
+		else do
+			let serverList = T.intercalate ", " $ fmap (serverWebsiteDesc . entityVal) websites
+			let name = serverDatabaseName $ entityVal serverDb
+			let strElts = ["Can't delete ", name, ": it's used by servers ",  serverList]
+			return $ Just $ T.concat strElts
+
 deleteServerDatabases :: SqlBackend -> ObjRef ServerViewState -> [Int] -> IO ()
 deleteServerDatabases = deleteHelper convertKey readServerDatabases
+
+getAllDatabases :: SqlBackend -> ObjRef ServerViewState -> IO ([ObjRef (Entity ServerDatabase)])
+getAllDatabases sqlBackend _ = do
+	dbs <- runSqlBackend sqlBackend (select $ from $ \p -> do
+		orderBy [asc (p ^. ServerDatabaseDesc)]
+		return p)
+	mapM newObjectDC dbs
 
 createServerViewState :: SqlBackend -> IO (ObjRef ServerViewState)
 createServerViewState sqlBackend = do
@@ -141,6 +165,8 @@ createServerViewState sqlBackend = do
 			defMethod "getServerDatabases" (getChildren sqlBackend readServerDatabases),
 			defMethod "addServerDatabase" (addServerDatabase sqlBackend),
 			defMethod "updateServerDatabase" (updateServerDatabase sqlBackend),
-			defMethod "deleteServerDatabases" (deleteServerDatabases sqlBackend)
+			defMethod "canDeleteServerDatabase" (canDeleteServerDatabase sqlBackend),
+			defMethod "deleteServerDatabases" (deleteServerDatabases sqlBackend),
+			defMethod "getAllDatabases" (getAllDatabases sqlBackend)
 		]
 	newObject serverViewClass serverViewState
