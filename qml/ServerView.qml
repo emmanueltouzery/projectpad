@@ -17,10 +17,12 @@ ScrollView {
 
 	property variant actions: [
 		["addpoi", "glyphicons-336-pushpin", "Add point of interest"],
-		["addwww", "glyphicons-372-global", "Add website"]]
+		["addwww", "glyphicons-372-global", "Add website"],
+		["adddb", "glyphicons-142-database-plus", "Add database"]]
 
 	onSelectionChange: {
 		Select.updateSelectDisplay(poisrepeater)
+		Select.updateSelectDisplay(dbsrepeater)
 		Select.updateSelectDisplay(wwwsrepeater)
 	}
 	onEditModeChanged: Select.clearSelection(pv.selectionChange)
@@ -62,6 +64,19 @@ ScrollView {
 				})
 	}
 
+	function editDb(sId) {
+		var curDb = Utils.findById(serverViewState.getServerDatabases(pv.model.id), sId)
+		popup.setContents("Edit database", editDatabaseComponent,
+				function (dbEdit) {
+					dbEdit.activate(curDb)
+				},
+				function (dbEdit) {
+					dbEdit.onOk()
+					// force refresh
+					dbsrepeater.model = serverViewState.getServerDatabases(pv.model.id)
+				})
+	}
+
 	function actionTriggered(name) {
 		switch (name) {
 			case "addpoi":
@@ -78,6 +93,8 @@ ScrollView {
 				var sId = Select.selectedItems[0]
 				if (sId > 1000000) {
 					editPoi(sId - 1000000)
+				} else if (sId > 500000) {
+					editDb(sId - 500000)
 				} else {
 					editSrvWww(sId)
 				}
@@ -90,8 +107,15 @@ ScrollView {
 				serverViewState.deleteServerPois(serverPois)
 				poisrepeater.model = serverViewState.getPois(pv.model.id)
 
+				var serverDbs = Utils.map(
+						Utils.filter(Select.selectedItems,
+							function(i) { return i >=500000 && i < 1000000}),
+						function(x) { return x-500000 })
+				serverViewState.deleteServerDatabases(serverDbs)
+				dbsrepeater.model = serverViewState.getServerDatabases(pv.model.id)
+
 				var serverWwws = Utils.filter(Select.selectedItems,
-							function(i) { return i < 1000000})
+							function(i) { return i < 500000})
 				serverViewState.deleteServerWebsites(serverWwws)
 				wwwsrepeater.model = serverViewState.getServerWebsites(pv.model.id)
 				break;
@@ -103,6 +127,16 @@ ScrollView {
 						function (wwwEdit) {
 							wwwEdit.onOk();
 							wwwsrepeater.model = serverViewState.getServerWebsites(pv.model.id)
+						})
+				break;
+			case "adddb":
+				popup.setContents("Add database", editDatabaseComponent,
+						function (dbEdit) {
+							dbEdit.activate(dbEdit.getDefaultModel())
+						},
+						function (dbEdit) {
+							dbEdit.onOk();
+							dbsrepeater.model = serverViewState.getServerDatabases(pv.model.id)
 						})
 				break;
 		}
@@ -185,6 +219,31 @@ ScrollView {
 			}
 
 			Repeater {
+				id: dbsrepeater
+				model: serverViewState.getServerDatabases(pv.model.id)
+
+				Rectangle {
+					property int modelId: 500000 + modelData.id
+					property bool selected: false
+					width: 180; height: 180
+					color: "gray"
+					border.width: selected ? 4 : 0
+					border.color: "green"
+
+					Text {
+						text: modelData.desc
+					}
+					MouseArea {
+						anchors.fill: parent
+						onClicked: {
+							Select.handleClick(pv.selectionChange, 500000 + modelData.id, function() {
+							})
+						}
+					}
+				}
+			}
+
+			Repeater {
 				id: poisrepeater
 				model: serverViewState.getPois(pv.model.id)
 
@@ -219,6 +278,12 @@ ScrollView {
 			id: editSrvWwwComponent
 			ServerWebsiteEdit {
 				id: wwwEdit
+			}
+		}
+		Component {
+			id: editDatabaseComponent
+			ServerDatabaseEdit {
+				id: dbEdit
 			}
 		}
 	}

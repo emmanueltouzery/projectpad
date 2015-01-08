@@ -48,6 +48,13 @@ ServerWebsite
 	password Password
 	serverId ServerId
 	deriving Show Typeable
+ServerDatabase
+	desc Text
+	name Text
+	username Text
+	password Password
+	serverId ServerId
+	deriving Show Typeable
 Project
 	name Text
 	icon ByteString
@@ -101,6 +108,13 @@ instance DefaultClass (Entity ServerWebsite) where
 		("url", serverWebsiteUrl),
 		("username", serverWebsiteUsername),
 		("password", serverWebsitePassword)]
+
+instance DefaultClass (Entity ServerDatabase) where
+	classMembers = getStandardClassMembers [
+		("desc", serverDatabaseDesc),
+		("name", serverDatabaseName),
+		("username", serverDatabaseUsername),
+		("password", serverDatabasePassword)]
 
 instance DefaultClass (Entity ProjectPointOfInterest) where
 	classMembers = getStandardClassMembers [

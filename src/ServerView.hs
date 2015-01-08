@@ -18,7 +18,8 @@ data ServerViewState = ServerViewState
 	{
 		curServerId :: MVar (Maybe Int),
 		pois :: EntityListCache ServerPointOfInterest,
-		serverWebsites :: EntityListCache ServerWebsite
+		serverWebsites :: EntityListCache ServerWebsite,
+		serverDatabases :: EntityListCache ServerDatabase
 	} deriving Typeable
 
 instance DynParentHolder ServerViewState where
@@ -26,12 +27,16 @@ instance DynParentHolder ServerViewState where
 	clearAllChildrenCaches state = do
 		swapMVar_ (pois state) Nothing
 		swapMVar_ (serverWebsites state) Nothing
+		swapMVar_ (serverDatabases state) Nothing
 
 instance CacheHolder ServerPointOfInterest ServerViewState where
 	cacheChildren = pois
 
 instance CacheHolder ServerWebsite ServerViewState where
 	cacheChildren = serverWebsites
+
+instance CacheHolder ServerDatabase ServerViewState where
+	cacheChildren = serverDatabases
 
 readPois :: Int -> SqlPersistM [Entity ServerPointOfInterest]
 readPois serverId = select $ from $ \p -> do
@@ -89,10 +94,38 @@ updateServerWebsite sqlBackend stateRef srvWwwRef
 deleteServerWebsites :: SqlBackend -> ObjRef ServerViewState -> [Int] -> IO ()
 deleteServerWebsites = deleteHelper convertKey readServerWebsites
 
+readServerDatabases :: Int -> SqlPersistM [Entity ServerDatabase]
+readServerDatabases serverId = select $ from $ \p -> do
+	where_ (p ^. ServerDatabaseServerId ==. val (toSqlKey32 serverId))
+	orderBy [asc (p ^. ServerDatabaseDesc)]
+	return p
+
+addServerDatabase :: SqlBackend -> ObjRef ServerViewState
+	-> Text -> Text -> Text -> Text -> IO ()
+addServerDatabase sqlBackend stateRef
+	pDesc name username password = do
+	addHelper sqlBackend stateRef readServerDatabases
+		$ ServerDatabase pDesc name username password
+
+updateServerDatabase :: SqlBackend -> ObjRef ServerViewState -> ObjRef (Entity ServerDatabase)
+	-> Text -> Text -> Text -> Text -> IO (ObjRef (Entity ServerDatabase))
+updateServerDatabase sqlBackend stateRef srvDbRef
+	pDesc name username password = do
+	updateHelper sqlBackend stateRef srvDbRef readServerDatabases serverDatabases
+		[
+			ServerDatabaseDesc P.=. pDesc, ServerDatabaseName P.=. name,
+			ServerDatabaseUsername P.=. username,
+			ServerDatabasePassword P.=. password
+		]
+
+deleteServerDatabases :: SqlBackend -> ObjRef ServerViewState -> [Int] -> IO ()
+deleteServerDatabases = deleteHelper convertKey readServerDatabases
+
 createServerViewState :: SqlBackend -> IO (ObjRef ServerViewState)
 createServerViewState sqlBackend = do
 	serverViewState <- ServerViewState
 		<$> newMVar Nothing
+		<*> newMVar Nothing
 		<*> newMVar Nothing
 		<*> newMVar Nothing
 	serverViewClass <- newClass
@@ -104,6 +137,10 @@ createServerViewState sqlBackend = do
 			defMethod "getServerWebsites" (getChildren sqlBackend readServerWebsites),
 			defMethod "addServerWebsite" (addServerWebsite sqlBackend),
 			defMethod "updateServerWebsite" (updateServerWebsite sqlBackend),
-			defMethod "deleteServerWebsite" (deleteServerWebsites sqlBackend)
+			defMethod "deleteServerWebsites" (deleteServerWebsites sqlBackend),
+			defMethod "getServerDatabases" (getChildren sqlBackend readServerDatabases),
+			defMethod "addServerDatabase" (addServerDatabase sqlBackend),
+			defMethod "updateServerDatabase" (updateServerDatabase sqlBackend),
+			defMethod "deleteServerDatabases" (deleteServerDatabases sqlBackend)
 		]
 	newObject serverViewClass serverViewState
