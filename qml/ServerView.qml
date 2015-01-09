@@ -9,7 +9,7 @@ ScrollView {
 	id: pv
 	anchors.fill: parent
 	signal loadView(string name, variant model)
-	signal selectionChange(variant selection)
+	signal selectionChange(int selectionCount)
 	property variant model
 	property variant appContext: null
 
@@ -21,9 +21,9 @@ ScrollView {
 		["adddb", "glyphicons-142-database-plus", "Add database"]]
 
 	onSelectionChange: {
-		Select.updateSelectDisplay(poisrepeater)
-		Select.updateSelectDisplay(dbsrepeater)
-		Select.updateSelectDisplay(wwwsrepeater)
+		Select.updateSelectDisplay("www", wwwsrepeater)
+		Select.updateSelectDisplay("db", dbsrepeater)
+		Select.updateSelectDisplay("poi", poisrepeater)
 	}
 	onEditModeChanged: Select.clearSelection(pv.selectionChange)
 
@@ -90,20 +90,17 @@ ScrollView {
 						})
 				break;
 			case "edit":
-				var sId = Select.selectedItems[0]
-				if (sId > 1000000) {
-					editPoi(sId - 1000000)
-				} else if (sId > 500000) {
-					editDb(sId - 500000)
+				var sId = Select.getSelectedItem(["www", "db", "poi"])
+				if (sId[0] === "poi") {
+					editPoi(sId[1])
+				} else if (sId[0] == "db") {
+					editDb(sId[1])
 				} else {
-					editSrvWww(sId)
+					editSrvWww(sId[1])
 				}
 				break;
 			case "delete":
-				var serverDbs = Utils.map(
-						Utils.filter(Select.selectedItems,
-							function(i) { return i >=500000 && i < 1000000}),
-						function(x) { return x-500000 })
+				var serverDbs = Select.selectedItems["db"]
 				for (var i=0;i<serverDbs.length;i++) {
 					var serverDbId = serverDbs[i]
 					var serverDb = Utils.findById(dbsrepeater.model, serverDbId)
@@ -115,15 +112,11 @@ ScrollView {
 				}
 				serverViewState.deleteServerDatabases(serverDbs)
 				dbsrepeater.model = serverViewState.getServerDatabases(pv.model.id)
-				var serverPois = Utils.map(
-						Utils.filter(Select.selectedItems,
-							function(i) { return i >=1000000}),
-						function(x) { return x-1000000 })
+				var serverPois = Select.selectedItems["poi"]
 				serverViewState.deleteServerPois(serverPois)
 				poisrepeater.model = serverViewState.getPois(pv.model.id)
 
-				var serverWwws = Utils.filter(Select.selectedItems,
-							function(i) { return i < 500000})
+				var serverWwws = Select.selectedItems["www"]
 				serverViewState.deleteServerWebsites(serverWwws)
 				wwwsrepeater.model = serverViewState.getServerWebsites(pv.model.id)
 				break;
@@ -219,7 +212,7 @@ ScrollView {
 					MouseArea {
 						anchors.fill: parent
 						onClicked: {
-							Select.handleClick(pv.selectionChange, modelData.id, function() {
+							Select.handleClick(pv.selectionChange, "www", modelData.id, function() {
 							})
 						}
 					}
@@ -231,7 +224,7 @@ ScrollView {
 				model: serverViewState.getServerDatabases(pv.model.id)
 
 				Rectangle {
-					property int modelId: 500000 + modelData.id
+					property int modelId: modelData.id
 					property bool selected: false
 					width: 180; height: 180
 					color: "gray"
@@ -244,7 +237,7 @@ ScrollView {
 					MouseArea {
 						anchors.fill: parent
 						onClicked: {
-							Select.handleClick(pv.selectionChange, 500000 + modelData.id, function() {
+							Select.handleClick(pv.selectionChange, "db", modelData.id, function() {
 							})
 						}
 					}
@@ -256,7 +249,7 @@ ScrollView {
 				model: serverViewState.getPois(pv.model.id)
 
 				Rectangle {
-					property int modelId: 1000000 + modelData.id
+					property int modelId: modelData.id
 					property bool selected: false
 					width: 180; height: 180
 					color: "light gray"
@@ -269,7 +262,7 @@ ScrollView {
 					MouseArea {
 						anchors.fill: parent
 						onClicked: {
-							Select.handleClick(pv.selectionChange, 1000000 + modelData.id, function() {
+							Select.handleClick(pv.selectionChange, "poi", modelData.id, function() {
 							})
 						}
 					}

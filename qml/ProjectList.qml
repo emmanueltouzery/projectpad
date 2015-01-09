@@ -31,7 +31,7 @@ ScrollView {
 			case "edit":
 				popup.setContents("Edit project", projectEditComponent,
 						function (projectEdit) {
-							var curProject = Utils.findById(projectListState.projects, Select.selectedItems[0])
+							var curProject = Utils.findById(projectListState.projects, Select.selectedItems["prj"][0])
 							projectEdit.activate(curProject)
 						},
 						function (projectEdit) {
@@ -39,15 +39,15 @@ ScrollView {
 						})
 				break;
 			case "delete":
-				projectListState.deleteProjects(Select.selectedItems)
+				projectListState.deleteProjects(Select.selectedItems["prj"])
 				break;
 		}
 	}
 
-	signal selectionChange(variant selection)
+	signal selectionChange(int selectionCount)
 	signal loadView(string name, variant model)
 
-	onSelectionChange: Select.updateSelectDisplay(itemsrepeater)
+	onSelectionChange: Select.updateSelectDisplay("prj", itemsrepeater)
 	onEditModeChanged: Select.clearSelection(projectList.selectionChange)
 
 	Flickable {
@@ -80,7 +80,7 @@ ScrollView {
 					MouseArea {
 						anchors.fill: parent
 						onClicked: {
-							Select.handleClick(projectList.selectionChange, modelData.id, function() {
+							Select.handleClick(projectList.selectionChange, "prj", modelData.id, function() {
 								loadView("ProjectView.qml", modelData)
 							})
 						}

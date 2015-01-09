@@ -9,7 +9,7 @@ ScrollView {
 	id: pv
 	anchors.fill: parent
 	signal loadView(string name, variant model)
-	signal selectionChange(variant selection)
+	signal selectionChange(int selectionCount)
 	property variant model
 
 	property bool editMode
@@ -19,8 +19,8 @@ ScrollView {
 		["addpoi", "glyphicons-336-pushpin", "Add point of interest"]]
 
 	onSelectionChange: {
-		Select.updateSelectDisplay(itemsrepeater)
-		Select.updateSelectDisplay(poisrepeater)
+		Select.updateSelectDisplay("server", itemsrepeater)
+		Select.updateSelectDisplay("poi", poisrepeater)
 	}
 	onEditModeChanged: Select.clearSelection(pv.selectionChange)
 
@@ -57,11 +57,11 @@ ScrollView {
 	function actionTriggered(name) {
 		switch (name) {
 			case "edit":
-				var sId = Select.selectedItems[0]
-				if (sId > 1000000) {
-					editPoi(sId-1000000)
+				var itemInfo = Select.getSelectedItem(["server", "poi"])
+				if (itemInfo[0] === "poi") {
+					editPoi(itemInfo[1])
 				} else {
-					editServer(sId)
+					editServer(itemInfo[1])
 				}
 				break;
 			case "addsrv":
@@ -87,16 +87,12 @@ ScrollView {
 						})
 				break;
 			case "delete":
-				var projectPois = Utils.map(
-						Utils.filter(Select.selectedItems,
-							function(i) { return i >=1000000}),
-						function(x) { return x-1000000 })
+				var projectPois = Select.selectedItems["poi"]
 				projectViewState.deleteProjectPois(projectPois)
 				// force refresh
 				poisrepeater.model = projectViewState.getPois(pv.model.id)
 
-				var serverPois = Utils.filter(Select.selectedItems,
-							function(i) { return i < 1000000})
+				var serverPois = Select.selectedItems["server"]
 				projectViewState.deleteServers(serverPois)
 				// force refresh
 				itemsrepeater.model = projectViewState.getServers(pv.model.id)
@@ -131,7 +127,7 @@ ScrollView {
 					MouseArea {
 						anchors.fill: parent
 						onClicked: {
-							Select.handleClick(pv.selectionChange, modelData.id, function() {
+							Select.handleClick(pv.selectionChange, "server", modelData.id, function() {
 								loadView("ServerView.qml", modelData)
 							})
 						}
@@ -144,7 +140,7 @@ ScrollView {
 				model: projectViewState.getPois(pv.model.id)
 
 				Rectangle {
-					property int modelId: 1000000 + modelData.id
+					property int modelId: modelData.id
 					property bool selected: false
 					width: 180; height: 180
 					color: "light gray"
@@ -157,7 +153,7 @@ ScrollView {
 					MouseArea {
 						anchors.fill: parent
 						onClicked: {
-							Select.handleClick(selectionChange, 1000000 + modelData.id, function() {
+							Select.handleClick(selectionChange, "poi", modelData.id, function() {
 								//loadView("ServerView.qml", modelData])
 							})
 						}
