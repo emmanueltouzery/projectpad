@@ -31,5 +31,3 @@ CREATE TABLE project (id INTEGER PRIMARY KEY,
 CREATE TABLE db_version (id INTEGER PRIMARY KEY,
 	code INTEGER NOT NULL,
 	upgrade_date TEXT NOT NULL);
-
-INSERT INTO db_version (code, upgrade_date) VALUES (1, datetime('now'));
