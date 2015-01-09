@@ -18,8 +18,8 @@ Rectangle {
 
 	function activate(_model) {
 		serverEdit.model = _model
-		serverType.currentIndex = Utils.listModelGetValueIndex(serverType.model, _model.type)
-		serverAccessType.currentIndex = Utils.listModelGetValueIndex(serverAccessType.model, _model.accessType)
+		serverType.currentIndex = Math.max(0, Utils.listModelGetValueIndex(serverType.model, _model.type))
+		serverAccessType.currentIndex = Math.max(0, Utils.listModelGetValueIndex(serverAccessType.model, _model.accessType))
 		serverDescription.selectAll()
 		serverDescription.forceActiveFocus()
 	}
