@@ -20,7 +20,8 @@ executable projectpad
   -- other-modules:       
   -- other-extensions:    
   build-depends:       base >=4.7 && <4.8,
-                       persistent-sqlcipher,
+                       -- need 2.1.1.2 due to https://github.com/yesodweb/persistent/issues/328
+                       persistent-sqlcipher >= 2.1.1.2,
                        persistent,
                        persistent-template,
                        esqueleto,
