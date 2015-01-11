@@ -1,6 +1,7 @@
-import QtQuick 2.0
+import QtQuick 2.2
 import QtQuick.Controls 1.2
 import QtQuick.Layouts 1.1
+import QtQuick.Dialogs 1.0
 import "utils.js" as Utils
 
 Rectangle {
@@ -9,10 +10,12 @@ Rectangle {
 	property int preferredHeight: 280
 
 	property variant model: getDefaultModel()
+	property string keyFilepath
        
 	function getDefaultModel() {
 		return {"desc": "New server", "serverIp": "",
 			"username": "", "password": "",
+			"authKeyFilename": "...",
 			"type": "", "accessType": ""}
 	}
 
@@ -20,6 +23,7 @@ Rectangle {
 		serverEdit.model = _model
 		serverType.currentIndex = Math.max(0, Utils.listModelGetValueIndex(serverType.model, _model.type))
 		serverAccessType.currentIndex = Math.max(0, Utils.listModelGetValueIndex(serverAccessType.model, _model.accessType))
+		authFilename.text = keyFilepath = _model.authKeyFilename
 		serverDescription.selectAll()
 		serverDescription.forceActiveFocus()
 	}
@@ -28,12 +32,12 @@ Rectangle {
 		if (model.id) {
 			serverEdit.model = projectViewState.updateServer(
 				model, serverDescription.text, ipAddress.text,
-				username.text, password.text,
+				username.text, password.text, serverEdit.keyFilepath,
 				serverTypeItems.get(serverType.currentIndex).value,
 				serverAccessTypeItems.get(serverAccessType.currentIndex).value);
 		} else {
 			projectViewState.addServer(serverDescription.text, ipAddress.text,
-				username.text, password.text,
+				username.text, password.text, serverEdit.keyFilepath,
 				serverTypeItems.get(serverType.currentIndex).value,
 				serverAccessTypeItems.get(serverAccessType.currentIndex).value)
 		}
@@ -84,6 +88,16 @@ Rectangle {
 		}
 
 		Text {
+			text: "Authentication key:"
+		}
+		Button {
+			id: authFilename
+			Layout.fillWidth: true
+			text: "..."
+			onClicked: fileDialog.visible = true
+		}
+
+		Text {
 			text: "Server type:"
 		}
 		ComboBox {
@@ -110,6 +124,17 @@ Rectangle {
 				ListElement { text: "Remote desktop (RDP)"; value: "SrvAccessRdp"}
 				ListElement { text: "Website"; value: "SrvAccessWww"}
 			}
+		}
+	}
+
+	FileDialog {
+		id: fileDialog
+		title: "Please choose a file"
+		visible: false
+		onAccepted: {
+			serverEdit.keyFilepath = fileDialog.fileUrls[0]
+			authFilename.text = serverEdit.keyFilepath.substring(
+				serverEdit.keyFilepath.lastIndexOf("/")+1, serverEdit.keyFilepath.length)
 		}
 	}
 }

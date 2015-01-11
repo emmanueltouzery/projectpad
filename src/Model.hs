@@ -38,6 +38,8 @@ Server
 	ip IpAddress
 	username Text
 	password Password
+	authKey ByteString Maybe
+	authKeyFilename Text Maybe
 	type ServerType
 	accessType ServerAccessType
 	projectId ProjectId
@@ -93,6 +95,7 @@ instance DefaultClass (Entity Server) where
 		("serverIp", serverIp),
 		("username", serverUsername),
 		("password", serverPassword),
+		("authKeyFilename", fromMaybe "..." . serverAuthKeyFilename),
 		("type", text . serverType),
 		("accessType", text . serverAccessType),
 		("projectId", text . fromSqlKey . serverProjectId)] -- TODO FK as text...

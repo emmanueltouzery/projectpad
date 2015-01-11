@@ -10,6 +10,7 @@ import qualified Database.Persist as P
 import Data.Typeable
 import Data.Text (Text)
 import qualified Data.Text as T
+import qualified Data.ByteString as BS
 
 import ModelBase
 import Model
@@ -40,26 +41,37 @@ readServers projectId = select $ from $ \s -> do
 	orderBy [asc (s ^. ServerDesc)]
 	return s
 
+processAuthKeyInfo :: Text -> IO (Maybe BS.ByteString, Maybe Text)
+processAuthKeyInfo keyPath = case T.stripPrefix "file://" keyPath of
+	Nothing -> return (Nothing, Nothing)
+	Just p -> do
+		contents <- BS.readFile (T.unpack p)
+		return (Just contents, Just (last $ T.splitOn "/" p))
+
 addServer :: SqlBackend -> ObjRef ProjectViewState
-	-> Text -> IpAddress -> Text -> Text -> Text -> Text -> IO ()
-addServer sqlBackend stateRef
-	sDesc ipAddr username password serverTypeT serverAccessTypeT = do
+	-> Text -> IpAddress -> Text -> Text -> Text -> Text -> Text -> IO ()
+addServer sqlBackend stateRef sDesc ipAddr username password
+		keyPath serverTypeT serverAccessTypeT = do
 	let srvType = read $ T.unpack serverTypeT
 	let srvAccessType = read $ T.unpack serverAccessTypeT
+	(mKeyContents, mKeyPath) <- processAuthKeyInfo keyPath
 	addHelper sqlBackend stateRef readServers
-		$ Server sDesc ipAddr username password srvType srvAccessType
+		$ Server sDesc ipAddr username password mKeyContents mKeyPath srvType srvAccessType
 
 updateServer :: SqlBackend -> ObjRef ProjectViewState -> ObjRef (Entity Server)
-	-> Text -> IpAddress -> Text -> Text -> Text -> Text -> IO (ObjRef (Entity Server))
-updateServer sqlBackend stateRef serverRef
-	sDesc ipAddr username password serverTypeT serverAccessTypeT = do
+	-> Text -> IpAddress -> Text -> Text -> Text -> Text -> Text -> IO (ObjRef (Entity Server))
+updateServer sqlBackend stateRef serverRef sDesc ipAddr username password
+		keyPath serverTypeT serverAccessTypeT = do
 	let srvType = read $ T.unpack serverTypeT
 	let srvAccessType = read $ T.unpack serverAccessTypeT
+	(mKeyContents, mKeyPath) <- processAuthKeyInfo keyPath
 	updateHelper sqlBackend stateRef serverRef readServers servers
 		[
 			ServerDesc P.=. sDesc, ServerIp P.=. ipAddr,
 			ServerUsername P.=. username, ServerPassword P.=. password,
-			ServerType P.=. srvType, ServerAccessType P.=. srvAccessType
+			ServerType P.=. srvType, ServerAccessType P.=. srvAccessType,
+			ServerAuthKey P.=. mKeyContents,
+			ServerAuthKeyFilename P.=. mKeyPath
 		]
 
 deleteServers :: SqlBackend -> ObjRef ProjectViewState -> [Int] -> IO ()
