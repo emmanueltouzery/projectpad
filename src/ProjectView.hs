@@ -12,7 +12,6 @@ import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.ByteString as BS
 import System.Process
-import Control.Monad
 import Control.Exception
 import System.Environment
 
@@ -114,7 +113,7 @@ deleteProjectPois = deleteHelper convertKey readPois
 -- meant to be called from QML. Returns "" on success, error msg on error.
 tryCommand :: String -> [String] -> IO Text
 tryCommand cmd params = do
-	r <- try (void $ createProcess (proc cmd params))
+	r <- try (createProcess (proc cmd params))
 	return $ case r of
 		Right _ -> ""
 		Left (SomeException x) -> T.pack $ show x
