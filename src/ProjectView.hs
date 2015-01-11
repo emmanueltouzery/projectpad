@@ -1,5 +1,5 @@
 {-# LANGUAGE OverloadedStrings, DeriveDataTypeable, TypeFamilies #-}
-{-# LANGUAGE MultiParamTypeClasses, FlexibleContexts #-}
+{-# LANGUAGE MultiParamTypeClasses, FlexibleContexts, ViewPatterns #-}
 module ProjectView where
 
 import Control.Applicative
@@ -11,6 +11,10 @@ import Data.Typeable
 import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.ByteString as BS
+import System.Process
+import Control.Monad
+import Control.Exception
+import System.Environment
 
 import ModelBase
 import Model
@@ -107,6 +111,34 @@ updateProjectPoi sqlBackend stateRef poiRef
 deleteProjectPois :: SqlBackend -> ObjRef ProjectViewState -> [Int] -> IO ()
 deleteProjectPois = deleteHelper convertKey readPois
 
+-- meant to be called from QML. Returns "" on success, error msg on error.
+tryCommand :: String -> [String] -> IO Text
+tryCommand cmd params = do
+	r <- try (void $ createProcess (proc cmd params))
+	return $ case r of
+		Right _ -> ""
+		Left (SomeException x) -> T.pack $ show x
+
+openAssociatedFile :: Text -> IO Text
+openAssociatedFile path = do
+	desktop <- getEnv "DESKTOP_SESSION"
+	let openCmd = case desktop of
+		"gnome" -> "gnome-open"
+		_ -> "xdg-open"
+	tryCommand openCmd [T.unpack path]
+
+runPoiAction :: ObjRef ProjectViewState
+	-> ObjRef (Entity ProjectPointOfInterest) -> IO Text
+runPoiAction _ (entityVal . fromObjRef -> poi)
+	| interest == PoiCommandToRun = do
+		let (prog:parameters) = T.unpack <$> T.splitOn " " path
+		tryCommand prog parameters
+	| interest == PoiLogFile = openAssociatedFile path
+	| otherwise = putStrLn "not handled" >> return ""
+	where
+		interest = projectPointOfInterestInterestType poi 
+		path = projectPointOfInterestPath poi
+
 createProjectViewState :: SqlBackend -> IO (ObjRef ProjectViewState)
 createProjectViewState sqlBackend = do
 	projectViewState <- ProjectViewState
@@ -122,6 +154,7 @@ createProjectViewState sqlBackend = do
 			defMethod "getPois" (getChildren sqlBackend readPois),
 			defMethod "addProjectPoi" (addProjectPoi sqlBackend),
 			defMethod "updateProjectPoi" (updateProjectPoi sqlBackend),
-			defMethod "deleteProjectPois" (deleteProjectPois sqlBackend)
+			defMethod "deleteProjectPois" (deleteProjectPois sqlBackend),
+			defMethod "runPoiAction" runPoiAction
 		]
 	newObject projectViewClass projectViewState

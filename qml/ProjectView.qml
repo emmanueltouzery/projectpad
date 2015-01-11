@@ -4,6 +4,7 @@ import QtQuick.Controls 1.2
 import QtQuick.Layouts 1.1
 import "selection.js" as Select
 import "utils.js" as Utils
+import "poiactions.js" as PoiActions
 
 ScrollView {
 	id: pv
@@ -11,6 +12,7 @@ ScrollView {
 	signal loadView(string name, variant model)
 	signal selectionChange(int selectionCount)
 	property variant model
+	property variant appContext: null
 
 	property bool editMode
 
@@ -156,6 +158,20 @@ ScrollView {
 							Select.handleClick(selectionChange, "poi", modelData.id, function() {
 								//loadView("ServerView.qml", modelData])
 							})
+						}
+					}
+					IconButton {
+						anchors.bottom: parent.bottom
+						anchors.right: parent.right
+						visible: PoiActions.actions[modelData.interestType] !== undefined
+						iconName: PoiActions.actions[modelData.interestType].icon
+						iconSize: 27
+						btnText: PoiActions.actions[modelData.interestType].text
+						onClicked: {
+							var info = projectViewState.runPoiAction(modelData)
+							if (info.length > 0) {
+								appContext.errorMessage(info)
+							}
 						}
 					}
 				}
