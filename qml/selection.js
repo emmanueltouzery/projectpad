@@ -56,7 +56,7 @@ function updateSelectDisplay(category, repeater) {
 function getSelectedItem(categoriesToConsider) {
 	for (var i=0;i<categoriesToConsider.length;i++) {
 		var cat = categoriesToConsider[i]
-		if (selectedItems[cat].length > 0) {
+		if (selectedItems[cat] !== undefined && selectedItems[cat].length > 0) {
 			return [cat, selectedItems[cat][0]]
 		}
 	}
