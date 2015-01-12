@@ -114,6 +114,13 @@ Window {
 	}
 
 	function errorMessage(txt) {
+		toast.color = "#c9302c"
+		toast.msgText = txt
+		toastOpacity.running = true
+	}
+
+	function successMessage(txt) {
+		toast.color = "green"
 		toast.msgText = txt
 		toastOpacity.running = true
 	}
@@ -121,11 +128,10 @@ Window {
 	Rectangle {
 		id: toast
 		opacity: 0
-		color: "#c9302c"
 		z: 2
 		anchors.horizontalCenter: parent.horizontalCenter
 		width: 450
-		height: 80
+		height: errorText.height
 		property string msgText: ""
 		radius: 10
 		Text {
@@ -133,7 +139,6 @@ Window {
 			text: parent.msgText
 			x: 15
 			width: parent.width-15
-			height: parent.height
 			verticalAlignment: Text.AlignVCenter
 			wrapMode: Text.WordWrap
 		}

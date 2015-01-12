@@ -14,6 +14,7 @@ import qualified Data.ByteString as BS
 import System.Process
 import Control.Exception
 import System.Environment
+import GHC.IO.Handle
 
 import ModelBase
 import Model
@@ -110,15 +111,17 @@ updateProjectPoi sqlBackend stateRef poiRef
 deleteProjectPois :: SqlBackend -> ObjRef ProjectViewState -> [Int] -> IO ()
 deleteProjectPois = deleteHelper convertKey readPois
 
--- meant to be called from QML. Returns "" on success, error msg on error.
-tryCommand :: String -> [String] -> IO Text
+tryCommand :: String -> [String] -> IO (Either Text Text)
 tryCommand cmd params = do
-	r <- try (createProcess (proc cmd params))
-	return $ case r of
-		Right _ -> ""
-		Left (SomeException x) -> T.pack $ show x
+	r <- try (createProcess (proc cmd params) {std_out = CreatePipe})
+	case r of
+		Right (_, Just stdout, _, _) -> do
+			txt <- T.pack <$> hGetContents stdout
+			return $ Right txt
+		Left (SomeException x) -> return $ Left $ T.pack $ show x
+		_ -> error "Try command unexpected process output"
 
-openAssociatedFile :: Text -> IO Text
+openAssociatedFile :: Text -> IO (Either Text Text)
 openAssociatedFile path = do
 	desktop <- getEnv "DESKTOP_SESSION"
 	let openCmd = case desktop of
@@ -127,16 +130,20 @@ openAssociatedFile path = do
 	tryCommand openCmd [T.unpack path]
 
 runPoiAction :: ObjRef ProjectViewState
-	-> ObjRef (Entity ProjectPointOfInterest) -> IO Text
+	-> ObjRef (Entity ProjectPointOfInterest) -> IO (Either Text Text)
 runPoiAction _ (entityVal . fromObjRef -> poi)
 	| interest == PoiCommandToRun = do
 		let (prog:parameters) = T.unpack <$> T.splitOn " " path
 		tryCommand prog parameters
 	| interest == PoiLogFile = openAssociatedFile path
-	| otherwise = putStrLn "not handled" >> return ""
+	| otherwise = return $ Left "not handled"
 	where
 		interest = projectPointOfInterestInterestType poi 
 		path = projectPointOfInterestPath poi
+
+serializeEither :: Either Text Text -> [Text]
+serializeEither (Left x) = ["error", x]
+serializeEither (Right x) = ["success", x]
 
 createProjectViewState :: SqlBackend -> IO (ObjRef ProjectViewState)
 createProjectViewState sqlBackend = do
@@ -154,6 +161,6 @@ createProjectViewState sqlBackend = do
 			defMethod "addProjectPoi" (addProjectPoi sqlBackend),
 			defMethod "updateProjectPoi" (updateProjectPoi sqlBackend),
 			defMethod "deleteProjectPois" (deleteProjectPois sqlBackend),
-			defMethod "runPoiAction" runPoiAction
+			defMethod "runPoiAction" (\a b -> serializeEither <$> runPoiAction a b)
 		]
 	newObject projectViewClass projectViewState

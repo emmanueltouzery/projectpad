@@ -169,8 +169,10 @@ ScrollView {
 						btnText: PoiActions.actions[modelData.interestType].text
 						onClicked: {
 							var info = projectViewState.runPoiAction(modelData)
-							if (info.length > 0) {
-								appContext.errorMessage(info)
+							if (info[0] === "error") {
+								appContext.errorMessage(info[1])
+							} else if (info[1].length > 0){
+								appContext.successMessage(info[1])
 							}
 						}
 					}
