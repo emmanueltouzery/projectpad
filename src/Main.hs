@@ -11,18 +11,9 @@ module Main where
 -- the way to the GUI.
 --
 -- create db file in ~/.projectpad
+-- QML files should be copied to install folder.
 --
 -- enforce unicity of project names
---
--- Probably don't need that ListChanged signal?
---
--- server type should be TEXT in model.
---
--- I have these caches in array properties in models
--- but maybe there's no point optimizing and I should
--- simply have functions returning the current state.
---
--- I think I don't need a factory pool but?
 
 import Database.Persist.Sqlite
 import Control.Applicative
