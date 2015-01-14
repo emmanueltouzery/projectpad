@@ -4,6 +4,7 @@ import QtQuick.Controls 1.2
 import QtQuick.Layouts 1.1
 import "selection.js" as Select
 import "utils.js" as Utils
+import "poiactions.js" as PoiActions
 
 ScrollView {
 	id: pv
@@ -244,17 +245,15 @@ ScrollView {
 				id: poisrepeater
 				model: serverViewState.getPois(pv.model.id)
 
-				Rectangle {
+				ItemTile {
 					property int modelId: modelData.id
 					property bool selected: false
-					width: 180; height: 180
 					color: "light gray"
 					border.width: selected ? 4 : 0
 					border.color: "green"
+					itemDesc: modelData.desc
+					icon: PoiActions.actions[modelData.interestType].icon
 
-					Text {
-						text: modelData.desc
-					}
 					MouseArea {
 						anchors.fill: parent
 						onClicked: {
