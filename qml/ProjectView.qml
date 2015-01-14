@@ -115,17 +115,15 @@ ScrollView {
 				id: itemsrepeater
 				model: projectViewState.getServers(pv.model.id)
 
-				Rectangle {
+				ItemTile {
 					property int modelId: modelData.id
 					property bool selected: false
-					width: 180; height: 180
 					color: "light blue"
 					border.width: selected ? 4 : 0
 					border.color: "green"
+					itemDesc: modelData.desc
+					icon: "glyphicons-464-server"
 
-					Text {
-						text: modelData.desc
-					}
 					MouseArea {
 						anchors.fill: parent
 						onClicked: {
@@ -143,7 +141,7 @@ ScrollView {
 
 				ItemTile {
 					itemDesc: modelData.desc
-					interestType: modelData.interestType
+					icon: PoiActions.actions[modelData.interestType].icon
 					property int modelId: modelData.id
 					property bool selected: false
 					color: "light gray"
