@@ -198,17 +198,14 @@ ScrollView {
 				id: wwwsrepeater
 				model: serverViewState.getServerWebsites(pv.model.id)
 
-				Rectangle {
+				ItemTile {
 					property int modelId: modelData.id
 					property bool selected: false
-					width: 180; height: 180
 					color: "dark gray"
 					border.width: selected ? 4 : 0
 					border.color: "green"
-
-					Text {
-						text: modelData.desc
-					}
+					itemDesc: modelData.desc
+					icon: "glyphicons-372-global"
 					MouseArea {
 						anchors.fill: parent
 						onClicked: {
@@ -223,17 +220,16 @@ ScrollView {
 				id: dbsrepeater
 				model: serverViewState.getServerDatabases(pv.model.id)
 
-				Rectangle {
+				ItemTile {
 					property int modelId: modelData.id
 					property bool selected: false
 					width: 180; height: 180
 					color: "gray"
 					border.width: selected ? 4 : 0
 					border.color: "green"
+					itemDesc: modelData.desc
+					icon: "glyphicons-528-database"
 
-					Text {
-						text: modelData.desc
-					}
 					MouseArea {
 						anchors.fill: parent
 						onClicked: {
