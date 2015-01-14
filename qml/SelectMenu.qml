@@ -28,7 +28,7 @@ Canvas {
 
 			ctx.fillStyle = "white"
 			ctx.textAlign = "center"
-			ctx.font = "20px sans-serif"
+			ctx.font = "16px sans-serif"
 			var angle = portionsRange*i + portionsRange/2
 			ctx.fillText(options[i][0],
 				centerX + Math.cos(angle)*radius/1.5,
