@@ -7,6 +7,7 @@ Canvas {
 
 	property variant options;
 	property int radius : 70
+	property int innerRadius: 70/2.5
 	property int centerX : 90
 	property int centerY : 90
 
@@ -21,7 +22,8 @@ Canvas {
 			ctx.beginPath()
 			ctx.fillStyle = colors[i%colors.length]
 			ctx.arc(centerX, centerY, radius, Math.PI*2-portionsRange*i, Math.PI*2-portionsRange*(i+1), true)
-			ctx.lineTo(centerX, centerY)
+			var endAngle = portionsRange+(i+1)
+			ctx.arc(centerX, centerY, innerRadius, Math.PI*2-portionsRange*(i+1), Math.PI*2-portionsRange*i, false)
 			ctx.fill();
 
 			ctx.fillStyle = "white"
@@ -29,8 +31,8 @@ Canvas {
 			ctx.font = "20px sans-serif"
 			var angle = portionsRange*i + portionsRange/2
 			ctx.fillText(options[i][0],
-				centerX + Math.cos(angle)*radius/2,
-				centerY - Math.sin(angle)*radius/2)
+				centerX + Math.cos(angle)*radius/1.5,
+				centerY - Math.sin(angle)*radius/1.5)
 		}
 	}
 
@@ -41,8 +43,8 @@ Canvas {
 			// are we in the circle?
 			var distance = Math.sqrt(Math.pow((mouse.y-centerY), 2)
 					+ Math.pow(mouse.x-centerX, 2))
-			if (distance > radius) {
-				// out of the circle
+			if (distance > radius || distance < innerRadius) {
+				// out of the clickable area
 				return
 			}
 			var angle0 = Math.atan2(mouse.y - centerY, mouse.x - centerX)
