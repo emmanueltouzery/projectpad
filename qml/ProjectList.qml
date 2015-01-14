@@ -66,17 +66,15 @@ ScrollView {
 				id: itemsrepeater
 				model: projectListState.projects
 
-				Rectangle {
-					width: 180; height: 180
+				ItemTile {
 					property int modelId: modelData.id
 					property bool selected: false
 					color: "light blue"
 					border.width: selected ? 4 : 0
 					border.color: "green"
+					itemDesc: modelData.name
+					icon: "glyphicons-441-folder-closed"
 
-					Text {
-						text: modelData.name
-					}
 					MouseArea {
 						anchors.fill: parent
 						onClicked: {
