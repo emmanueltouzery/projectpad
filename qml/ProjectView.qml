@@ -151,6 +151,8 @@ ScrollView {
 
 					Text {
 						text: modelData.desc
+						width: parent.width
+						wrapMode: Text.Wrap
 					}
 					MouseArea {
 						anchors.fill: parent
