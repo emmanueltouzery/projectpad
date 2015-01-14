@@ -141,37 +141,15 @@ ScrollView {
 				id: poisrepeater
 				model: projectViewState.getPois(pv.model.id)
 
-				Rectangle {
+				ItemTile {
+					itemDesc: modelData.desc
+					interestType: modelData.interestType
 					property int modelId: modelData.id
 					property bool selected: false
-					width: 180; height: 180
 					color: "light gray"
 					border.width: selected ? 4 : 0
 					border.color: "green"
 
-					Text {
-						text: modelData.desc
-						anchors.top: parent.top
-						anchors.left: parent.left
-						anchors.right: parent.right
-						wrapMode: Text.Wrap
-						anchors.margins: 5
-					}
-
-					Rectangle {
-						anchors.bottom: parent.bottom
-						anchors.left: parent.left
-						anchors.right: parent.right
-						height: 45
-						color: "#20000000"
-					}
-
-					Image {
-						anchors.bottom: parent.bottom
-						anchors.right: parent.right
-						anchors.margins: 10
-						source: '../glyphicons-free/' + PoiActions.actions[modelData.interestType].icon + '.png'
-					}
 					MouseArea {
 						anchors.fill: parent
 						onClicked: {
