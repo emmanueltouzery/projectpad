@@ -65,11 +65,8 @@ data AppState = AppState
 
 -- might fail on windows if sqlite reserves exclusive
 -- access to the file.
-isDbInitialized :: ObjRef AppState -> IO Bool
-isDbInitialized _ = isDbInitialized'
-
-isDbInitialized' :: IO Bool
-isDbInitialized' = do
+isDbInitialized :: IO Bool
+isDbInitialized = do
 	let path = T.unpack dbFileName
 	fileExists <- doesFileExist path
 	if not fileExists
@@ -80,7 +77,7 @@ isDbInitialized' = do
 -- access to the file.
 sanityCheckIsDbEncrypted :: IO Bool
 sanityCheckIsDbEncrypted = do
-	initialized <- isDbInitialized'
+	initialized <- isDbInitialized
 	let path = T.unpack dbFileName
 	if (not initialized)
 		then return True
@@ -115,7 +112,7 @@ createContext sqlBackend = do
 	(projectState, projectsChangeSignal) <- createProjectListState sqlBackend
 	rootClass <- newClass
 		[
-			defMethod "isDbInitialized" isDbInitialized,
+			defMethod "isDbInitialized" (\(_ :: ObjRef AppState) ->isDbInitialized),
 			defMethod "setupPasswordAndUpgradeDb" (setupPasswordAndUpgradeDb
 				sqlBackend projectsChangeSignal projectState),
 			defPropertyConst "projectListState"
