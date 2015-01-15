@@ -160,10 +160,7 @@ ScrollView {
 								}}],
 								["Edit", function() {editPoi(modelData.id)}],
 								["Delete", function() {console.log("delete")}]]
-							selectMenu.x = parent.x
-							selectMenu.y = parent.y
-							selectMenu.visible = true
-							selectMenu.requestPaint()
+							selectMenu.show(parent)
 							Select.handleClick(selectionChange, "poi", modelData.id, function() {
 								//loadView("ServerView.qml", modelData])
 							})

@@ -11,6 +11,13 @@ Canvas {
 	property int centerX : 90
 	property int centerY : 90
 
+	function show(parnt) {
+		selectMenu.x = parnt.x
+		selectMenu.y = parnt.y
+		selectMenu.visible = true
+		selectMenu.requestPaint()
+	}
+
 	onPaint: {
 		if (options === undefined) {
 			return

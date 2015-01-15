@@ -210,6 +210,10 @@ ScrollView {
 					MouseArea {
 						anchors.fill: parent
 						onClicked: {
+							selectMenu.options = [["Edit", function() {}],
+								["Open", function() { openAssociatedFile(modelData.url)}],
+								["Delete", function() {}]]
+							selectMenu.show(parent)
 							Select.handleClick(pv.selectionChange, "www", modelData.id, function() {
 							})
 						}
@@ -264,6 +268,12 @@ ScrollView {
 				}
 			}
 		}
+		SelectMenu {
+			id: selectMenu
+			visible: false
+			z: 3
+		}
+
 		Component {
 			id: editPoiComponent
 			PoiEdit {
