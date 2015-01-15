@@ -210,7 +210,7 @@ ScrollView {
 					MouseArea {
 						anchors.fill: parent
 						onClicked: {
-							selectMenu.options = [["Edit", function() {}],
+							selectMenu.options = [["Edit", function() { editSrvWww(modelData.id)}],
 								["Open", function() { openAssociatedFile(modelData.url)}],
 								["Delete", function() {}]]
 							selectMenu.show(parent)
