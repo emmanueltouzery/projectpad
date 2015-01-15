@@ -115,9 +115,7 @@ tryCommand :: String -> [String] -> IO (Either Text Text)
 tryCommand cmd params = do
 	r <- try (createProcess (proc cmd params) {std_out = CreatePipe})
 	case r of
-		Right (_, Just stdout, _, _) -> do
-			txt <- T.pack <$> hGetContents stdout
-			return $ Right txt
+		Right (_, Just stdout, _, _) -> Right <$> T.pack <$> hGetContents stdout
 		Left (SomeException x) -> return $ Left $ T.pack $ show x
 		_ -> error "Try command unexpected process output"
 
