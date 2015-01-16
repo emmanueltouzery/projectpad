@@ -265,6 +265,10 @@ ScrollView {
 					MouseArea {
 						anchors.fill: parent
 						onClicked: {
+							selectMenu.options = [["Edit", function() { editPoi(modelData.id)}],
+								["Copy path", function() { appContext.copyItem(modelData.path) }],
+								["Delete", function() {}]]
+							selectMenu.show(parent)
 							Select.handleClick(pv.selectionChange, "poi", modelData.id, function() {
 							})
 						}
