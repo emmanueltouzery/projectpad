@@ -149,8 +149,9 @@ serializeEither (Right x) = ["success", x]
 data ServerExtraInfo = ServerExtraInfo
 	{
 		srvExtraInfoServer :: ObjRef (Entity Server),
-		srvExtraInfoPoiCount :: Int
-		-- then website count, db count
+		srvExtraInfoPoiCount :: Int,
+		srvExtraInfoWwwCount :: Int,
+		srvExtraInfoDbCount :: Int
 	} deriving Typeable
 
 -- server entity, together with some stats about the
@@ -159,27 +160,44 @@ instance DefaultClass ServerExtraInfo where
 	classMembers =
 		[
 			defPropertyConst "server" (return . srvExtraInfoServer . fromObjRef),
-			defPropertyConst "poiCount" (return . srvExtraInfoPoiCount . fromObjRef)
+			defPropertyConst "poiCount" (return . srvExtraInfoPoiCount . fromObjRef),
+			defPropertyConst "wwwCount" (return . srvExtraInfoWwwCount . fromObjRef),
+			defPropertyConst "dbCount" (return . srvExtraInfoDbCount . fromObjRef)
 		]
 
-readServersExtraInfo :: [Key Server] -> SqlPersistM [(Value (Key Server), Value Int)]
-readServersExtraInfo serverIds = select $ from $ \sp -> do
-		groupBy (sp ^. ServerPointOfInterestServerId)
-		having (sp ^. ServerPointOfInterestServerId `in_` valList serverIds)
-		return (sp ^. ServerPointOfInterestServerId, count (sp ^. ServerPointOfInterestId))
+readServersExtraInfo :: (PersistEntity val,
+	PersistField typ1, PersistField typ, PersistEntityBackend val ~ SqlBackend) =>
+	EntityField val typ1 -> EntityField val typ -> [typ] -> SqlPersistM [(Value typ, Value Int)]
+readServersExtraInfo tableId serverFk serverIds = select $ from $ \sp -> do
+		groupBy (sp ^. serverFk)
+		having (sp ^. serverFk `in_` valList serverIds)
+		return (sp ^. serverFk, count (sp ^. tableId))
 
 getServersExtraInfo :: SqlBackend -> ObjRef ProjectViewState -> Int -> IO [ObjRef ServerExtraInfo]
 getServersExtraInfo sqlBackend projectViewState projectId = do
 	prjServers <- getChildren sqlBackend readServers projectViewState projectId
 	let serversById = M.fromList $ fmap (\s -> (objRefKey s, s)) prjServers
 
-	-- three queries: select serverid, count(*) from serverpoi group by serverid where serverpoi.serverid in ...
-	serverInfosVal <- runSqlBackend sqlBackend $ readServersExtraInfo $ M.keys serversById
-	let serverInfos = M.fromList $ (unValue *** unValue) <$> serverInfosVal
+	poiInfosVal <- runSqlBackend sqlBackend $ readServersExtraInfo
+		ServerPointOfInterestId ServerPointOfInterestServerId $ M.keys serversById
+	let poiInfos = valListToMap poiInfosVal
+
+	wwwInfosVal <- runSqlBackend sqlBackend $ readServersExtraInfo
+		ServerWebsiteId ServerWebsiteServerId $ M.keys serversById
+	let wwwInfos = valListToMap wwwInfosVal
+
+	dbInfosVal <- runSqlBackend sqlBackend $ readServersExtraInfo
+		ServerDatabaseId ServerDatabaseServerId $ M.keys serversById
+	let dbInfos = valListToMap dbInfosVal
 
 	mapM (\s -> newObjectDC $ ServerExtraInfo s
-		(fromMaybe 0 $ M.lookup (objRefKey s) serverInfos)) prjServers
-	where objRefKey = entityKey . fromObjRef
+		(getServerCount s poiInfos)
+		(getServerCount s wwwInfos)
+		(getServerCount s dbInfos)) prjServers
+	where
+		objRefKey = entityKey . fromObjRef
+		valListToMap = M.fromList . fmap (unValue *** unValue)
+		getServerCount s = fromMaybe 0 . M.lookup (objRefKey s)
 
 createProjectViewState :: SqlBackend -> IO (ObjRef ProjectViewState)
 createProjectViewState sqlBackend = do

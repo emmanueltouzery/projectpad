@@ -126,7 +126,7 @@ ScrollView {
 
 					Text {
 						y: 20
-						text: modelData.poiCount
+						text: modelData.poiCount + " " + modelData.wwwCount + " " + modelData.dbCount
 					}
 
 					MouseArea {
