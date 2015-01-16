@@ -101,18 +101,6 @@ ScrollView {
 				}
 				break;
 			case "delete":
-				var serverDbs = Select.selectedItems["db"]
-				for (var i=0;i<serverDbs.length;i++) {
-					var serverDbId = serverDbs[i]
-					var serverDb = Utils.findById(dbsrepeater.model, serverDbId)
-					var msg = serverViewState.canDeleteServerDatabase(serverDb)
-					if (msg !== null) {
-						appContext.errorMessage(msg)
-						return
-					}
-				}
-				serverViewState.deleteServerDatabases(serverDbs)
-				dbsrepeater.model = serverViewState.getServerDatabases(pv.model.id)
 				var serverPois = Select.selectedItems["poi"]
 
 				var serverWwws = Select.selectedItems["www"]
@@ -238,7 +226,17 @@ ScrollView {
 						onClicked: {
 							selectMenu.options = [["Edit", function() { editDb(modelData.id)}],
 								["Copy pass", function() { appContext.copyItem(modelData.password) }],
-								["Delete", function() {}]]
+								["Delete", function() {
+									appContext.confirmDelete(function() {
+										var msg = serverViewState.canDeleteServerDatabase(modelData)
+										if (msg !== null) {
+											appContext.errorMessage(msg)
+											return
+										}
+										serverViewState.deleteServerDatabases([modelData.id])
+										dbsrepeater.model = serverViewState.getServerDatabases(pv.model.id)
+									})
+								}]]
 							selectMenu.show(parent)
 							Select.handleClick(pv.selectionChange, "db", modelData.id, function() {
 							})
