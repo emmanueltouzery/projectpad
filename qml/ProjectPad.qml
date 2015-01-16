@@ -23,20 +23,12 @@ Window {
 		id: toolbar
 		onLoadView: loadViewAction(name, model)
 		onActionTriggered: loader.item.actionTriggered(name)
-		onEditModeChanged: loader.item.editMode = toolbar.editMode
 	}
 
 	Loader {
 		width: parent.width
 		y: toolbar.height
-		height: {
-			var baseHeight = parent.height-toolbar.height
-			if (toolbar.editMode) {
-				return baseHeight-editModeActionBar.height
-			} else {
-				return baseHeight
-			}
-		}
+		height: parent.height-toolbar.height
 		id: loader
 		onLoaded: {
 			// putting it here ensures it's called
@@ -53,14 +45,6 @@ Window {
 		}
 	}
 
-	EditModeActionBar {
-		id: editModeActionBar
-		y: loader.y + loader.height
-		visible: toolbar.editMode
-		onModeActionBarAction: loader.item.actionTriggered(type)
-		onActionExecuted: toolbar.editMode = false
-	}
-
 	signal loadView(string name, variant model)
 
 	Connections {
@@ -68,7 +52,6 @@ Window {
 		onLoadView: {
 			loadViewAction(name, model)
 		}
-		onSelectionChange: editModeActionBar.selectionCount = selectionCount
 	}
 
 	Popup {

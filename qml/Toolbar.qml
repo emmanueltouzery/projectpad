@@ -3,16 +3,9 @@ import QtQuick.Controls 1.2
 
 Rectangle {
 	id: toolbarRoot
-	color: {
-		if (editMode) {
-			return '#4a90d9';
-		} else {
-			return 'light gray';
-		}
-	}
+	color: 'light gray';
 	width: parent.width
 	height: 32
-	property bool editMode: false
 
 	signal loadView(string name, variant model)
 
@@ -79,18 +72,7 @@ Rectangle {
 				height: toolbarRoot.height
 			}
 		}
-		IconButton {
-			id: editModeBtn
-			iconName: 'glyphicons-31-pencil'
-			btnText: 'Edit mode'
-			checkable: true
-			style: checked ? defaultButtonStyle : normalButtonStyle
-			onClicked: toolbarRoot.editMode = editModeBtn.checked
-			height: toolbarRoot.height
-		}
 	}
-
-	onEditModeChanged: editModeBtn.checked = editMode
 
 	Component {
 		id: defaultButtonStyle
