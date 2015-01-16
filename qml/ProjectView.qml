@@ -124,9 +124,44 @@ ScrollView {
 					itemDesc: modelData.server.desc
 					icon: "glyphicons-464-server"
 
-					Text {
-						y: 20
-						text: modelData.poiCount + " " + modelData.wwwCount + " " + modelData.dbCount
+					Flow {
+						x: 5
+						y: 145
+						spacing: 2
+						opacity: 0.6
+						Image {
+							height: 16
+							fillMode: Image.PreserveAspectFit
+							smooth: true
+							source: '../glyphicons-free/glyphicons-372-global.png'
+							visible: modelData.wwwCount > 0
+						}
+						Text {
+							text: modelData.wwwCount
+							visible: modelData.wwwCount > 0
+						}
+						Image {
+							height: 16
+							fillMode: Image.PreserveAspectFit
+							smooth: true
+							source: '../glyphicons-free/glyphicons-528-database.png'
+							visible: modelData.dbCount > 0
+						}
+						Text {
+							text: modelData.dbCount
+							visible: modelData.dbCount > 0
+						}
+						Image {
+							height: 16
+							fillMode: Image.PreserveAspectFit
+							smooth: true
+							source: '../glyphicons-free/glyphicons-149-folder-flag.png'
+							visible: modelData.poiCount > 0
+						}
+						Text {
+							text: modelData.poiCount
+							visible: modelData.poiCount > 0
+						}
 					}
 
 					MouseArea {
