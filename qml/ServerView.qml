@@ -104,8 +104,6 @@ ScrollView {
 				var serverPois = Select.selectedItems["poi"]
 
 				var serverWwws = Select.selectedItems["www"]
-				serverViewState.deleteServerWebsites(serverWwws)
-				wwwsrepeater.model = serverViewState.getServerWebsites(pv.model.id)
 				break;
 			case "addwww":
 				popup.setContents("Add website", editSrvWwwComponent,
@@ -198,7 +196,12 @@ ScrollView {
 						onClicked: {
 							selectMenu.options = [["Edit", function() { editSrvWww(modelData.id)}],
 								["Open", function() { openAssociatedFile(modelData.url)}],
-								["Delete", function() {}]]
+								["Delete", function() {
+									appContext.confirmDelete(function() {
+										serverViewState.deleteServerWebsites([modelData.id])
+										wwwsrepeater.model = serverViewState.getServerWebsites(pv.model.id)
+									})
+								}]]
 							selectMenu.show(parent)
 							Select.handleClick(pv.selectionChange, "www", modelData.id, function() {
 							})
