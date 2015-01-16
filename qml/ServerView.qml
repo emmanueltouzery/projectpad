@@ -114,8 +114,6 @@ ScrollView {
 				serverViewState.deleteServerDatabases(serverDbs)
 				dbsrepeater.model = serverViewState.getServerDatabases(pv.model.id)
 				var serverPois = Select.selectedItems["poi"]
-				serverViewState.deleteServerPois(serverPois)
-				poisrepeater.model = serverViewState.getPois(pv.model.id)
 
 				var serverWwws = Select.selectedItems["www"]
 				serverViewState.deleteServerWebsites(serverWwws)
@@ -267,7 +265,12 @@ ScrollView {
 						onClicked: {
 							selectMenu.options = [["Edit", function() { editPoi(modelData.id)}],
 								["Copy path", function() { appContext.copyItem(modelData.path) }],
-								["Delete", function() {}]]
+								["Delete", function() {
+									appContext.confirmDelete(function() {
+										serverViewState.deleteServerPois([modelData.id])
+										poisrepeater.model = serverViewState.getPois(pv.model.id)
+									})
+								}]]
 							selectMenu.show(parent)
 							Select.handleClick(pv.selectionChange, "poi", modelData.id, function() {
 							})
