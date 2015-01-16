@@ -69,7 +69,7 @@ DbVersion
 	deriving Show
 |]
 
-int64to32 :: Int64 -> Int32
+int64to32 :: Int64 -> Int
 int64to32 = fromIntegral
 
 toSqlKey32 :: ToBackendKey SqlBackend record => Int -> Key record

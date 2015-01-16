@@ -34,7 +34,7 @@ ScrollView {
 		var curServer = Utils.findById(projectViewState.getServers(pv.model.id), sId)
 		popup.setContents("Edit server", serverEditComponent,
 				function (serverEdit) {
-					serverEdit.activate(curServer)
+					serverEdit.activate(curServer.server)
 				},
 				function (serverEdit) {
 					serverEdit.onOk()
@@ -116,19 +116,24 @@ ScrollView {
 				model: projectViewState.getServers(pv.model.id)
 
 				ItemTile {
-					property int modelId: modelData.id
+					property int modelId: modelData.server.id
 					property bool selected: false
 					color: "light blue"
 					border.width: selected ? 4 : 0
 					border.color: "green"
-					itemDesc: modelData.desc
+					itemDesc: modelData.server.desc
 					icon: "glyphicons-464-server"
+
+					Text {
+						y: 20
+						text: modelData.poiCount
+					}
 
 					MouseArea {
 						anchors.fill: parent
 						onClicked: {
-							Select.handleClick(pv.selectionChange, "server", modelData.id, function() {
-								loadView("ServerView.qml", modelData)
+							Select.handleClick(pv.selectionChange, "server", modelData.server.id, function() {
+								loadView("ServerView.qml", modelData.server)
 							})
 						}
 					}

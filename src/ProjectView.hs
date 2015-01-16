@@ -15,6 +15,9 @@ import System.Process
 import Control.Exception
 import System.Environment
 import GHC.IO.Handle
+import qualified Data.Map as M
+import Data.Maybe
+import Control.Arrow
 
 import ModelBase
 import Model
@@ -143,6 +146,41 @@ serializeEither :: Either Text Text -> [Text]
 serializeEither (Left x) = ["error", x]
 serializeEither (Right x) = ["success", x]
 
+data ServerExtraInfo = ServerExtraInfo
+	{
+		srvExtraInfoServer :: ObjRef (Entity Server),
+		srvExtraInfoPoiCount :: Int
+		-- then website count, db count
+	} deriving Typeable
+
+-- server entity, together with some stats about the
+-- entities inside the server.
+instance DefaultClass ServerExtraInfo where
+	classMembers =
+		[
+			defPropertyConst "server" (return . srvExtraInfoServer . fromObjRef),
+			defPropertyConst "poiCount" (return . srvExtraInfoPoiCount . fromObjRef)
+		]
+
+readServersExtraInfo :: [Key Server] -> SqlPersistM [(Value (Key Server), Value Int)]
+readServersExtraInfo serverIds = select $ from $ \sp -> do
+		groupBy (sp ^. ServerPointOfInterestServerId)
+		having (sp ^. ServerPointOfInterestServerId `in_` valList serverIds)
+		return (sp ^. ServerPointOfInterestServerId, count (sp ^. ServerPointOfInterestId))
+
+getServersExtraInfo :: SqlBackend -> ObjRef ProjectViewState -> Int -> IO [ObjRef ServerExtraInfo]
+getServersExtraInfo sqlBackend projectViewState projectId = do
+	prjServers <- getChildren sqlBackend readServers projectViewState projectId
+	let serversById = M.fromList $ fmap (\s -> (objRefKey s, s)) prjServers
+
+	-- three queries: select serverid, count(*) from serverpoi group by serverid where serverpoi.serverid in ...
+	serverInfosVal <- runSqlBackend sqlBackend $ readServersExtraInfo $ M.keys serversById
+	let serverInfos = M.fromList $ (unValue *** unValue) <$> serverInfosVal
+
+	mapM (\s -> newObjectDC $ ServerExtraInfo s
+		(fromMaybe 0 $ M.lookup (objRefKey s) serverInfos)) prjServers
+	where objRefKey = entityKey . fromObjRef
+
 createProjectViewState :: SqlBackend -> IO (ObjRef ProjectViewState)
 createProjectViewState sqlBackend = do
 	projectViewState <- ProjectViewState
@@ -151,7 +189,7 @@ createProjectViewState sqlBackend = do
 		<*> newMVar Nothing
 	projectViewClass <- newClass
 		[
-			defMethod "getServers" (getChildren sqlBackend readServers),
+			defMethod "getServers" (getServersExtraInfo sqlBackend),
 			defMethod "addServer" (addServer sqlBackend),
 			defMethod "updateServer" (updateServer sqlBackend),
 			defMethod "deleteServers" (deleteServers sqlBackend),
