@@ -13,6 +13,12 @@ Window {
 		loader.setSource(name, {"model": model})
 	}
 
+	function confirmDelete(callback) {
+		popup.setContentsDelete("Sure to delete?", confirmDeleteComponent,
+			function (deleteDialog) { },
+			function (deleteDialog) { callback() })
+	}
+
 	Toolbar {
 		id: toolbar
 		onLoadView: loadViewAction(name, model)
@@ -151,5 +157,22 @@ Window {
 		from: 1.0
 		to: 0.0
 		target: toast
+	}
+
+	Component {
+		id: confirmDeleteComponent
+		Rectangle {
+			color: "dark grey"
+			height: 60
+			property int preferredHeight: 60
+			Text {
+				id: deleteText
+				x: 15
+				width: parent.width-15
+				height: parent.height
+				text: "Are you sure to delete?"
+				verticalAlignment: Text.AlignVCenter
+			}
+		}
 	}
 }

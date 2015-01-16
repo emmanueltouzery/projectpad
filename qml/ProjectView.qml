@@ -102,8 +102,38 @@ ScrollView {
 		}
 	}
 
+	Rectangle {
+		id: projectHeader
+		color: "light grey"
+		x: 0
+		width: parent.width
+		height: 70
+
+		Text {
+			text: model.name
+			font.pointSize: 16
+			x: 10
+			height: 70
+			verticalAlignment: Text.AlignVCenter
+		}
+
+		Button {
+			x: parent.width-width
+			id: copyBtn
+			text: "Delete project"
+			y: 20
+			onClicked: {
+				appContext.confirmDelete(function() {
+					projectListState.deleteProjects([pv.model.id])
+					loadView("ProjectList.qml", null)
+				})
+			}
+		}
+	}
+
 	Flickable {
 		width: parent.width
+		anchors.topMargin: 70
 		contentHeight: flow.implicitHeight
 		Flow {
 			anchors.fill: parent
