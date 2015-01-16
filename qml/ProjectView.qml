@@ -95,9 +95,6 @@ ScrollView {
 				poisrepeater.model = projectViewState.getPois(pv.model.id)
 
 				var serverPois = Select.selectedItems["server"]
-				projectViewState.deleteServers(serverPois)
-				// force refresh
-				itemsrepeater.model = projectViewState.getServers(pv.model.id)
 				break;
 		}
 	}
@@ -200,7 +197,13 @@ ScrollView {
 							var options = [
 								["Contents", function() { loadView("ServerView.qml", modelData.server) }],
 								["Edit", function() {editServer(modelData.id)}],
-								["Delete", function() {console.log("delete")}]]
+								["Delete", function() {
+									appContext.confirmDelete(function() {
+										projectViewState.deleteServers([modelData.server.id])
+										// force refresh
+										itemsrepeater.model = projectViewState.getServers(pv.model.id)
+									})
+								}]]
 							if (modelData.server.accessType == "SrvAccessWww") {
 								options.push(["Open", function() { openAssociatedFile(modelData.server.serverIp)}])
 							}
