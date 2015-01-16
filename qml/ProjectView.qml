@@ -90,9 +90,6 @@ ScrollView {
 				break;
 			case "delete":
 				var projectPois = Select.selectedItems["poi"]
-				projectViewState.deleteProjectPois(projectPois)
-				// force refresh
-				poisrepeater.model = projectViewState.getPois(pv.model.id)
 
 				var serverPois = Select.selectedItems["server"]
 				break;
@@ -241,7 +238,13 @@ ScrollView {
 									appContext.successMessage(info[1])
 								}}],
 								["Edit", function() {editPoi(modelData.id)}],
-								["Delete", function() {console.log("delete")}]]
+								["Delete", function() {
+									appContext.confirmDelete(function() {
+										projectViewState.deleteProjectPois([modelData.id])
+										// force refresh
+										poisrepeater.model = projectViewState.getPois(pv.model.id)
+									})
+								}]]
 							selectMenu.show(parent)
 							Select.handleClick(selectionChange, "poi", modelData.id, function() {
 								//loadView("ServerView.qml", modelData])
