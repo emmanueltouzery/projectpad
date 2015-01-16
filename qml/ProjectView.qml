@@ -167,9 +167,18 @@ ScrollView {
 					MouseArea {
 						anchors.fill: parent
 						onClicked: {
-							Select.handleClick(pv.selectionChange, "server", modelData.server.id, function() {
-								loadView("ServerView.qml", modelData.server)
-							})
+							var options = [
+								["Contents", function() { loadView("ServerView.qml", modelData.server) }],
+								["Edit", function() {editServer(modelData.id)}],
+								["Delete", function() {console.log("delete")}]]
+							if (modelData.server.accessType == "SrvAccessWww") {
+								options.push(["Open", function() { openAssociatedFile(modelData.server.serverIp)}])
+							}
+							selectMenu.options = options
+							selectMenu.show(parent)
+							//Select.handleClick(pv.selectionChange, "server", modelData.server.id, function() {
+							//	loadView("ServerView.qml", modelData.server)
+							//})
 						}
 					}
 				}
