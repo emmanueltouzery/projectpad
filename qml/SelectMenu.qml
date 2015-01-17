@@ -24,6 +24,7 @@ Canvas {
 		}
 		var colors = ["dark gray", "gray", "slate gray"]
 		var ctx = canvas.getContext("2d")
+		ctx.clearRect ( 0 , 0 , canvas.width, canvas.height );
 		var portionsRange = Math.PI*2/options.length
 		for (var i=0;i<options.length;i++) {
 			ctx.beginPath()
