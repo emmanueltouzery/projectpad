@@ -9,7 +9,6 @@ ScrollView {
 	id: pv
 	anchors.fill: parent
 	signal loadView(string name, variant model)
-	signal selectionChange(int selectionCount)
 	property variant model
 	property variant appContext: null
 
