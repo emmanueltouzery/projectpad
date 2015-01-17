@@ -186,7 +186,10 @@ Window {
 			Text {
 				anchors.fill: parent
 				anchors.margins: 10
-				text: "<html><body><h2>ProjectPad</h2> License: BSD3 (except for the icons).<br/><a href='https://github.com/emmanueltouzery/projectpad'>Website</a><br/><ul><li>Uses <a href='http://sqlcipher.net/'>SQLcipher</a> for secure encrypted data storage.</li><li>Uses <a href='http://glyphicons.com/'>Glyphicons</a> icons.</li></ul></body></html>"
+				text: "<html><body><h2>ProjectPad</h2> License: BSD3 (except for the icons).<br/>"
+					+ "<a href='https://github.com/emmanueltouzery/projectpad'>Website</a><br/>"
+					+ "<ul><li>Uses <a href='http://sqlcipher.net/'>SQLcipher</a> for secure encrypted data storage.</li>"
+					+ "<li>Uses <a href='http://glyphicons.com/'>Glyphicons</a> icons.</li></ul></body></html>"
 				onLinkActivated: Qt.openUrlExternally(link)
 			}
 		}
