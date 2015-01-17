@@ -5,11 +5,12 @@ Button {
 	property string iconName
 	property string btnText
 	property int iconSize: 16
+	property int iconX: 3
 
 	width: text.width+image.width+10
 
 	Image {
-		x: 3
+		x: iconX
 		y: (parent.height - iconSize)/2
 		source: '../glyphicons-free/' + parent.iconName + '.png'
 		height: iconSize

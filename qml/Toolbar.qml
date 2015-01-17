@@ -1,5 +1,5 @@
 import QtQuick 2.0
-import QtQuick.Controls 1.2
+import QtQuick.Controls 1.3
 
 Rectangle {
 	id: toolbarRoot
@@ -8,6 +8,8 @@ Rectangle {
 	height: 32
 
 	signal loadView(string name, variant model)
+
+	signal toggleMenu()
 
 	/**
 	 * actions to display in the toolbar
@@ -20,6 +22,10 @@ Rectangle {
 	property variant pathLinks: []
 
 	property string title: ""
+
+	function setMenuDisplayed(displayed) {
+		menuBtn.checked = displayed
+	}
 
 	signal actionTriggered(string name);
 
@@ -68,6 +74,19 @@ Rectangle {
 				style: normalButtonStyle
 				height: toolbarRoot.height
 			}
+		}
+		ExclusiveGroup { id: menuGroup }
+		IconButton {
+			id: menuBtn
+			width: 30
+			iconX: 12
+			iconName: 'glyphicons-518-option-vertical'
+			iconSize: 20
+			onClicked: toggleMenu()
+			exclusiveGroup: menuGroup
+			height: toolbarRoot.height
+			style: breadcbrumbsButton
+			checkable: true
 		}
 	}
 

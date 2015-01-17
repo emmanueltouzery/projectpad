@@ -23,6 +23,10 @@ Window {
 		id: toolbar
 		onLoadView: loadViewAction(name, model)
 		onActionTriggered: loader.item.actionTriggered(name)
+		onToggleMenu: {
+			popupMenu.visible = !popupMenu.visible
+			toolbar.setMenuDisplayed(popupMenu.visible)
+		}
 	}
 
 	Loader {
@@ -112,6 +116,15 @@ Window {
 		toast.color = "green"
 		toast.msgText = txt
 		toastOpacity.running = true
+	}
+
+	PopupMenu {
+		anchors.top: toolbar.bottom
+		anchors.right: parent.right
+		id: popupMenu
+		z: 1
+		menuItems: [["About...", function() {console.log("about")}]]
+		visible: false
 	}
 
 	Rectangle {
