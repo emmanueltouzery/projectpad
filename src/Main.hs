@@ -112,7 +112,7 @@ createContext sqlBackend = do
 	(projectState, projectsChangeSignal) <- createProjectListState sqlBackend
 	rootClass <- newClass
 		[
-			defMethod "isDbInitialized" (\(_ :: ObjRef AppState) ->isDbInitialized),
+			defMethod' "isDbInitialized" $ const isDbInitialized,
 			defMethod "setupPasswordAndUpgradeDb" (setupPasswordAndUpgradeDb
 				sqlBackend projectsChangeSignal projectState),
 			defPropertyConst "projectListState"
@@ -121,7 +121,7 @@ createContext sqlBackend = do
 				$ return . projectViewState . fromObjRef,
 			defPropertyConst "serverViewState"
 				$ return . serverViewState . fromObjRef,
-			defMethod "openAssociatedFile" (\(_:: ObjRef AppState) path ->
+			defMethod' "openAssociatedFile" $ (\_ path ->
 				serializeEither <$> openAssociatedFile path)
 		]
 	rootContext <- AppState
