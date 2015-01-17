@@ -1,6 +1,5 @@
 import QtQuick 2.0
 import QtQuick.Controls 1.2
-import "selection.js" as Select
 import "utils.js" as Utils
 
 ScrollView {
@@ -10,8 +9,6 @@ ScrollView {
 
 	property variant actions: [
 		["addprj", "glyphicons-146-folder-plus", "Add project"]]
-
-	property bool editMode
 
 	function getBreadCrumbs() {
 		return {pathLinks: [], title: ''};
@@ -28,27 +25,10 @@ ScrollView {
 							projectEdit.onOk()
 						})
 				break;
-			case "edit":
-				popup.setContents("Edit project", projectEditComponent,
-						function (projectEdit) {
-							var curProject = Utils.findById(projectListState.projects, Select.selectedItems["prj"][0])
-							projectEdit.activate(curProject)
-						},
-						function (projectEdit) {
-							projectEdit.onOk()
-						})
-				break;
-			case "delete":
-				projectListState.deleteProjects(Select.selectedItems["prj"])
-				break;
 		}
 	}
 
-	signal selectionChange(int selectionCount)
 	signal loadView(string name, variant model)
-
-	onSelectionChange: Select.updateSelectDisplay("prj", itemsrepeater)
-	onEditModeChanged: Select.clearSelection(projectList.selectionChange)
 
 	Flickable {
 		width: parent.width
@@ -77,11 +57,7 @@ ScrollView {
 
 					MouseArea {
 						anchors.fill: parent
-						onClicked: {
-							Select.handleClick(projectList.selectionChange, "prj", modelData.id, function() {
-								loadView("ProjectView.qml", modelData)
-							})
-						}
+						onClicked: loadView("ProjectView.qml", modelData)
 					}
 				}
 			}

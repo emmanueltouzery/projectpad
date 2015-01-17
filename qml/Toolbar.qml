@@ -31,7 +31,6 @@ Rectangle {
 			btnText: 'home'
 			iconName: 'glyphicons-21-home'
 			onClicked: loadView("ProjectList.qml", null)
-			visible: !toolbarRoot.editMode
 			style: breadcbrumbsButton
 			height: toolbarRoot.height
 		}
@@ -41,7 +40,6 @@ Rectangle {
 			Button {
 				text: modelData.display
 				height: toolbarRoot.height
-				visible: !toolbarRoot.editMode
 				onClicked: loadView(modelData.screen, modelData.model)
 				style: breadcbrumbsButton
 			}
@@ -50,7 +48,7 @@ Rectangle {
 		Button {
 			text: title
 			height: toolbarRoot.height
-			visible: title.length > 0 && !toolbarRoot.editMode
+			visible: title.length > 0
 			checkable: true
 			checked: true
 			exclusiveGroup: tabPositionGroup
@@ -67,7 +65,6 @@ Rectangle {
 				iconName: modelData[1]
 				btnText: modelData[2]
 				onClicked: actionTriggered(modelData[0])
-				visible: !toolbarRoot.editMode
 				style: normalButtonStyle
 				height: toolbarRoot.height
 			}

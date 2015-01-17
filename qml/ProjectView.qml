@@ -2,7 +2,6 @@ import QtQuick 2.0
 import QtQuick.Window 2.0
 import QtQuick.Controls 1.2
 import QtQuick.Layouts 1.1
-import "selection.js" as Select
 import "utils.js" as Utils
 import "poiactions.js" as PoiActions
 
@@ -19,12 +18,6 @@ ScrollView {
 	property variant actions: [
 		["addsrv", "glyphicons-470-server-new", "Add server"],
 		["addpoi", "glyphicons-336-pushpin", "Add point of interest"]]
-
-	onSelectionChange: {
-		Select.updateSelectDisplay("server", itemsrepeater)
-		Select.updateSelectDisplay("poi", poisrepeater)
-	}
-	onEditModeChanged: Select.clearSelection(pv.selectionChange)
 
 	function getBreadCrumbs() {
 		return {pathLinks: [], title: model.name};
@@ -58,14 +51,6 @@ ScrollView {
 
 	function actionTriggered(name) {
 		switch (name) {
-			case "edit":
-				var itemInfo = Select.getSelectedItem(["server", "poi"])
-				if (itemInfo[0] === "poi") {
-					editPoi(itemInfo[1])
-				} else {
-					editServer(itemInfo[1])
-				}
-				break;
 			case "addsrv":
 				popup.setContents("Add server", serverEditComponent,
 						function (serverEdit) {
@@ -88,11 +73,6 @@ ScrollView {
 							poisrepeater.model = projectViewState.getPois(pv.model.id)
 						})
 				break;
-			case "delete":
-				var projectPois = Select.selectedItems["poi"]
-
-				var serverPois = Select.selectedItems["server"]
-				break;
 		}
 	}
 
@@ -113,9 +93,25 @@ ScrollView {
 
 		Button {
 			x: parent.width-width
+			y: 5
 			id: copyBtn
+			text: "Edit project"
+			onClicked: {
+				popup.setContents("Edit project", projectEditComponent,
+					function (projectEdit) {
+						projectEdit.activate(pv.model)
+					},
+					function (projectEdit) {
+						projectEdit.onOk()
+						loadView("ProjectList.qml", null)
+					})
+			}
+		}
+		Button {
+			x: parent.width-width
+			id: deleteBtn
 			text: "Delete project"
-			y: 20
+			y: 35
 			onClicked: {
 				appContext.confirmDelete(function() {
 					projectListState.deleteProjects([pv.model.id])
@@ -206,9 +202,6 @@ ScrollView {
 							}
 							selectMenu.options = options
 							selectMenu.show(parent)
-							//Select.handleClick(pv.selectionChange, "server", modelData.server.id, function() {
-							//	loadView("ServerView.qml", modelData.server)
-							//})
 						}
 					}
 				}
@@ -246,9 +239,6 @@ ScrollView {
 									})
 								}]]
 							selectMenu.show(parent)
-							Select.handleClick(selectionChange, "poi", modelData.id, function() {
-								//loadView("ServerView.qml", modelData])
-							})
 						}
 					}
 				}

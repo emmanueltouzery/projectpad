@@ -2,7 +2,6 @@ import QtQuick 2.0
 import QtQuick.Window 2.0
 import QtQuick.Controls 1.2
 import QtQuick.Layouts 1.1
-import "selection.js" as Select
 import "utils.js" as Utils
 import "poiactions.js" as PoiActions
 
@@ -14,19 +13,10 @@ ScrollView {
 	property variant model
 	property variant appContext: null
 
-	property bool editMode
-
 	property variant actions: [
 		["addpoi", "glyphicons-336-pushpin", "Add point of interest"],
 		["addwww", "glyphicons-372-global", "Add website"],
 		["adddb", "glyphicons-142-database-plus", "Add database"]]
-
-	onSelectionChange: {
-		Select.updateSelectDisplay("www", wwwsrepeater)
-		Select.updateSelectDisplay("db", dbsrepeater)
-		Select.updateSelectDisplay("poi", poisrepeater)
-	}
-	onEditModeChanged: Select.clearSelection(pv.selectionChange)
 
 	function getBreadCrumbs() {
 		var projectModel = Utils.findById(projectListState.projects, parseInt(model.projectId))
@@ -89,21 +79,6 @@ ScrollView {
 							poiEdit.onServerOk();
 							poisrepeater.model = serverViewState.getPois(pv.model.id)
 						})
-				break;
-			case "edit":
-				var sId = Select.getSelectedItem(["www", "db", "poi"])
-				if (sId[0] === "poi") {
-					editPoi(sId[1])
-				} else if (sId[0] == "db") {
-					editDb(sId[1])
-				} else {
-					editSrvWww(sId[1])
-				}
-				break;
-			case "delete":
-				var serverPois = Select.selectedItems["poi"]
-
-				var serverWwws = Select.selectedItems["www"]
 				break;
 			case "addwww":
 				popup.setContents("Add website", editSrvWwwComponent,
@@ -203,8 +178,6 @@ ScrollView {
 									})
 								}]]
 							selectMenu.show(parent)
-							Select.handleClick(pv.selectionChange, "www", modelData.id, function() {
-							})
 						}
 					}
 				}
@@ -241,8 +214,6 @@ ScrollView {
 									})
 								}]]
 							selectMenu.show(parent)
-							Select.handleClick(pv.selectionChange, "db", modelData.id, function() {
-							})
 						}
 					}
 				}
@@ -273,8 +244,6 @@ ScrollView {
 									})
 								}]]
 							selectMenu.show(parent)
-							Select.handleClick(pv.selectionChange, "poi", modelData.id, function() {
-							})
 						}
 					}
 				}
