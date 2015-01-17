@@ -29,8 +29,7 @@ ScrollView {
 			title: model.desc}
 	}
 
-	function editPoi(sId) {
-		var curPoi = Utils.findById(serverViewState.getPois(pv.model.id), sId)
+	function editPoi(curPoi) {
 		popup.setContents("Edit point of interest", editPoiComponent,
 				function (poiEdit) {
 					poiEdit.activate(curPoi)
@@ -42,8 +41,7 @@ ScrollView {
 				})
 	}
 
-	function editSrvWww(sId) {
-		var curPoi = Utils.findById(serverViewState.getServerWebsites(pv.model.id), sId)
+	function editSrvWww(curPoi) {
 		popup.setContents("Edit website", editSrvWwwComponent,
 				function (wwwEdit) {
 					wwwEdit.activate(curPoi)
@@ -55,8 +53,7 @@ ScrollView {
 				})
 	}
 
-	function editDb(sId) {
-		var curDb = Utils.findById(serverViewState.getServerDatabases(pv.model.id), sId)
+	function editDb(curDb) {
 		popup.setContents("Edit database", editDatabaseComponent,
 				function (dbEdit) {
 					dbEdit.activate(curDb)
@@ -169,7 +166,7 @@ ScrollView {
 					MouseArea {
 						anchors.fill: parent
 						onClicked: {
-							selectMenu.options = [["Edit", function() { editSrvWww(modelData.id)}],
+							selectMenu.options = [["Edit", function() { editSrvWww(modelData)}],
 								["Open", function() { openAssociatedFile(modelData.url)}],
 								["Delete", function() {
 									appContext.confirmDelete(function() {
@@ -200,7 +197,7 @@ ScrollView {
 					MouseArea {
 						anchors.fill: parent
 						onClicked: {
-							selectMenu.options = [["Edit", function() { editDb(modelData.id)}],
+							selectMenu.options = [["Edit", function() { editDb(modelData)}],
 								["Copy pass", function() { appContext.copyItem(modelData.password) }],
 								["Delete", function() {
 									appContext.confirmDelete(function() {
@@ -235,7 +232,7 @@ ScrollView {
 					MouseArea {
 						anchors.fill: parent
 						onClicked: {
-							selectMenu.options = [["Edit", function() { editPoi(modelData.id)}],
+							selectMenu.options = [["Edit", function() { editPoi(modelData)}],
 								["Copy path", function() { appContext.copyItem(modelData.path) }],
 								["Delete", function() {
 									appContext.confirmDelete(function() {

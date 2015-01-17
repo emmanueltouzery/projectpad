@@ -23,30 +23,28 @@ ScrollView {
 		return {pathLinks: [], title: model.name};
 	}
 
-	function editServer(sId) {
-		var curServer = Utils.findById(projectViewState.getServers(pv.model.id), sId)
+	function editServer(curServer) {
 		popup.setContents("Edit server", serverEditComponent,
-				function (serverEdit) {
-					serverEdit.activate(curServer.server)
-				},
-				function (serverEdit) {
-					serverEdit.onOk()
-					// force refresh
-					itemsrepeater.model = projectViewState.getServers(pv.model.id)
-				})
+			function (serverEdit) {
+				serverEdit.activate(curServer)
+			},
+			function (serverEdit) {
+				serverEdit.onOk()
+				// force refresh
+				itemsrepeater.model = projectViewState.getServers(pv.model.id)
+			})
 	}
 
-	function editPoi(sId) {
-		var curPoi = Utils.findById(projectViewState.getPois(pv.model.id), sId)
+	function editPoi(curPoi) {
 		popup.setContents("Edit point of interest", poiEditComponent,
-				function (poiEdit) {
-					poiEdit.activate(curPoi)
-				},
-				function (poiEdit) {
-					poiEdit.onOk()
-					// force refresh
-					poisrepeater.model = projectViewState.getPois(pv.model.id)
-				})
+			function (poiEdit) {
+				poiEdit.activate(curPoi)
+			},
+			function (poiEdit) {
+				poiEdit.onOk()
+				// force refresh
+				poisrepeater.model = projectViewState.getPois(pv.model.id)
+			})
 	}
 
 	function actionTriggered(name) {
@@ -195,7 +193,7 @@ ScrollView {
 						onClicked: {
 							var options = [
 								["Contents", function() { loadView("ServerView.qml", modelData.server) }],
-								["Edit", function() {editServer(modelData.id)}],
+								["Edit", function() {editServer(modelData.server)}],
 								["Delete", function() {
 									appContext.confirmDelete(function() {
 										projectViewState.deleteServers([modelData.server.id])
@@ -236,7 +234,7 @@ ScrollView {
 								} else if (info[1].length > 0){
 									appContext.successMessage(info[1])
 								}}],
-								["Edit", function() {editPoi(modelData.id)}],
+								["Edit", function() {editPoi(modelData)}],
 								["Delete", function() {
 									appContext.confirmDelete(function() {
 										projectViewState.deleteProjectPois([modelData.id])
