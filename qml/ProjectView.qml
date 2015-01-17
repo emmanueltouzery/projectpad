@@ -89,8 +89,8 @@ ScrollView {
 		}
 
 		Button {
-			x: parent.width-width
-			y: 5
+			anchors.right: deleteBtn.left
+			y: 35
 			id: copyBtn
 			text: "Edit project"
 			onClicked: {
