@@ -71,7 +71,7 @@ Rectangle {
 				iconName: modelData[1]
 				btnText: modelData[2]
 				onClicked: actionTriggered(modelData[0])
-				style: normalButtonStyle
+		//		style: normalButtonStyle
 				height: toolbarRoot.height
 			}
 		}
