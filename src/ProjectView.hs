@@ -173,22 +173,25 @@ readServersExtraInfo tableId serverFk serverIds = select $ from $ \sp -> do
 		having (sp ^. serverFk `in_` valList serverIds)
 		return (sp ^. serverFk, count (sp ^. tableId))
 
+getInfosVal :: (PersistEntity val, PersistField typ1, PersistEntityBackend val ~ SqlBackend)
+	=> SqlBackend -> M.Map (Key Server) a -> EntityField val typ1
+	-> EntityField val (Key Server) -> IO (M.Map (Key Server) Int)
+getInfosVal sqlBackend serversById tableId serverFk = do
+	poiInfosVal <- runSqlBackend sqlBackend $ readServersExtraInfo
+		tableId serverFk $ M.keys serversById
+	return $ M.fromList $ fmap (unValue *** unValue) $ poiInfosVal
+
 getServersExtraInfo :: SqlBackend -> ObjRef ProjectViewState -> Int -> IO [ObjRef ServerExtraInfo]
 getServersExtraInfo sqlBackend projectViewState projectId = do
 	prjServers <- getChildren sqlBackend readServers projectViewState projectId
 	let serversById = M.fromList $ fmap (\s -> (objRefKey s, s)) prjServers
 
-	poiInfosVal <- runSqlBackend sqlBackend $ readServersExtraInfo
-		ServerPointOfInterestId ServerPointOfInterestServerId $ M.keys serversById
-	let poiInfos = valListToMap poiInfosVal
-
-	wwwInfosVal <- runSqlBackend sqlBackend $ readServersExtraInfo
-		ServerWebsiteId ServerWebsiteServerId $ M.keys serversById
-	let wwwInfos = valListToMap wwwInfosVal
-
-	dbInfosVal <- runSqlBackend sqlBackend $ readServersExtraInfo
-		ServerDatabaseId ServerDatabaseServerId $ M.keys serversById
-	let dbInfos = valListToMap dbInfosVal
+	poiInfos <- getInfosVal sqlBackend serversById
+		ServerPointOfInterestId ServerPointOfInterestServerId
+	wwwInfos <- getInfosVal sqlBackend serversById
+		ServerWebsiteId ServerWebsiteServerId
+	dbInfos <- getInfosVal sqlBackend serversById
+		ServerDatabaseId ServerDatabaseServerId
 
 	mapM (\s -> newObjectDC $ ServerExtraInfo s
 		(getServerCount s poiInfos)
@@ -196,7 +199,6 @@ getServersExtraInfo sqlBackend projectViewState projectId = do
 		(getServerCount s dbInfos)) prjServers
 	where
 		objRefKey = entityKey . fromObjRef
-		valListToMap = M.fromList . fmap (unValue *** unValue)
 		getServerCount s = fromMaybe 0 . M.lookup (objRefKey s)
 
 createProjectViewState :: SqlBackend -> IO (ObjRef ProjectViewState)
