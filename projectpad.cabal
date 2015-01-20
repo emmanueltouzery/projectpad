@@ -37,7 +37,8 @@ executable projectpad
                        template-haskell,
                        fast-logger,
                        directory,
-                       process
+                       process,
+                       filepath
   hs-source-dirs:      src
   ghc-options:         -Wall -threaded -fno-warn-unused-do-bind
   default-language:    Haskell2010
