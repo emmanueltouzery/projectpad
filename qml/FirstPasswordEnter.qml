@@ -42,6 +42,7 @@ Rectangle {
 
 	Text {
 		id: introText
+		x: 10
 		y: 10
 		text: "Please choose a password to protect your data."
 	}
