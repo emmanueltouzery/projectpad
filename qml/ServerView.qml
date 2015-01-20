@@ -18,7 +18,7 @@ ScrollView {
 		["adddb", "glyphicons-142-database-plus", "Add database"]]
 
 	function getBreadCrumbs() {
-		var projectModel = Utils.findById(projectListState.projects, parseInt(model.projectId))
+		var projectModel = Utils.findById(projectListState.projects, model.projectId)
 		return {pathLinks:
 			[
 				{screen: "ProjectView.qml", 
