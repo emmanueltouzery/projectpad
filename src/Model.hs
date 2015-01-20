@@ -17,7 +17,6 @@ import Data.Maybe
 
 import ModelBase
 
--- TODO add DataFile (for instance a key)
 mkPersist sqlSettings [persistLowerCase|
 ServerPointOfInterest
 	desc Text
@@ -77,12 +76,15 @@ toSqlKey32 = toSqlKey . fromIntegral
 
 getStandardClassMembers :: (Marshal tr, ToBackendKey SqlBackend record, Typeable record,
 	 MarshalMode tr ICanReturnTo () ~ Yes) =>
-	[(String, record -> tr)] -> [(String, ObjRef (Entity record) -> Maybe Int)] -> [Member (GetObjType (ObjRef (Entity record)))]
+	[(String, record -> tr)] -> [(String, ObjRef (Entity record) -> Maybe Int)]
+	-> [Member (GetObjType (ObjRef (Entity record)))]
 getStandardClassMembers pairs fkPairs
 	= idProperty:others ++ fks
 	where
-		idProperty = defPropertyConst "id" (return . int64to32 . fromSqlKey . entityKey . fromObjRef)
-		others = fmap (\(name, f) -> defPropertyConst name (return . f . entityVal . fromObjRef)) pairs
+		idProperty = defPropertyConst "id"
+			(return . int64to32 . fromSqlKey . entityKey . fromObjRef)
+		others = fmap (\(name, f) ->
+			defPropertyConst name (return . f . entityVal . fromObjRef)) pairs
 		fks = fmap (\(name, f) -> defPropertyConst name (return . f)) fkPairs
 
 getKeyM :: (ToBackendKey SqlBackend record1) =>
