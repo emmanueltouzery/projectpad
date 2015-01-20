@@ -47,6 +47,7 @@ Rectangle {
 	Text {
 		id: introText
 		y: 10
+		x: 10
 		text: "Please enter the password to open the application."
 	}
 
