@@ -104,6 +104,7 @@ Window {
 		passwordCopy.selectAll()
 		passwordCopy.copy()
 		passwordCopy.text = ""
+		successMessage("Text copied to the clipboard")
 	}
 
 	function errorMessage(txt) {
@@ -137,6 +138,7 @@ Window {
 	Rectangle {
 		id: toast
 		opacity: 0
+		y: 40
 		z: 2
 		anchors.horizontalCenter: parent.horizontalCenter
 		width: 450
