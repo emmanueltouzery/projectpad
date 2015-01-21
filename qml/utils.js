@@ -26,6 +26,10 @@ function filter(list, predicate) {
 	return result
 }
 
+function all(list, predicate) {
+	return filter(list, predicate).length == list.length
+}
+
 function map(list, transform) {
 	var result = []
 	for (var i=0;i<list.length;i++) {

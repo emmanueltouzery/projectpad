@@ -165,9 +165,9 @@ ScrollView {
 					MouseArea {
 						anchors.fill: parent
 						onClicked: {
-							selectMenu.options = [["Edit", function() { editSrvWww(modelData)}],
-								["Open", function() { openAssociatedFile(modelData.url)}],
-								["Delete", function() {
+							selectMenu.options = [["glyphicons-151-edit", function() { editSrvWww(modelData)}],
+								["glyphicons-145-folder-open", function() { openAssociatedFile(modelData.url)}],
+								["glyphicons-193-circle-remove", function() {
 									appContext.confirmDelete(function() {
 										serverViewState.deleteServerWebsites([modelData.id])
 										wwwsrepeater.model = serverViewState.getServerWebsites(pv.model.id)
@@ -196,9 +196,9 @@ ScrollView {
 					MouseArea {
 						anchors.fill: parent
 						onClicked: {
-							selectMenu.options = [["Edit", function() { editDb(modelData)}],
-								["Copy pass", function() { appContext.copyItem(modelData.password) }],
-								["Delete", function() {
+							selectMenu.options = [["glyphicons-151-edit", function() { editDb(modelData)}],
+								["glyphicons-512-copy", function() { appContext.copyItem(modelData.password) }],
+								["glyphicons-193-circle-remove", function() {
 									appContext.confirmDelete(function() {
 										var msg = serverViewState.canDeleteServerDatabase(modelData)
 										if (msg !== null) {
@@ -231,9 +231,9 @@ ScrollView {
 					MouseArea {
 						anchors.fill: parent
 						onClicked: {
-							selectMenu.options = [["Edit", function() { editPoi(modelData)}],
-								["Copy path", function() { appContext.copyItem(modelData.path) }],
-								["Delete", function() {
+							selectMenu.options = [["glyphicons-151-edit", function() { editPoi(modelData)}],
+								["glyphicons-512-copy", function() { appContext.copyItem(modelData.path) }],
+								["glyphicons-193-circle-remove", function() {
 									appContext.confirmDelete(function() {
 										serverViewState.deleteServerPois([modelData.id])
 										poisrepeater.model = serverViewState.getPois(pv.model.id)

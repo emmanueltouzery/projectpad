@@ -1,5 +1,7 @@
 import QtQuick 2.0
 
+import "utils.js" as Utils
+
 Canvas {
 	id: canvas
 	width: 180
@@ -11,6 +13,33 @@ Canvas {
 	property int centerX : 90
 	property int centerY : 90
 
+	onOptionsChanged: {
+		// never unloading images. there's a bounded number anyway,
+		// the number of icons. memory use shouldn't be a problem.
+		var imgs = getAllImages()
+		for (var i=0;i<imgs.length;i++) {
+			if (!isImageLoaded(imgs[i])) {
+				loadImage(imgs[i])
+			}
+		}
+	}
+
+	function getAllImages() {
+		return Utils.map(options, function(opt) {
+			return getImagePath(opt[0])
+		})
+	}
+
+	function getImagePath(iconName) {
+		return '../glyphicons-free/' + iconName + '.png'
+	}
+
+	function allImagesLoaded() {
+		return Utils.all(getAllImages(), function(imgPath) {
+			return isImageLoaded(imgPath)
+		})
+	}
+
 	function show(parnt) {
 		selectMenu.x = parnt.x
 		selectMenu.y = parnt.y
@@ -18,8 +47,14 @@ Canvas {
 		selectMenu.requestPaint()
 	}
 
+	onImageLoaded: {
+		if (allImagesLoaded()) {
+			requestPaint()
+		}
+	}
+
 	onPaint: {
-		if (options === undefined) {
+		if (options === undefined || !allImagesLoaded()) {
 			return
 		}
 		var colors = ["dark gray", "gray", "slate gray"]
@@ -39,9 +74,11 @@ Canvas {
 			ctx.textBaseline = "middle"
 			ctx.font = "16px sans-serif"
 			var angle = portionsRange*i + portionsRange/2
-			ctx.fillText(options[i][0],
-				centerX + Math.cos(angle)*radius/1.5,
-				centerY - Math.sin(angle)*radius/1.5)
+
+			var imageData = ctx.createImageData(getImagePath(options[i][0]))
+			ctx.drawImage(imageData,
+				centerX + Math.cos(angle)*radius/1.5 - imageData.width/2,
+				centerY - Math.sin(angle)*radius/1.5 - imageData.height/2)
 		}
 	}
 
