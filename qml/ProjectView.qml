@@ -193,6 +193,7 @@ ScrollView {
 							var options = [
 								["glyphicons-145-folder-open", function() { loadView("ServerView.qml", modelData.server) }],
 								["glyphicons-151-edit", function() {editServer(modelData.server)}],
+								["glyphicons-512-copy", function() { appContext.copyItem(modelData.server.password) }],
 								["glyphicons-193-circle-remove", function() {
 									appContext.confirmDelete(function() {
 										projectViewState.deleteServers([modelData.server.id])
