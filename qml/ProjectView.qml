@@ -2,6 +2,7 @@ import QtQuick 2.0
 import QtQuick.Window 2.0
 import QtQuick.Controls 1.2
 import QtQuick.Layouts 1.1
+import QtQuick.Dialogs 1.0
 import "utils.js" as Utils
 import "poiactions.js" as PoiActions
 
@@ -204,6 +205,12 @@ ScrollView {
 							if (modelData.server.accessType == "SrvAccessWww") {
 								options.push(["glyphicons-372-global", function() { openAssociatedFile(modelData.server.serverIp)}])
 							}
+							if (modelData.server.authKeyFilename !== "...") {
+								options.push(["glyphicons-45-keys", function() {
+									saveAuthKeyDialog.server = modelData.server
+									saveAuthKeyDialog.visible = true
+								}])
+							}
 							selectMenu.options = options
 							selectMenu.show(parent)
 						}
@@ -271,6 +278,20 @@ ScrollView {
 			id: poiEditComponent
 			PoiEdit {
 				id: poiEdit
+			}
+		}
+
+		FileDialog {
+			id: saveAuthKeyDialog
+			title: "Please choose a destination"
+			property variant server
+			visible: false
+			selectFolder: true
+			onAccepted: {
+				projectViewState.saveAuthKey(fileUrls[0]
+					+ "/" + server.authKeyFilename, server)
+				appContext.successMessage("Saved file to "
+					+ fileUrls[0] + "/" + server.authKeyFilename)
 			}
 		}
 	}

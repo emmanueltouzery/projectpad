@@ -18,6 +18,8 @@ import GHC.IO.Handle
 import qualified Data.Map as M
 import Data.Maybe
 import Control.Arrow
+import Control.Error
+import Control.Monad.Trans
 
 import ModelBase
 import Model
@@ -142,6 +144,23 @@ runPoiAction _ (entityVal . fromObjRef -> poi)
 		interest = projectPointOfInterestInterestType poi 
 		path = projectPointOfInterestPath poi
 
+saveAuthKey :: ObjRef ProjectViewState
+	-> Text -> ObjRef (Entity Server) -> IO (Either Text Text)
+saveAuthKey _ path (entityVal . fromObjRef -> server) = do
+	result <- try $ runEitherT $ do
+		targetFile <- hoistEither $ note "Invalid target file name"
+			$ T.stripPrefix "file://" path
+		key <- hoistEither $ note "No authentication key for that server!"
+			$ serverAuthKey server
+		lift $ BS.writeFile (T.unpack targetFile) key
+	return $ case result of
+		Left x -> Left $ textEx x
+		Right (Left x) -> Left x
+		Right _ -> Right ""
+
+textEx :: SomeException -> Text
+textEx = text
+
 serializeEither :: Either Text Text -> [Text]
 serializeEither (Left x) = ["error", x]
 serializeEither (Right x) = ["success", x]
@@ -217,6 +236,7 @@ createProjectViewState sqlBackend = do
 			defMethod "addProjectPoi" (addProjectPoi sqlBackend),
 			defMethod "updateProjectPoi" (updateProjectPoi sqlBackend),
 			defMethod "deleteProjectPois" (deleteProjectPois sqlBackend),
-			defMethod "runPoiAction" (\a b -> serializeEither <$> runPoiAction a b)
+			defMethod "runPoiAction" (\state projectPoi -> serializeEither <$> runPoiAction state projectPoi),
+			defMethod "saveAuthKey" (\state path server -> serializeEither <$> saveAuthKey state path server)
 		]
 	newObject projectViewClass projectViewState
