@@ -27,7 +27,12 @@ function filter(list, predicate) {
 }
 
 function all(list, predicate) {
-	return filter(list, predicate).length == list.length
+	for (var i=0;i<list.length;i++) {
+		if (!predicate(list[i])) {
+			return false
+		}
+	}
+	return true
 }
 
 function map(list, transform) {
