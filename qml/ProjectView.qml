@@ -1,5 +1,5 @@
 import QtQuick 2.0
-import QtQuick.Window 2.0
+import QtQuick.Window 2.2
 import QtQuick.Controls 1.2
 import QtQuick.Layouts 1.1
 import QtQuick.Dialogs 1.0
@@ -202,13 +202,27 @@ ScrollView {
 										itemsrepeater.model = projectViewState.getServers(pv.model.id)
 									})
 								}]]
-							if (modelData.server.accessType == "SrvAccessWww") {
-								options.push(["glyphicons-372-global", function() { openAssociatedFile(modelData.server.serverIp)}])
+							if (modelData.server.accessType === "SrvAccessWww") {
+								options.push(["glyphicons-372-global", function() {
+									openAssociatedFile(modelData.server.serverIp)
+								}])
 							}
 							if (modelData.server.authKeyFilename !== "...") {
 								options.push(["glyphicons-45-keys", function() {
 									saveAuthKeyDialog.server = modelData.server
 									saveAuthKeyDialog.visible = true
+								}])
+							}
+							if (modelData.server.accessType === "SrvAccessRdp"
+									&& modelData.server.username.length > 0
+									&& modelData.server.password.length > 0) {
+								options.push(["glyphicons-489-multiple-displays", function() {
+									var info = projectViewState.runRdp(modelData.server,
+										Math.round(Screen.desktopAvailableWidth * 0.75),
+										Math.round(Screen.desktopAvailableHeight * 0.75))
+									if (info[0] === "error") {
+										appContext.errorMessage(info[1])
+									}
 								}])
 							}
 							selectMenu.options = options

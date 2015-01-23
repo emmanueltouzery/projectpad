@@ -19,6 +19,7 @@ import qualified Data.Map as M
 import Data.Maybe
 import Control.Arrow
 import Control.Error
+import System.Directory
 
 import ModelBase
 import Model
@@ -114,6 +115,23 @@ updateProjectPoi sqlBackend stateRef poiRef
 
 deleteProjectPois :: SqlBackend -> ObjRef ProjectViewState -> [Int] -> IO ()
 deleteProjectPois = deleteHelper convertKey readPois
+
+runRdp :: ObjRef (Entity Server) -> Int -> Int -> IO (Either Text Text)
+runRdp (entityVal . fromObjRef -> server) width height = do
+	homeDir <- T.pack <$> getHomeDirectory
+	let params = T.unpack <$> [serverIp server,
+		"-u", serverUsername server,
+		"-g", T.concat $ T.pack <$> [show width, "x", show height],
+		"-r", T.concat ["disk:mydisk=", homeDir],
+		"-p", "-"]
+	r <- try (createProcess (proc "rdesktop" params) { std_in = CreatePipe})
+	case r of
+		Right (Just stdin, _, _, _) -> do
+			hPutStr stdin (T.unpack $ serverPassword server)
+			hFlush stdin
+			return $ Right ""
+		Left x -> return $ Left $ textEx x
+		_ -> error "run RDP unexpected process output"
 
 tryCommand :: String -> [String] -> IO (Either Text Text)
 tryCommand cmd params = do
@@ -232,7 +250,11 @@ createProjectViewState sqlBackend = do
 			defMethod "addProjectPoi" (addProjectPoi sqlBackend),
 			defMethod "updateProjectPoi" (updateProjectPoi sqlBackend),
 			defMethod "deleteProjectPois" (deleteProjectPois sqlBackend),
-			defMethod "runPoiAction" (\state projectPoi -> serializeEither <$> runPoiAction state projectPoi),
-			defMethod "saveAuthKey" (\state path server -> serializeEither <$> saveAuthKey state path server)
+			defMethod "runPoiAction" (\state projectPoi -> serializeEither <$>
+				runPoiAction state projectPoi),
+			defMethod "saveAuthKey" (\state path server -> serializeEither <$>
+				saveAuthKey state path server),
+			defMethod' "runRdp" (\_ server width height -> serializeEither <$>
+				runRdp server width height)
 		]
 	newObject projectViewClass projectViewState
