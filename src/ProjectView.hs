@@ -19,7 +19,6 @@ import qualified Data.Map as M
 import Data.Maybe
 import Control.Arrow
 import Control.Error
-import Control.Monad.Trans
 
 import ModelBase
 import Model
@@ -144,19 +143,16 @@ runPoiAction _ (entityVal . fromObjRef -> poi)
 		interest = projectPointOfInterestInterestType poi 
 		path = projectPointOfInterestPath poi
 
+-- alternative implementations: http://stackoverflow.com/a/28101291/516188
 saveAuthKey :: ObjRef ProjectViewState
 	-> Text -> ObjRef (Entity Server) -> IO (Either Text Text)
-saveAuthKey _ path (entityVal . fromObjRef -> server) = do
-	result <- try $ runEitherT $ do
-		targetFile <- hoistEither $ note "Invalid target file name"
-			$ T.stripPrefix "file://" path
-		key <- hoistEither $ note "No authentication key for that server!"
-			$ serverAuthKey server
-		lift $ BS.writeFile (T.unpack targetFile) key
-	return $ case result of
-		Left x -> Left $ textEx x
-		Right (Left x) -> Left x
-		Right _ -> Right ""
+saveAuthKey _ path (entityVal . fromObjRef -> server) = runEitherT $ do
+	targetFile <- hoistEither $ note "Invalid target file name"
+		$ T.stripPrefix "file://" path
+	key <- hoistEither $ note "No authentication key for that server!"
+		$ serverAuthKey server
+	bimapEitherT textEx (const "") . EitherT . try
+		$ BS.writeFile (T.unpack targetFile) key
 
 textEx :: SomeException -> Text
 textEx = text
