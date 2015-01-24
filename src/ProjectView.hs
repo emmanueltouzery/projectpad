@@ -11,19 +11,16 @@ import Data.Typeable
 import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.ByteString as BS
-import System.Process
 import Control.Exception
-import System.Environment
-import GHC.IO.Handle
 import qualified Data.Map as M
 import Data.Maybe
 import Control.Arrow
 import Control.Error
-import System.Directory
 
 import ModelBase
 import Model
 import ChildEntityCache
+import System
 
 data ProjectViewState = ProjectViewState
 	{
@@ -116,39 +113,6 @@ updateProjectPoi sqlBackend stateRef poiRef
 deleteProjectPois :: SqlBackend -> ObjRef ProjectViewState -> [Int] -> IO ()
 deleteProjectPois = deleteHelper convertKey readPois
 
-runRdp :: ObjRef (Entity Server) -> Int -> Int -> IO (Either Text Text)
-runRdp (entityVal . fromObjRef -> server) width height = do
-	homeDir <- T.pack <$> getHomeDirectory
-	let params = T.unpack <$> [serverIp server,
-		"-u", serverUsername server,
-		"-g", T.concat $ T.pack <$> [show width, "x", show height],
-		"-r", T.concat ["disk:mydisk=", homeDir],
-		"-p", "-"]
-	r <- try (createProcess (proc "rdesktop" params) { std_in = CreatePipe})
-	case r of
-		Right (Just stdin, _, _, _) -> do
-			hPutStr stdin (T.unpack $ serverPassword server)
-			hFlush stdin
-			return $ Right ""
-		Left x -> return $ Left $ textEx x
-		_ -> error "run RDP unexpected process output"
-
-tryCommand :: String -> [String] -> IO (Either Text Text)
-tryCommand cmd params = do
-	r <- try (createProcess (proc cmd params) {std_out = CreatePipe})
-	case r of
-		Right (_, Just stdout, _, _) -> Right <$> T.pack <$> hGetContents stdout
-		Left (SomeException x) -> return $ Left $ T.pack $ show x
-		_ -> error "Try command unexpected process output"
-
-openAssociatedFile :: Text -> IO (Either Text Text)
-openAssociatedFile path = do
-	desktop <- getEnv "DESKTOP_SESSION"
-	let openCmd = case desktop of
-		"gnome" -> "gnome-open"
-		_ -> "xdg-open"
-	tryCommand openCmd [T.unpack path]
-
 runPoiAction :: ObjRef ProjectViewState
 	-> ObjRef (Entity ProjectPointOfInterest) -> IO (Either Text Text)
 runPoiAction _ (entityVal . fromObjRef -> poi)
@@ -172,8 +136,9 @@ saveAuthKey _ path (entityVal . fromObjRef -> server) = runEitherT $ do
 	bimapEitherT textEx (const "") . EitherT . try
 		$ BS.writeFile (T.unpack targetFile) key
 
-textEx :: SomeException -> Text
-textEx = text
+runServerRdp :: ObjRef (Entity Server) -> Int -> Int -> IO (Either Text Text)
+runServerRdp (entityVal . fromObjRef -> server) =
+	runRdp (serverIp server) (serverUsername server) (serverPassword server)
 
 serializeEither :: Either Text Text -> [Text]
 serializeEither (Left x) = ["error", x]
@@ -255,6 +220,6 @@ createProjectViewState sqlBackend = do
 			defMethod "saveAuthKey" (\state path server -> serializeEither <$>
 				saveAuthKey state path server),
 			defMethod' "runRdp" (\_ server width height -> serializeEither <$>
-				runRdp server width height)
+				runServerRdp server width height)
 		]
 	newObject projectViewClass projectViewState
