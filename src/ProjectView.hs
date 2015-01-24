@@ -140,6 +140,10 @@ runServerRdp :: ObjRef (Entity Server) -> Int -> Int -> IO (Either Text Text)
 runServerRdp (entityVal . fromObjRef -> server) =
 	runRdp (serverIp server) (serverUsername server) (serverPassword server)
 
+openServerSshSession :: ObjRef (Entity Server) -> IO (Either Text Text)
+openServerSshSession (entityVal . fromObjRef -> server) = fmapR (const "") <$>
+	openSshSession (serverIp server) (serverUsername server) (serverPassword server)
+
 serializeEither :: Either Text Text -> [Text]
 serializeEither (Left x) = ["error", x]
 serializeEither (Right x) = ["success", x]
@@ -220,6 +224,8 @@ createProjectViewState sqlBackend = do
 			defMethod "saveAuthKey" (\state path server -> serializeEither <$>
 				saveAuthKey state path server),
 			defMethod' "runRdp" (\_ server width height -> serializeEither <$>
-				runServerRdp server width height)
+				runServerRdp server width height),
+			defMethod' "openSshSession" (\_ server -> serializeEither <$>
+				openServerSshSession server)
 		]
 	newObject projectViewClass projectViewState

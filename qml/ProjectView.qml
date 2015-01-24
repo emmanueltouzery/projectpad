@@ -225,6 +225,16 @@ ScrollView {
 									}
 								}])
 							}
+							if (modelData.server.accessType === "SrvAccessSsh"
+									&& modelData.server.username.length > 0
+									&& modelData.server.password.length > 0) {
+								options.push(["glyphicons-489-multiple-displays", function() {
+									var info = projectViewState.openSshSession(modelData.server)
+									if (info[0] === "error") {
+										appContext.errorMessage(info[1])
+									}
+								}])
+							}
 							selectMenu.options = options
 							selectMenu.show(parent)
 						}
