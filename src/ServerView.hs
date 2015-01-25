@@ -13,6 +13,8 @@ import qualified Database.Persist as P
 
 import Model
 import ChildEntityCache
+import System
+import Util
 
 data ServerViewState = ServerViewState
 	{
@@ -145,6 +147,17 @@ getAllDatabases sqlBackend _ = do
 		return p)
 	mapM newObjectDC dbs
 
+executePoiAction :: ObjRef (Entity Server)
+	-> ObjRef (Entity ServerPointOfInterest) -> IO (Either Text Text)
+executePoiAction (entityVal . fromObjRef -> server)
+		(entityVal . fromObjRef -> serverPoi) = do
+	let workDir = case serverPointOfInterestPath serverPoi of
+		"" -> Nothing
+		x -> Just x
+	runProgramOverSsh (serverIp server)
+		(serverUsername server) (serverPassword server)
+		workDir (serverPointOfInterestText serverPoi)
+
 createServerViewState :: SqlBackend -> IO (ObjRef ServerViewState)
 createServerViewState sqlBackend = do
 	serverViewState <- ServerViewState
@@ -167,6 +180,8 @@ createServerViewState sqlBackend = do
 			defMethod "updateServerDatabase" (updateServerDatabase sqlBackend),
 			defMethod "canDeleteServerDatabase" (canDeleteServerDatabase sqlBackend),
 			defMethod "deleteServerDatabases" (deleteServerDatabases sqlBackend),
-			defMethod "getAllDatabases" (getAllDatabases sqlBackend)
+			defMethod "getAllDatabases" (getAllDatabases sqlBackend),
+			defMethod' "executePoiAction" (\_ server serverPoi -> serializeEither <$>
+				executePoiAction server serverPoi)
 		]
 	newObject serverViewClass serverViewState

@@ -32,6 +32,7 @@ import System
 import ProjectList
 import ProjectView
 import ServerView
+import Util
 
 dbFileName :: String
 dbFileName = "projectpad.db"

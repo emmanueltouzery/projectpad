@@ -21,6 +21,7 @@ import ModelBase
 import Model
 import ChildEntityCache
 import System
+import Util
 
 data ProjectViewState = ProjectViewState
 	{
@@ -118,7 +119,7 @@ runPoiAction :: ObjRef ProjectViewState
 runPoiAction _ (entityVal . fromObjRef -> poi)
 	| interest == PoiCommandToRun = do
 		let (prog:parameters) = T.unpack <$> T.splitOn " " path
-		tryCommand prog parameters
+		tryCommand prog parameters Nothing
 	| interest == PoiLogFile = openAssociatedFile path
 	| otherwise = return $ Left "not handled"
 	where
@@ -143,10 +144,6 @@ runServerRdp (entityVal . fromObjRef -> server) =
 openServerSshSession :: ObjRef (Entity Server) -> IO (Either Text Text)
 openServerSshSession (entityVal . fromObjRef -> server) = fmapR (const "") <$>
 	openSshSession (serverIp server) (serverUsername server) (serverPassword server)
-
-serializeEither :: Either Text Text -> [Text]
-serializeEither (Left x) = ["error", x]
-serializeEither (Right x) = ["success", x]
 
 data ServerExtraInfo = ServerExtraInfo
 	{

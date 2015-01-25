@@ -232,7 +232,7 @@ ScrollView {
 					MouseArea {
 						anchors.fill: parent
 						onClicked: {
-							selectMenu.options = [["glyphicons-151-edit", function() { editPoi(modelData)}],
+							var options = [["glyphicons-151-edit", function() { editPoi(modelData)}],
 								["glyphicons-512-copy", function() { appContext.copyItem(modelData.path) }],
 								["glyphicons-193-circle-remove", function() {
 									appContext.confirmDelete(function() {
@@ -240,6 +240,21 @@ ScrollView {
 										poisrepeater.model = serverViewState.getPois(pv.model.id)
 									})
 								}]]
+							if (modelData.interestType === "PoiCommandToRun"
+									&& pv.model.serverIp.length > 0
+									&& pv.model.accessType === "SrvAccessSsh"
+									&& pv.model.username.length > 0
+									&& pv.model.password.length > 0) {
+								options.push(["glyphicons-138-cogwheels", function() {
+									var info = serverViewState.executePoiAction(pv.model, modelData)
+									if (info[0] === "error") {
+										appContext.errorMessage(info[1])
+									} else {
+										appContext.successMessage(info[1])
+									}
+								}])
+							}
+							selectMenu.options = options
 							selectMenu.show(parent)
 						}
 					}

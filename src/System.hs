@@ -36,9 +36,9 @@ runRdp serverIp serverUsername serverPassword width height = do
 		Left x -> return $ Left $ textEx x
 		_ -> error "run RDP unexpected process output"
 
-tryCommand :: String -> [String] -> IO (Either Text Text)
-tryCommand cmd params = do
-	r <- try (createProcess (proc cmd params) {std_out = CreatePipe})
+tryCommand :: String -> [String] -> Maybe [(String, String)] -> IO (Either Text Text)
+tryCommand cmd params envVal = do
+	r <- try (createProcess (proc cmd params) {std_out = CreatePipe, env = envVal})
 	case r of
 		Right (_, Just stdout, _, _) -> Right <$> T.pack <$> hGetContents stdout
 		Left (SomeException x) -> return $ Left $ T.pack $ show x
@@ -50,7 +50,7 @@ openAssociatedFile path = do
 	let openCmd = case desktop of
 		"gnome" -> "gnome-open"
 		_ -> "xdg-open"
-	tryCommand openCmd [T.unpack path]
+	tryCommand openCmd [T.unpack path] Nothing
 
 writeTempScript :: String -> Text -> IO ()
 writeTempScript fname contents = do
@@ -65,6 +65,14 @@ echoPassContents :: FilePath -> Text -> Text
 echoPassContents fname password = T.concat ["#!/bin/sh\n",
 	"set -f\necho '", password, "'\nrm ", T.pack fname]
 
+prepareSshPassword :: Text -> FilePath -> IO ([(String, String)])
+prepareSshPassword password tmpDir = do
+	let echoPassPath = tmpDir </> "echopass.sh"
+	writeTempScript echoPassPath (echoPassContents echoPassPath password)
+	parentEnv <- filter ((/= "SSH_ASKPASS") . fst) <$> getEnvironment
+	let sysEnv = [("SSH_ASKPASS", echoPassPath)]
+	return $ parentEnv ++ sysEnv
+
 -- I have to jump through several hoops to make this work...
 -- I open in an external terminal so I can't communicate
 -- with the ssh app in the terminal, but environment variables
@@ -73,16 +81,21 @@ echoPassContents fname password = T.concat ["#!/bin/sh\n",
 openSshSession :: Text -> Text -> Text -> IO (Either Text ())
 openSshSession server username password = do
 	tmpDir <- getTemporaryDirectory
-	-- TODO here I'm creating temp files but not deleting them..
-	-- they are small though and tmpfs will not persist across reboots.
+	-- TODO here I'm creating a temp file but not deleting it..
+	-- it is small though and tmpfs will not persist across reboots.
 	let runSshPath = tmpDir </> "runssh.sh"
 	writeTempScript runSshPath (runSshContents server username)
-	let echoPassPath = tmpDir </> "echopass.sh"
-	writeTempScript echoPassPath (echoPassContents echoPassPath password)
 	let params = ["-e", runSshPath]
-	parentEnv <- filter ((/= "SSH_ASKPASS") . fst) <$> getEnvironment
-	let sysEnv = [("SSH_ASKPASS", echoPassPath)]
+	sshEnv <- prepareSshPassword password tmpDir
 	-- TODO detect other xterm types than gnome-terminal
 	fmapL textEx <$> (try $ void $
 		createProcess (proc "gnome-terminal" params)
-			{ env = Just $ parentEnv ++ sysEnv })
+			{ env = Just sshEnv })
+
+runProgramOverSsh :: Text -> Text -> Text -> Maybe Text -> Text -> IO (Either Text Text)
+runProgramOverSsh server username password workDir program = do
+	sshEnv <- getTemporaryDirectory >>= prepareSshPassword password
+	let workDirCommand = maybe "" (\dir -> "cd " ++ dir ++ ";") (T.unpack <$> workDir)
+	let command = workDirCommand ++ (T.unpack program)
+	let params = ["/usr/bin/ssh", T.unpack username ++ "@" ++ T.unpack server, command]
+	tryCommand "setsid" params (Just sshEnv)
