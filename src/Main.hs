@@ -92,11 +92,11 @@ sanityCheckIsDbEncrypted :: IO Bool
 sanityCheckIsDbEncrypted = do
 	initialized <- isDbInitialized
 	path <- getDbPath
-	if (not initialized)
+	if not initialized
 		then return True
 		else do
 			fileStart <- withFile path ReadMode
-				(`BS.hGet` (BS.length sqLiteDiscrimitator))
+				(`BS.hGet` BS.length sqLiteDiscrimitator)
 			return $ fileStart /= sqLiteDiscrimitator
 
 data UnlockResult = Ok
@@ -108,7 +108,7 @@ setupPasswordAndUpgradeDb :: SqlBackend -> SignalKey (IO ())
 	-> ObjRef ProjectListState -> ObjRef AppState -> Text -> IO Text
 setupPasswordAndUpgradeDb sqlBackend changeKey state _ password = do
 	encrypted <- sanityCheckIsDbEncrypted
-	T.pack . show <$> if (not encrypted)
+	T.pack . show <$> if not encrypted
 		then return DbNotEncrypted
 		else do
 			upgrade <- try $ runSqlBackend sqlBackend $ do
@@ -134,7 +134,7 @@ createContext sqlBackend = do
 				$ return . projectViewState . fromObjRef,
 			defPropertyConst "serverViewState"
 				$ return . serverViewState . fromObjRef,
-			defMethod' "openAssociatedFile" $ (\_ path ->
+			defMethod' "openAssociatedFile" (\_ path ->
 				serializeEither <$> openAssociatedFile path)
 		]
 	rootContext <- AppState

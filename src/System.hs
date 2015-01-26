@@ -65,7 +65,7 @@ echoPassContents :: FilePath -> Text -> Text
 echoPassContents fname password = T.concat ["#!/bin/sh\n",
 	"set -f\necho '", password, "'\nrm ", T.pack fname]
 
-prepareSshPassword :: Text -> FilePath -> IO ([(String, String)])
+prepareSshPassword :: Text -> FilePath -> IO [(String, String)]
 prepareSshPassword password tmpDir = do
 	let echoPassPath = tmpDir </> "echopass.sh"
 	writeTempScript echoPassPath (echoPassContents echoPassPath password)
@@ -96,6 +96,6 @@ runProgramOverSsh :: Text -> Text -> Text -> Maybe Text -> Text -> IO (Either Te
 runProgramOverSsh server username password workDir program = do
 	sshEnv <- getTemporaryDirectory >>= prepareSshPassword password
 	let workDirCommand = maybe "" (\dir -> "cd " ++ dir ++ ";") (T.unpack <$> workDir)
-	let command = workDirCommand ++ (T.unpack program)
+	let command = workDirCommand ++ T.unpack program
 	let params = ["/usr/bin/ssh", T.unpack username ++ "@" ++ T.unpack server, command]
 	tryCommand "setsid" params (Just sshEnv)

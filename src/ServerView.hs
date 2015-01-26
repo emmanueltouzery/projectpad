@@ -107,16 +107,15 @@ readServerDatabases serverId = select $ from $ \p -> do
 
 addServerDatabase :: SqlBackend -> ObjRef ServerViewState
 	-> Text -> Text -> Text -> Text -> IO ()
-addServerDatabase sqlBackend stateRef
-	pDesc name username password = do
-	addHelper sqlBackend stateRef readServerDatabases
+addServerDatabase sqlBackend stateRef pDesc name
+	username password = addHelper sqlBackend stateRef readServerDatabases
 		$ ServerDatabase pDesc name username password
 
 updateServerDatabase :: SqlBackend -> ObjRef ServerViewState -> ObjRef (Entity ServerDatabase)
 	-> Text -> Text -> Text -> Text -> IO (ObjRef (Entity ServerDatabase))
 updateServerDatabase sqlBackend stateRef srvDbRef
-	pDesc name username password = do
-	updateHelper sqlBackend stateRef srvDbRef readServerDatabases serverDatabases
+	pDesc name username password = updateHelper sqlBackend stateRef
+		srvDbRef readServerDatabases serverDatabases
 		[
 			ServerDatabaseDesc P.=. pDesc, ServerDatabaseName P.=. name,
 			ServerDatabaseUsername P.=. username,
@@ -140,7 +139,7 @@ canDeleteServerDatabase sqlBackend _ (fromObjRef -> serverDb) = do
 deleteServerDatabases :: SqlBackend -> ObjRef ServerViewState -> [Int] -> IO ()
 deleteServerDatabases = deleteHelper convertKey readServerDatabases
 
-getAllDatabases :: SqlBackend -> ObjRef ServerViewState -> IO ([ObjRef (Entity ServerDatabase)])
+getAllDatabases :: SqlBackend -> ObjRef ServerViewState -> IO [ObjRef (Entity ServerDatabase)]
 getAllDatabases sqlBackend _ = do
 	dbs <- runSqlBackend sqlBackend (select $ from $ \p -> do
 		orderBy [asc (p ^. ServerDatabaseDesc)]

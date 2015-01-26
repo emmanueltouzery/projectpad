@@ -178,7 +178,7 @@ getInfosVal :: (PersistEntity val, PersistField typ1, PersistEntityBackend val ~
 getInfosVal sqlBackend serversById tableId serverFk = do
 	poiInfosVal <- runSqlBackend sqlBackend $ readServersExtraInfo
 		tableId serverFk $ M.keys serversById
-	return $ M.fromList $ fmap (unValue *** unValue) $ poiInfosVal
+	return $ M.fromList $ fmap (unValue *** unValue) poiInfosVal
 
 getServersExtraInfo :: SqlBackend -> ObjRef ProjectViewState -> Int -> IO [ObjRef ServerExtraInfo]
 getServersExtraInfo sqlBackend projectViewState projectId = do
