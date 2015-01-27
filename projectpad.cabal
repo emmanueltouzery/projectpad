@@ -26,7 +26,7 @@ executable projectpad
                        persistent-template,
                        esqueleto,
                        transformers,
-                       hsqml,
+                       hsqml >= 0.3.3.0,
                        time,
                        errors,
                        mtl,

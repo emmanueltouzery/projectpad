@@ -58,6 +58,22 @@ Window {
 		}
 	}
 
+	Connections {
+		target: projectViewState
+		onGotOutput: {
+			console.log("got output!")
+			console.log("output")
+		}
+	}
+
+	Connections {
+		target: serverViewState
+		onGotOutput: {
+			console.log("got output!")
+			console.log("output")
+		}
+	}
+
 	Popup {
 		id: popup
 		visible: false

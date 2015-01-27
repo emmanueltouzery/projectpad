@@ -5,6 +5,8 @@ module ServerView where
 import Control.Applicative
 import Control.Concurrent.MVar
 import Graphics.QML
+import Graphics.QML.Objects
+import Graphics.QML.Objects.ParamNames
 import Database.Esqueleto
 import Data.Typeable
 import Data.Text (Text)
@@ -146,16 +148,16 @@ getAllDatabases sqlBackend _ = do
 		return p)
 	mapM newObjectDC dbs
 
-executePoiAction :: ObjRef (Entity Server)
-	-> ObjRef (Entity ServerPointOfInterest) -> IO (Either Text Text)
-executePoiAction (entityVal . fromObjRef -> server)
+--executePoiAction :: SignalKey (IO ()) -> ObjRef (Entity Server)
+--	-> ObjRef (Entity ServerPointOfInterest) -> IO (Either Text Text)
+executePoiAction gotOutputSignal srvState (entityVal . fromObjRef -> server)
 		(entityVal . fromObjRef -> serverPoi) = do
 	let workDir = case serverPointOfInterestPath serverPoi of
 		"" -> Nothing
 		x -> Just x
 	runProgramOverSsh (serverIp server)
 		(serverUsername server) (serverPassword server)
-		workDir (serverPointOfInterestText serverPoi)
+		workDir (serverPointOfInterestText serverPoi) (fireSignal gotOutputSignal srvState)
 
 createServerViewState :: SqlBackend -> IO (ObjRef ServerViewState)
 createServerViewState sqlBackend = do
@@ -164,6 +166,7 @@ createServerViewState sqlBackend = do
 		<*> newMVar Nothing
 		<*> newMVar Nothing
 		<*> newMVar Nothing
+	gotOutputSignal <- newSignalKey
 	serverViewClass <- newClass
 		[
 			defMethod "getPois" (getChildren sqlBackend readPois),
@@ -180,7 +183,8 @@ createServerViewState sqlBackend = do
 			defMethod "canDeleteServerDatabase" (canDeleteServerDatabase sqlBackend),
 			defMethod "deleteServerDatabases" (deleteServerDatabases sqlBackend),
 			defMethod "getAllDatabases" (getAllDatabases sqlBackend),
-			defMethod' "executePoiAction" (\_ server serverPoi -> serializeEither <$>
-				executePoiAction server serverPoi)
+			defMethod' "executePoiAction" (\srvState server serverPoi -> serializeEither' <$>
+				executePoiAction gotOutputSignal srvState server serverPoi),
+			defSignalNamedParams "gotOutput" gotOutputSignal $ fstName "output"
 		]
 	newObject serverViewClass serverViewState

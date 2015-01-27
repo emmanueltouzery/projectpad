@@ -135,7 +135,7 @@ createContext sqlBackend = do
 			defPropertyConst "serverViewState"
 				$ return . serverViewState . fromObjRef,
 			defMethod' "openAssociatedFile" (\_ path ->
-				serializeEither <$> openAssociatedFile path)
+				serializeEither' <$> openAssociatedFile path)
 		]
 	rootContext <- AppState
 		<$> return projectState

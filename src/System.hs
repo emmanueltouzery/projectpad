@@ -36,21 +36,27 @@ runRdp serverIp serverUsername serverPassword width height = do
 		Left x -> return $ Left $ textEx x
 		_ -> error "run RDP unexpected process output"
 
-tryCommand :: String -> [String] -> Maybe [(String, String)] -> IO (Either Text Text)
-tryCommand cmd params envVal = do
+tryCommand :: String -> [String] -> Maybe [(String, String)] -> (Text -> IO ()) -> IO (Either Text ())
+tryCommand cmd params envVal readCallback = do
 	r <- try (createProcess (proc cmd params) {std_out = CreatePipe, env = envVal})
 	case r of
-		Right (_, Just stdout, _, _) -> Right <$> T.pack <$> hGetContents stdout
+		Right (_, Just stdout, _, _) -> Right <$> readHandleProgress stdout readCallback
 		Left (SomeException x) -> return $ Left $ T.pack $ show x
 		_ -> error "Try command unexpected process output"
 
-openAssociatedFile :: Text -> IO (Either Text Text)
+readHandleProgress :: Handle -> (Text -> IO ()) -> IO ()
+readHandleProgress hndl readCallback = do
+	chunk <- T.hGetChunk hndl
+	when (not $ T.null chunk) $
+		readCallback chunk >> readHandleProgress hndl readCallback
+
+openAssociatedFile :: Text -> IO (Either Text ())
 openAssociatedFile path = do
 	desktop <- getEnv "DESKTOP_SESSION"
 	let openCmd = case desktop of
 		"gnome" -> "gnome-open"
 		_ -> "xdg-open"
-	tryCommand openCmd [T.unpack path] Nothing
+	tryCommand openCmd [T.unpack path] Nothing (const $ return ())
 
 writeTempScript :: String -> Text -> IO ()
 writeTempScript fname contents = do
@@ -92,10 +98,10 @@ openSshSession server username password = do
 		createProcess (proc "gnome-terminal" params)
 			{ env = Just sshEnv })
 
-runProgramOverSsh :: Text -> Text -> Text -> Maybe Text -> Text -> IO (Either Text Text)
-runProgramOverSsh server username password workDir program = do
+runProgramOverSsh :: Text -> Text -> Text -> Maybe Text -> Text -> (Text -> IO ()) -> IO (Either Text ())
+runProgramOverSsh server username password workDir program readCallback = do
 	sshEnv <- getTemporaryDirectory >>= prepareSshPassword password
 	let workDirCommand = maybe "" (\dir -> "cd " ++ dir ++ ";") (T.unpack <$> workDir)
 	let command = workDirCommand ++ T.unpack program
 	let params = ["/usr/bin/ssh", T.unpack username ++ "@" ++ T.unpack server, command]
-	tryCommand "setsid" params (Just sshEnv)
+	tryCommand "setsid" params (Just sshEnv) readCallback

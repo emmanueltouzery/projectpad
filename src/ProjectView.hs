@@ -5,6 +5,8 @@ module ProjectView where
 import Control.Applicative
 import Control.Concurrent.MVar
 import Graphics.QML
+import Graphics.QML.Objects
+import Graphics.QML.Objects.ParamNames
 import Database.Esqueleto
 import qualified Database.Persist as P
 import Data.Typeable
@@ -114,12 +116,12 @@ updateProjectPoi sqlBackend stateRef poiRef
 deleteProjectPois :: SqlBackend -> ObjRef ProjectViewState -> [Int] -> IO ()
 deleteProjectPois = deleteHelper convertKey readPois
 
-runPoiAction :: ObjRef ProjectViewState
-	-> ObjRef (Entity ProjectPointOfInterest) -> IO (Either Text Text)
-runPoiAction _ (entityVal . fromObjRef -> poi)
+--runPoiAction :: SignalKey (IO ()) -> ObjRef ProjectViewState
+--	-> ObjRef (Entity ProjectPointOfInterest) -> IO (Either Text ())
+runPoiAction gotOutputSignal prjViewState (entityVal . fromObjRef -> poi)
 	| interest == PoiCommandToRun = do
 		let (prog:parameters) = T.unpack <$> T.splitOn " " path
-		tryCommand prog parameters Nothing
+		tryCommand prog parameters Nothing (fireSignal gotOutputSignal prjViewState)
 	| interest == PoiLogFile = openAssociatedFile path
 	| otherwise = return $ Left "not handled"
 	where
@@ -206,6 +208,7 @@ createProjectViewState sqlBackend = do
 		<$> newMVar Nothing
 		<*> newMVar Nothing
 		<*> newMVar Nothing
+	gotOutputSignal <- newSignalKey
 	projectViewClass <- newClass
 		[
 			defMethod "getServers" (getServersExtraInfo sqlBackend),
@@ -216,13 +219,14 @@ createProjectViewState sqlBackend = do
 			defMethod "addProjectPoi" (addProjectPoi sqlBackend),
 			defMethod "updateProjectPoi" (updateProjectPoi sqlBackend),
 			defMethod "deleteProjectPois" (deleteProjectPois sqlBackend),
-			defMethod "runPoiAction" (\state projectPoi -> serializeEither <$>
-				runPoiAction state projectPoi),
+			defMethod' "runPoiAction" (\state projectPoi -> serializeEither' <$>
+				runPoiAction gotOutputSignal state projectPoi),
 			defMethod "saveAuthKey" (\state path server -> serializeEither <$>
 				saveAuthKey state path server),
 			defMethod' "runRdp" (\_ server width height -> serializeEither <$>
 				runServerRdp server width height),
 			defMethod' "openSshSession" (\_ server -> serializeEither <$>
-				openServerSshSession server)
+				openServerSshSession server),
+			defSignalNamedParams "gotOutput" gotOutputSignal $ fstName "output"
 		]
 	newObject projectViewClass projectViewState
