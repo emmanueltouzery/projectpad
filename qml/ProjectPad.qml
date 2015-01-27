@@ -61,8 +61,7 @@ Window {
 	Connections {
 		target: projectViewState
 		onGotOutput: {
-			console.log("got output!")
-			console.log("output")
+			console.log (arguments[0])
 		}
 	}
 

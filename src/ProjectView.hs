@@ -6,7 +6,6 @@ import Control.Applicative
 import Control.Concurrent.MVar
 import Graphics.QML
 import Graphics.QML.Objects
-import Graphics.QML.Objects.ParamNames
 import Database.Esqueleto
 import qualified Database.Persist as P
 import Data.Typeable
@@ -18,6 +17,8 @@ import qualified Data.Map as M
 import Data.Maybe
 import Control.Arrow
 import Control.Error
+import Control.Concurrent
+import Control.Monad
 
 import ModelBase
 import Model
@@ -118,10 +119,11 @@ deleteProjectPois = deleteHelper convertKey readPois
 
 --runPoiAction :: SignalKey (IO ()) -> ObjRef ProjectViewState
 --	-> ObjRef (Entity ProjectPointOfInterest) -> IO (Either Text ())
-runPoiAction gotOutputSignal prjViewState (entityVal . fromObjRef -> poi)
+runPoiAction prjViewState (entityVal . fromObjRef -> poi)
 	| interest == PoiCommandToRun = do
 		let (prog:parameters) = T.unpack <$> T.splitOn " " path
-		tryCommand prog parameters Nothing (fireSignal gotOutputSignal prjViewState)
+		-- TODO shouldn't return Either anymore now that it runs async...
+		Right <$> (void $ forkIO $ void $ tryCommand prog parameters Nothing (fireSignal (Proxy :: Proxy SignalOutput) prjViewState ))
 	| interest == PoiLogFile = openAssociatedFile path
 	| otherwise = return $ Left "not handled"
 	where
@@ -202,13 +204,16 @@ getServersExtraInfo sqlBackend projectViewState projectId = do
 		objRefKey = entityKey . fromObjRef
 		getServerCount s = fromMaybe 0 . M.lookup (objRefKey s)
 
+data SignalOutput deriving Typeable
+instance SignalKeyClass SignalOutput where
+	type SignalParams SignalOutput = Text -> IO ()
+
 createProjectViewState :: SqlBackend -> IO (ObjRef ProjectViewState)
 createProjectViewState sqlBackend = do
 	projectViewState <- ProjectViewState
 		<$> newMVar Nothing
 		<*> newMVar Nothing
 		<*> newMVar Nothing
-	gotOutputSignal <- newSignalKey
 	projectViewClass <- newClass
 		[
 			defMethod "getServers" (getServersExtraInfo sqlBackend),
@@ -220,13 +225,13 @@ createProjectViewState sqlBackend = do
 			defMethod "updateProjectPoi" (updateProjectPoi sqlBackend),
 			defMethod "deleteProjectPois" (deleteProjectPois sqlBackend),
 			defMethod' "runPoiAction" (\state projectPoi -> serializeEither' <$>
-				runPoiAction gotOutputSignal state projectPoi),
+				runPoiAction state projectPoi),
 			defMethod "saveAuthKey" (\state path server -> serializeEither <$>
 				saveAuthKey state path server),
 			defMethod' "runRdp" (\_ server width height -> serializeEither <$>
 				runServerRdp server width height),
 			defMethod' "openSshSession" (\_ server -> serializeEither <$>
 				openServerSshSession server),
-			defSignalNamedParams "gotOutput" gotOutputSignal $ fstName "output"
+			defSignal "gotOutput" (Proxy :: Proxy SignalOutput)
 		]
 	newObject projectViewClass projectViewState

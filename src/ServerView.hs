@@ -6,7 +6,7 @@ import Control.Applicative
 import Control.Concurrent.MVar
 import Graphics.QML
 import Graphics.QML.Objects
-import Graphics.QML.Objects.ParamNames
+--import Graphics.QML.Objects.ParamNames
 import Database.Esqueleto
 import Data.Typeable
 import Data.Text (Text)
@@ -184,7 +184,7 @@ createServerViewState sqlBackend = do
 			defMethod "deleteServerDatabases" (deleteServerDatabases sqlBackend),
 			defMethod "getAllDatabases" (getAllDatabases sqlBackend),
 			defMethod' "executePoiAction" (\srvState server serverPoi -> serializeEither' <$>
-				executePoiAction gotOutputSignal srvState server serverPoi),
-			defSignalNamedParams "gotOutput" gotOutputSignal $ fstName "output"
+				executePoiAction gotOutputSignal srvState server serverPoi)
+			--defSignalNamedParams "gotOutput" gotOutputSignal $ fstName "output"
 		]
 	newObject serverViewClass serverViewState
