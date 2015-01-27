@@ -146,8 +146,8 @@ getAllDatabases sqlBackend _ = do
 		return p)
 	mapM newObjectDC dbs
 
---executePoiAction :: SignalKey (IO ()) -> ObjRef (Entity Server)
---	-> ObjRef (Entity ServerPointOfInterest) -> IO (Either Text Text)
+executePoiAction :: ObjRef ServerViewState -> ObjRef (Entity Server)
+	-> ObjRef (Entity ServerPointOfInterest) -> IO (Either Text ())
 executePoiAction srvState (entityVal . fromObjRef -> server)
 		(entityVal . fromObjRef -> serverPoi) = do
 	let workDir = case serverPointOfInterestPath serverPoi of

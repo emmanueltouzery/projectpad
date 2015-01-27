@@ -114,8 +114,8 @@ updateProjectPoi sqlBackend stateRef poiRef
 deleteProjectPois :: SqlBackend -> ObjRef ProjectViewState -> [Int] -> IO ()
 deleteProjectPois = deleteHelper convertKey readPois
 
---runPoiAction :: SignalKey (IO ()) -> ObjRef ProjectViewState
---	-> ObjRef (Entity ProjectPointOfInterest) -> IO (Either Text ())
+runPoiAction :: ObjRef ProjectViewState
+	-> ObjRef (Entity ProjectPointOfInterest) -> IO (Either Text ())
 runPoiAction prjViewState (entityVal . fromObjRef -> poi)
 	| interest == PoiCommandToRun = do
 		let (prog:parameters) = T.unpack <$> T.splitOn " " path
