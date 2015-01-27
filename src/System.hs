@@ -17,6 +17,8 @@ import Control.Error
 import Control.Monad
 import Control.Concurrent
 
+import Util
+
 textEx :: SomeException -> Text
 textEx = T.pack . show
 
@@ -51,10 +53,6 @@ readHandleProgress hndl readCallback = do
 	readCallback chunk
 	when (not $ T.null chunk) $
 		readHandleProgress hndl readCallback
-
-data CommandProgress = CommandOutput Text
-	| CommandSucceeded
-	| CommandFailed Text
 
 tryCommandAsync :: String -> [String] -> Maybe [(String, String)] -> (CommandProgress -> IO ())  -> IO ()
 tryCommandAsync cmd params envVal readCallback = do
@@ -114,10 +112,11 @@ openSshSession server username password = do
 		createProcess (proc "gnome-terminal" params)
 			{ env = Just sshEnv })
 
-runProgramOverSsh :: Text -> Text -> Text -> Maybe Text -> Text -> (Text -> IO ()) -> IO (Either Text ())
-runProgramOverSsh server username password workDir program readCallback = do
+runProgramOverSshAsync :: Text -> Text -> Text -> Maybe Text -> Text
+	-> (CommandProgress -> IO ()) -> IO ()
+runProgramOverSshAsync server username password workDir program readCallback = do
 	sshEnv <- getTemporaryDirectory >>= prepareSshPassword password
 	let workDirCommand = maybe "" (\dir -> "cd " ++ dir ++ ";") (T.unpack <$> workDir)
 	let command = workDirCommand ++ T.unpack program
 	let params = ["/usr/bin/ssh", T.unpack username ++ "@" ++ T.unpack server, command]
-	tryCommand "setsid" params (Just sshEnv) readCallback
+	tryCommandAsync "setsid" params (Just sshEnv) readCallback

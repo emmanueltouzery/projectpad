@@ -5,8 +5,6 @@ module ServerView where
 import Control.Applicative
 import Control.Concurrent.MVar
 import Graphics.QML
-import Graphics.QML.Objects
---import Graphics.QML.Objects.ParamNames
 import Database.Esqueleto
 import Data.Typeable
 import Data.Text (Text)
@@ -150,14 +148,15 @@ getAllDatabases sqlBackend _ = do
 
 --executePoiAction :: SignalKey (IO ()) -> ObjRef (Entity Server)
 --	-> ObjRef (Entity ServerPointOfInterest) -> IO (Either Text Text)
-executePoiAction gotOutputSignal srvState (entityVal . fromObjRef -> server)
+executePoiAction srvState (entityVal . fromObjRef -> server)
 		(entityVal . fromObjRef -> serverPoi) = do
 	let workDir = case serverPointOfInterestPath serverPoi of
 		"" -> Nothing
 		x -> Just x
-	runProgramOverSsh (serverIp server)
+	Right <$> runProgramOverSshAsync (serverIp server)
 		(serverUsername server) (serverPassword server)
-		workDir (serverPointOfInterestText serverPoi) (fireSignal gotOutputSignal srvState)
+		workDir (serverPointOfInterestText serverPoi)
+		(fireSignal (Proxy :: Proxy SignalOutput) srvState . cmdProgressToJs)
 
 createServerViewState :: SqlBackend -> IO (ObjRef ServerViewState)
 createServerViewState sqlBackend = do
@@ -166,7 +165,6 @@ createServerViewState sqlBackend = do
 		<*> newMVar Nothing
 		<*> newMVar Nothing
 		<*> newMVar Nothing
-	gotOutputSignal <- newSignalKey
 	serverViewClass <- newClass
 		[
 			defMethod "getPois" (getChildren sqlBackend readPois),
@@ -184,7 +182,7 @@ createServerViewState sqlBackend = do
 			defMethod "deleteServerDatabases" (deleteServerDatabases sqlBackend),
 			defMethod "getAllDatabases" (getAllDatabases sqlBackend),
 			defMethod' "executePoiAction" (\srvState server serverPoi -> serializeEither' <$>
-				executePoiAction gotOutputSignal srvState server serverPoi)
-			--defSignalNamedParams "gotOutput" gotOutputSignal $ fstName "output"
+				executePoiAction srvState server serverPoi),
+			defSignal "gotOutput" (Proxy :: Proxy SignalOutput)
 		]
 	newObject serverViewClass serverViewState

@@ -5,7 +5,6 @@ module ProjectView where
 import Control.Applicative
 import Control.Concurrent.MVar
 import Graphics.QML
-import Graphics.QML.Objects
 import Database.Esqueleto
 import qualified Database.Persist as P
 import Data.Typeable
@@ -17,8 +16,6 @@ import qualified Data.Map as M
 import Data.Maybe
 import Control.Arrow
 import Control.Error
-import Control.Concurrent
-import Control.Monad
 
 import ModelBase
 import Model
@@ -130,11 +127,6 @@ runPoiAction prjViewState (entityVal . fromObjRef -> poi)
 		interest = projectPointOfInterestInterestType poi 
 		path = projectPointOfInterestPath poi
 
-cmdProgressToJs :: CommandProgress -> [Text]
-cmdProgressToJs (CommandOutput x) = ["text", x]
-cmdProgressToJs CommandSucceeded = ["succeeded", ""]
-cmdProgressToJs (CommandFailed x) = ["failed", x]
-
 -- alternative implementations: http://stackoverflow.com/a/28101291/516188
 saveAuthKey :: ObjRef ProjectViewState
 	-> Text -> ObjRef (Entity Server) -> IO (Either Text Text)
@@ -208,10 +200,6 @@ getServersExtraInfo sqlBackend projectViewState projectId = do
 	where
 		objRefKey = entityKey . fromObjRef
 		getServerCount s = fromMaybe 0 . M.lookup (objRefKey s)
-
-data SignalOutput deriving Typeable
-instance SignalKeyClass SignalOutput where
-	type SignalParams SignalOutput = [Text] -> IO ()
 
 createProjectViewState :: SqlBackend -> IO (ObjRef ProjectViewState)
 createProjectViewState sqlBackend = do
