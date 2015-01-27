@@ -58,19 +58,29 @@ Window {
 		}
 	}
 
+	function processRunCommandSignal(result) {
+		var text
+		if (result[0] === "succeeded") {
+			text = "\nExecution terminated!"
+			toastOpacity.running = true
+		} else if (result[0] === "failed") {
+			toast.color = "#c9302c"
+			text = "\nExecution failed!\n" + result[1]
+			toastOpacity.running = true
+		} else {
+			text =  result[1]
+		}
+		toast.msgText += text
+	}
+
 	Connections {
 		target: projectViewState
-		onGotOutput: {
-			console.log (arguments[0])
-		}
+		onGotOutput: processRunCommandSignal(arguments[0])
 	}
 
 	Connections {
 		target: serverViewState
-		onGotOutput: {
-			console.log("got output!")
-			console.log("output")
-		}
+		onGotOutput: processRunCommandSignal(arguments[0])
 	}
 
 	Popup {
@@ -126,6 +136,12 @@ Window {
 		toast.color = "#c9302c"
 		toast.msgText = txt
 		toastOpacity.running = true
+	}
+	
+	function progressMessage(txt) {
+		toast.color = "green"
+		toast.msgText = txt
+		toast.opacity = 1.0
 	}
 
 	function successMessage(txt) {

@@ -122,13 +122,18 @@ deleteProjectPois = deleteHelper convertKey readPois
 runPoiAction prjViewState (entityVal . fromObjRef -> poi)
 	| interest == PoiCommandToRun = do
 		let (prog:parameters) = T.unpack <$> T.splitOn " " path
-		-- TODO shouldn't return Either anymore now that it runs async...
-		Right <$> (void $ forkIO $ void $ tryCommand prog parameters Nothing (fireSignal (Proxy :: Proxy SignalOutput) prjViewState ))
+		Right <$> tryCommandAsync prog parameters Nothing
+			(fireSignal (Proxy :: Proxy SignalOutput) prjViewState . cmdProgressToJs)
 	| interest == PoiLogFile = openAssociatedFile path
 	| otherwise = return $ Left "not handled"
 	where
 		interest = projectPointOfInterestInterestType poi 
 		path = projectPointOfInterestPath poi
+
+cmdProgressToJs :: CommandProgress -> [Text]
+cmdProgressToJs (CommandOutput x) = ["text", x]
+cmdProgressToJs CommandSucceeded = ["succeeded", ""]
+cmdProgressToJs (CommandFailed x) = ["failed", x]
 
 -- alternative implementations: http://stackoverflow.com/a/28101291/516188
 saveAuthKey :: ObjRef ProjectViewState
@@ -206,7 +211,7 @@ getServersExtraInfo sqlBackend projectViewState projectId = do
 
 data SignalOutput deriving Typeable
 instance SignalKeyClass SignalOutput where
-	type SignalParams SignalOutput = Text -> IO ()
+	type SignalParams SignalOutput = [Text] -> IO ()
 
 createProjectViewState :: SqlBackend -> IO (ObjRef ProjectViewState)
 createProjectViewState sqlBackend = do

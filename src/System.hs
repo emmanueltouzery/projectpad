@@ -15,6 +15,7 @@ import System.Posix.Files
 import System.FilePath.Posix
 import Control.Error
 import Control.Monad
+import Control.Concurrent
 
 textEx :: SomeException -> Text
 textEx = T.pack . show
@@ -47,8 +48,23 @@ tryCommand cmd params envVal readCallback = do
 readHandleProgress :: Handle -> (Text -> IO ()) -> IO ()
 readHandleProgress hndl readCallback = do
 	chunk <- T.hGetChunk hndl
+	readCallback chunk
 	when (not $ T.null chunk) $
-		readCallback chunk >> readHandleProgress hndl readCallback
+		readHandleProgress hndl readCallback
+
+data CommandProgress = CommandOutput Text
+	| CommandSucceeded
+	| CommandFailed Text
+
+tryCommandAsync :: String -> [String] -> Maybe [(String, String)] -> (CommandProgress -> IO ())  -> IO ()
+tryCommandAsync cmd params envVal readCallback = do
+	let runCmd = tryCommand cmd params envVal
+		(readCallback . CommandOutput)
+	void $ forkFinally runCmd (readCallback . convert)
+	where
+		convert (Right (Right _)) = CommandSucceeded
+		convert (Right (Left x)) = CommandFailed x
+		convert (Left x) = CommandFailed $ textEx x
 
 openAssociatedFile :: Text -> IO (Either Text ())
 openAssociatedFile path = do

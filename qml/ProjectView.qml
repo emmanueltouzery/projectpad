@@ -260,11 +260,8 @@ ScrollView {
 						onClicked: {
 							selectMenu.options = [[PoiActions.actions[modelData.interestType].icon, function() {
 								var info = projectViewState.runPoiAction(modelData)
-								if (info[0] === "error") {
-									appContext.errorMessage(info[1])
-								} else if (info[1].length > 0){
-									appContext.successMessage(info[1])
-								}}],
+								appContext.progressMessage("Started program\n")
+								}],
 								["glyphicons-151-edit", function() {editPoi(modelData)}],
 								["glyphicons-193-circle-remove", function() {
 									appContext.confirmDelete(function() {
