@@ -5,6 +5,7 @@ module ProjectView where
 import Control.Applicative
 import Control.Concurrent.MVar
 import Graphics.QML
+import Graphics.QML.Objects.ParamNames
 import Database.Esqueleto
 import qualified Database.Persist as P
 import Data.Typeable
@@ -229,6 +230,7 @@ createProjectViewState sqlBackend = do
 				runServerRdp server width height),
 			defMethod' "openSshSession" (\_ server -> serializeEither <$>
 				openServerSshSession server),
-			defSignal "gotOutput" (Proxy :: Proxy SignalOutput)
+			defSignalNamedParams "gotOutput" (Proxy :: Proxy SignalOutput) $
+				fstName "output"
 		]
 	newObject projectViewClass projectViewState

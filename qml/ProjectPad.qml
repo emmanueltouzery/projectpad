@@ -75,12 +75,12 @@ Window {
 
 	Connections {
 		target: projectViewState
-		onGotOutput: processRunCommandSignal(arguments[0])
+		onGotOutput: processRunCommandSignal(output)
 	}
 
 	Connections {
 		target: serverViewState
-		onGotOutput: processRunCommandSignal(arguments[0])
+		onGotOutput: processRunCommandSignal(output)
 	}
 
 	Popup {

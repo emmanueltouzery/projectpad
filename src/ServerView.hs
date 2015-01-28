@@ -5,6 +5,7 @@ module ServerView where
 import Control.Applicative
 import Control.Concurrent.MVar
 import Graphics.QML
+import Graphics.QML.Objects.ParamNames
 import Database.Esqueleto
 import Data.Typeable
 import Data.Text (Text)
@@ -183,6 +184,7 @@ createServerViewState sqlBackend = do
 			defMethod "getAllDatabases" (getAllDatabases sqlBackend),
 			defMethod' "executePoiAction" (\srvState server serverPoi -> serializeEither' <$>
 				executePoiAction srvState server serverPoi),
-			defSignal "gotOutput" (Proxy :: Proxy SignalOutput)
+			defSignalNamedParams "gotOutput" (Proxy :: Proxy SignalOutput) $
+				fstName "output"
 		]
 	newObject serverViewClass serverViewState
