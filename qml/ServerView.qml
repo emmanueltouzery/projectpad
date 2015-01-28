@@ -166,7 +166,7 @@ ScrollView {
 						anchors.fill: parent
 						onClicked: {
 							selectMenu.options = [["glyphicons-151-edit", function() { editSrvWww(modelData)}],
-								["glyphicons-145-folder-open", function() { openAssociatedFile(modelData.url)}],
+								["glyphicons-372-global", function() { openAssociatedFile(modelData.url)}],
 								["glyphicons-512-copy", function() { appContext.copyItem(modelData.password) }],
 								["glyphicons-193-circle-remove", function() {
 									appContext.confirmDelete(function() {
