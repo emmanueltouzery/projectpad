@@ -118,14 +118,17 @@ runPoiAction :: ObjRef ProjectViewState
 	-> ObjRef (Entity ProjectPointOfInterest) -> IO (Either Text ())
 runPoiAction prjViewState (entityVal . fromObjRef -> poi)
 	| interest == PoiCommandToRun = do
-		let (prog:parameters) = T.unpack <$> T.splitOn " " path
-		Right <$> tryCommandAsync prog parameters Nothing
+		let (prog:parameters) = T.unpack <$> T.splitOn " " txt
+		Right <$> tryCommandAsync prog parameters path Nothing
 			(fireSignal (Proxy :: Proxy SignalOutput) prjViewState . cmdProgressToJs)
-	| interest == PoiLogFile = openAssociatedFile path
+	| interest == PoiLogFile = openAssociatedFile $ projectPointOfInterestPath poi
 	| otherwise = return $ Left "not handled"
 	where
 		interest = projectPointOfInterestInterestType poi 
-		path = projectPointOfInterestPath poi
+		path = case T.unpack $ projectPointOfInterestPath poi of
+			"" -> Nothing
+			x@_ -> Just x
+		txt = projectPointOfInterestText poi
 
 -- alternative implementations: http://stackoverflow.com/a/28101291/516188
 saveAuthKey :: ObjRef ProjectViewState

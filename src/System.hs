@@ -39,9 +39,15 @@ runRdp serverIp serverUsername serverPassword width height = do
 		Left x -> return $ Left $ textEx x
 		_ -> error "run RDP unexpected process output"
 
-tryCommand :: String -> [String] -> Maybe [(String, String)] -> (Text -> IO ()) -> IO (Either Text ())
-tryCommand cmd params envVal readCallback = do
-	r <- try (createProcess (proc cmd params) {std_out = CreatePipe, env = envVal})
+tryCommand :: String -> [String] -> Maybe FilePath
+	-> Maybe [(String, String)] -> (Text -> IO ()) -> IO (Either Text ())
+tryCommand cmd params mCwd envVal readCallback = do
+	r <- try (createProcess (proc cmd params)
+		{
+			std_out = CreatePipe,
+			env = envVal,
+			cwd = mCwd
+		})
 	case r of
 		Right (_, Just stdout, _, _) -> Right <$> readHandleProgress stdout readCallback
 		Left (SomeException x) -> return $ Left $ T.pack $ show x
@@ -54,9 +60,10 @@ readHandleProgress hndl readCallback = do
 	when (not $ T.null chunk) $
 		readHandleProgress hndl readCallback
 
-tryCommandAsync :: String -> [String] -> Maybe [(String, String)] -> (CommandProgress -> IO ())  -> IO ()
-tryCommandAsync cmd params envVal readCallback = do
-	let runCmd = tryCommand cmd params envVal
+tryCommandAsync :: String -> [String] -> Maybe FilePath
+	-> Maybe [(String, String)] -> (CommandProgress -> IO ())  -> IO ()
+tryCommandAsync cmd params mCwd envVal readCallback = do
+	let runCmd = tryCommand cmd params mCwd envVal
 		(readCallback . CommandOutput)
 	void $ forkFinally runCmd (readCallback . convert)
 	where
@@ -70,7 +77,7 @@ openAssociatedFile path = do
 	let openCmd = case desktop of
 		"gnome" -> "gnome-open"
 		_ -> "xdg-open"
-	tryCommand openCmd [T.unpack path] Nothing (const $ return ())
+	tryCommand openCmd [T.unpack path] Nothing Nothing (const $ return ())
 
 writeTempScript :: String -> Text -> IO ()
 writeTempScript fname contents = do
@@ -119,4 +126,4 @@ runProgramOverSshAsync server username password workDir program readCallback = d
 	let workDirCommand = maybe "" (\dir -> "cd " ++ dir ++ ";") (T.unpack <$> workDir)
 	let command = workDirCommand ++ T.unpack program
 	let params = ["/usr/bin/ssh", T.unpack username ++ "@" ++ T.unpack server, command]
-	tryCommandAsync "setsid" params (Just sshEnv) readCallback
+	tryCommandAsync "setsid" params Nothing (Just sshEnv) readCallback
