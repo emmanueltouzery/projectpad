@@ -115,14 +115,16 @@ deleteProjectPois :: SqlBackend -> ObjRef ProjectViewState -> [Int] -> IO ()
 deleteProjectPois = deleteHelper convertKey readPois
 
 runPoiAction :: ObjRef ProjectViewState
-	-> ObjRef (Entity ProjectPointOfInterest) -> IO (Either Text ())
+	-> ObjRef (Entity ProjectPointOfInterest) -> IO ()
 runPoiAction prjViewState (entityVal . fromObjRef -> poi)
 	| interest == PoiCommandToRun = do
 		let (prog:parameters) = T.unpack <$> T.splitOn " " txt
-		Right <$> tryCommandAsync prog parameters path Nothing
+		tryCommandAsync prog parameters path Nothing
 			(fireSignal (Proxy :: Proxy SignalOutput) prjViewState . cmdProgressToJs)
-	| interest == PoiLogFile = openAssociatedFile $ projectPointOfInterestPath poi
-	| otherwise = return $ Left "not handled"
+	| interest == PoiLogFile = do
+		result <- openAssociatedFile (projectPointOfInterestPath poi)
+		fireSignal (Proxy :: Proxy SignalOutput) prjViewState (cmdProgressToJs $ eitherToCmdProgress result)
+	| otherwise = putStrLn "poi action not handled"
 	where
 		interest = projectPointOfInterestInterestType poi 
 		path = case T.unpack $ projectPointOfInterestPath poi of
@@ -220,8 +222,7 @@ createProjectViewState sqlBackend = do
 			defMethod "addProjectPoi" (addProjectPoi sqlBackend),
 			defMethod "updateProjectPoi" (updateProjectPoi sqlBackend),
 			defMethod "deleteProjectPois" (deleteProjectPois sqlBackend),
-			defMethod' "runPoiAction" (\state projectPoi -> serializeEither' <$>
-				runPoiAction state projectPoi),
+			defMethod' "runPoiAction" runPoiAction,
 			defMethod "saveAuthKey" (\state path server -> serializeEither <$>
 				saveAuthKey state path server),
 			defMethod' "runRdp" (\_ server width height -> serializeEither <$>

@@ -17,6 +17,10 @@ data CommandProgress = CommandOutput Text
 	| CommandSucceeded
 	| CommandFailed Text
 
+eitherToCmdProgress :: Either Text b -> CommandProgress
+eitherToCmdProgress (Right _) = CommandSucceeded
+eitherToCmdProgress (Left x) = CommandFailed x
+
 cmdProgressToJs :: CommandProgress -> [Text]
 cmdProgressToJs (CommandOutput x) = ["text", x]
 cmdProgressToJs CommandSucceeded = ["succeeded", ""]
