@@ -85,7 +85,7 @@ Rectangle {
 			onClicked: toggleMenu()
 			exclusiveGroup: menuGroup
 			height: toolbarRoot.height
-			style: breadcbrumbsButton
+			style: menuButton
 			checkable: true
 		}
 	}
@@ -101,5 +101,9 @@ Rectangle {
 	Component {
 		id: breadcbrumbsButton
 		BreadcrumbsButton {}
+	}
+	Component {
+		id: menuButton
+		MenuButton {}
 	}
 }
