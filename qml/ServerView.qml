@@ -134,7 +134,7 @@ ScrollView {
 				text: "Copy password"
 				y: 40
 				onClicked: {
-					appContext.copyItem(model.password)
+					appContext.copyItem(model.password, true)
 				}
 			}
 		}
@@ -167,7 +167,7 @@ ScrollView {
 						onClicked: {
 							selectMenu.options = [["glyphicons-151-edit", function() { editSrvWww(modelData)}],
 								["glyphicons-372-global", function() { openAssociatedFile(modelData.url)}],
-								["glyphicons-512-copy", function() { appContext.copyItem(modelData.password) }],
+								["glyphicons-512-copy", function() { appContext.copyItem(modelData.password, true) }],
 								["glyphicons-193-circle-remove", function() {
 									appContext.confirmDelete(function() {
 										serverViewState.deleteServerWebsites([modelData.id])
@@ -198,7 +198,7 @@ ScrollView {
 						anchors.fill: parent
 						onClicked: {
 							selectMenu.options = [["glyphicons-151-edit", function() { editDb(modelData)}],
-								["glyphicons-512-copy", function() { appContext.copyItem(modelData.password) }],
+								["glyphicons-512-copy", function() { appContext.copyItem(modelData.password, true) }],
 								["glyphicons-193-circle-remove", function() {
 									appContext.confirmDelete(function() {
 										var msg = serverViewState.canDeleteServerDatabase(modelData)
@@ -233,7 +233,7 @@ ScrollView {
 						anchors.fill: parent
 						onClicked: {
 							var options = [["glyphicons-151-edit", function() { editPoi(modelData)}],
-								["glyphicons-512-copy", function() { appContext.copyItem(modelData.path) }],
+								["glyphicons-512-copy", function() { appContext.copyItem(modelData.path, false) }],
 								["glyphicons-193-circle-remove", function() {
 									appContext.confirmDelete(function() {
 										serverViewState.deleteServerPois([modelData.id])

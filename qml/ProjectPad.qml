@@ -124,12 +124,16 @@ Window {
 		readOnly: true
 	}
 
-	function copyItem(text) {
+	function copyItem(text, isPassword) {
 		passwordCopy.text = text
 		passwordCopy.selectAll()
 		passwordCopy.copy()
 		passwordCopy.text = ""
-		successMessage("Text copied to the clipboard")
+		if (isPassword) {
+			successMessage("Password copied to the clipboard")
+		} else {
+			successMessage("Text copied to the clipboard")
+		}
 	}
 
 	function errorMessage(txt) {
