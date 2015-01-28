@@ -67,8 +67,7 @@ tryCommandAsync cmd params mCwd envVal readCallback = do
 		(readCallback . CommandOutput)
 	void $ forkFinally runCmd (readCallback . convert)
 	where
-		convert (Right (Right _)) = CommandSucceeded
-		convert (Right (Left x)) = CommandFailed x
+		convert (Right x) = eitherToCmdProgress x
 		convert (Left x) = CommandFailed $ textEx x
 
 openAssociatedFile :: Text -> IO (Either Text ())
