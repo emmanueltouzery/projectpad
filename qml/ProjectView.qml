@@ -217,8 +217,14 @@ ScrollView {
 									&& modelData.server.username.length > 0
 									&& modelData.server.password.length > 0) {
 								options.push(["glyphicons-489-multiple-displays", function() {
+									var desktopWidth = Screen.desktopAvailableWidth
+									if (Screen.desktopAvailableWidth / Screen.desktopAvailableHeight > 3) {
+										// I can assume a double monitor setup: divide the
+										// width by two to compensate.
+										desktopWidth = desktopWidth / 2
+									}
 									var info = projectViewState.runRdp(modelData.server,
-										Math.round(Screen.desktopAvailableWidth * 0.75),
+										Math.round(desktopWidth * 0.75),
 										Math.round(Screen.desktopAvailableHeight * 0.75))
 									if (info[0] === "error") {
 										appContext.errorMessage(info[1])
