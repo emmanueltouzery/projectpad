@@ -9,8 +9,6 @@ module Main where
 -- in case of terminal failure
 -- proper logger for the SQL errors that goes all
 -- the way to the GUI.
---
--- QML files should be copied to install folder.
 
 import Database.Persist.Sqlite
 import Control.Applicative
@@ -25,6 +23,8 @@ import System.IO
 import System.Directory
 import Control.Exception
 import System.FilePath.Posix
+
+import Paths_projectpad
 
 import Model
 import Schema
@@ -147,8 +147,9 @@ createContext sqlBackend = do
 displayApp :: SqlBackend -> IO ()
 displayApp sqlBackend = do
 	ctx <- createContext sqlBackend
+	mainQml <- Paths_projectpad.getDataFileName "qml/ProjectPad.qml"
 	runEngineLoop defaultEngineConfig
 		{
-			initialDocument = fileDocument "qml/ProjectPad.qml",
+			initialDocument = fileDocument mainQml,
 			contextObject = Just $ anyObjRef ctx
 		}
