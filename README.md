@@ -1,23 +1,17 @@
 # ProjectPad
 
-*
 ![Main view screenshot](https://raw.githubusercontent.com/wiki/emmanueltouzery/projectpad/main_pic.png)
 
 ## Description
 
-ProjectPad allows to manage secret credentials and server information that you need to handle as a software developer. List of
-servers, list of point of interests on those servers (applications, log files, databases, servers). It will securely store
-paswords.
-It will also run commands (locally or on SSH servers), open terminals on remote SSH servers and open windows remote desktop
-sessions in one click.
+ProjectPad allows to manage secret credentials and server information that you need to handle as a software developer. List of servers, list of point of interests on those servers (applications, log files, databases, servers). It will securely store paswords and keys.
+It will also run commands (locally or on SSH servers), open terminals on remote SSH servers and open windows remote desktop sessions in one click.
 
 ## Security
 
-The data is securely stored on-disk using [SQLcipher][], which uses 256-bit AES. You must enter a password to encrypt and unlock
-the database everytime ProjectPad starts. However no particular care is taken to protect the passwords in-memory: if someone can
+The data is securely stored on-disk using [SQLcipher][], which uses 256-bit AES. You must enter a password to encrypt and unlock the database everytime ProjectPad starts. However no particular care is taken to protect the passwords in-memory: if someone can
 dump the memory of ProjectPad, they will be able to extract passwords from it.
-Your database password is never stored to disk. When you open SSH shells, the password to the remote server is briefly stored
-to disk in a file with 700 permissions, which will echo the password when executed (the 700 permissions means it's readable and executable by your user only). When you open a Windows remote desktop session, the password is piped in cleartext to the rdesktop process.
+Your database password is never stored to disk. When you open SSH shells, the password to the remote server is briefly stored to disk in a file with 700 permissions, which will echo the password when executed (the 700 permissions means it's readable and executable by your user only). When you open a Windows remote desktop session, the password is piped in cleartext to the rdesktop process.
 
 ## Credits
 the icons come from http://www.glyphicons.com (will be credited in the app when the app is far enough)
