@@ -194,6 +194,14 @@ Window {
 			verticalAlignment: Text.AlignVCenter
 			wrapMode: Text.WordWrap
 		}
+		MouseArea {
+			enabled: toast.opacity != 0.0
+			anchors.fill: parent
+			onClicked: {
+				toastOpacity.running = false
+				toast.opacity = 0.0
+			}
+		}
 	}
 	NumberAnimation {
 		id: toastOpacity
