@@ -225,7 +225,7 @@ Window {
 		width: 450
 		height: errorText.height
 		property string msgText: ""
-		radius: 10
+		radius: 4
 		Text {
 			id: errorText
 			text: parent.msgText
