@@ -247,7 +247,7 @@ ScrollView {
 									&& pv.model.password.length > 0) {
 								options.push(["glyphicons-138-cogwheels", function() {
 									var info = serverViewState.executePoiAction(pv.model, modelData)
-									appContext.progressMessage("Started program\n")
+									appContext.progressMessage("\nStarted program\n")
 								}])
 							}
 							selectMenu.options = options

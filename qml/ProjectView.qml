@@ -266,7 +266,7 @@ ScrollView {
 						onClicked: {
 							selectMenu.options = [[PoiActions.actions[modelData.interestType].icon, function() {
 								var info = projectViewState.runPoiAction(modelData)
-								appContext.progressMessage("Started program\n")
+								appContext.progressMessage("\nStarted program\n")
 								}],
 								["glyphicons-151-edit", function() {editPoi(modelData)}],
 								["glyphicons-193-circle-remove", function() {
