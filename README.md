@@ -1,5 +1,7 @@
 # ProjectPad
 
+* [Main view screenshot][]
+
 ## Description
 
 ProjectPad allows to manage secret credentials and server information that you need to handle as a software developer. List of
@@ -21,6 +23,11 @@ the icons come from http://www.glyphicons.com (will be credited in the app when 
 
 The storage is done through SQLcipher to have a safely encrypted data storage.
 That does complicate the installation of the application though.
+
+## Extra screenshots
+
+[Edit server][]
+[Action ring][]
 
 ## Installation
 You must first install sqlcipher itself. If your distribution doesn't have packages, you'll have to compile it:
@@ -48,4 +55,7 @@ You can also compile and run against a sqlcipher that was not installed globably
 
 The same to run the application.
 
+[Main view screenshot]: https://raw.githubusercontent.com/wiki/emmanueltouzery/projectpad/main_pic.png
+[Edit server]: https://raw.githubusercontent.com/wiki/emmanueltouzery/projectpad/edit_server.png
+[Action ring]: https://raw.githubusercontent.com/wiki/emmanueltouzery/projectpad/action_ring.png
 [SQLcipher]: https://www.zetetic.net/sqlcipher/
