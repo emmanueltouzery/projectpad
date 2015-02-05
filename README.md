@@ -1,6 +1,7 @@
 # ProjectPad
 
-* [Main view screenshot][]
+*
+![Main view screenshot](https://raw.githubusercontent.com/wiki/emmanueltouzery/projectpad/main_pic.png)
 
 ## Description
 
@@ -26,8 +27,8 @@ That does complicate the installation of the application though.
 
 ## Extra screenshots
 
-[Edit server][]
-[Action ring][]
+![Edit server](https://raw.githubusercontent.com/wiki/emmanueltouzery/projectpad/edit_server.png)
+![Action ring](https://raw.githubusercontent.com/wiki/emmanueltouzery/projectpad/action_ring.png)
 
 ## Installation
 You must first install sqlcipher itself. If your distribution doesn't have packages, you'll have to compile it:
@@ -55,7 +56,4 @@ You can also compile and run against a sqlcipher that was not installed globably
 
 The same to run the application.
 
-[Main view screenshot]: https://raw.githubusercontent.com/wiki/emmanueltouzery/projectpad/main_pic.png
-[Edit server]: https://raw.githubusercontent.com/wiki/emmanueltouzery/projectpad/edit_server.png
-[Action ring]: https://raw.githubusercontent.com/wiki/emmanueltouzery/projectpad/action_ring.png
 [SQLcipher]: https://www.zetetic.net/sqlcipher/
