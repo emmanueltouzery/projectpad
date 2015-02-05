@@ -2,6 +2,7 @@ import QtQuick 2.0
 import QtQuick.Window 2.0
 import QtQuick.Controls 1.2
 import QtQuick.Layouts 1.1
+import QtQml 2.2
 
 Window {
 	width: 800; height: 600;
@@ -124,13 +125,18 @@ Window {
 		readOnly: true
 	}
 
-	function copyItem(text, isPassword) {
+	function _copyItem(text) {
 		passwordCopy.text = text
 		passwordCopy.selectAll()
 		passwordCopy.copy()
 		passwordCopy.text = ""
+	}
+
+	function copyItem(text, isPassword) {
+		_copyItem(text)
 		if (isPassword) {
-			successMessage("Password copied to the clipboard")
+			passwordCopyTimer.secondsLeft = 15
+			passwordCopyTimer.start()
 		} else {
 			successMessage("Text copied to the clipboard")
 		}
@@ -197,6 +203,24 @@ Window {
 		from: 1.0
 		to: 0.0
 		target: toast
+	}
+
+	Timer {
+		id: passwordCopyTimer
+		property int secondsLeft
+		interval: 1000
+		repeat: true
+		triggeredOnStart: true
+		onTriggered: {
+			toast.color = "green"
+			toast.msgText = "Copied password, clipboard will be cleared in " + secondsLeft + "s."
+			toast.opacity = 1.0
+			if (secondsLeft-- <= 0) {
+				_copyItem(".") // doesn't work with ""...
+				toast.opacity = 0.0
+				running = false
+			}
+		}
 	}
 
 	Component {
