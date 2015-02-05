@@ -141,6 +141,7 @@ Window {
 			},
 			function (passwdDialog) {
 				passwdDialog.onOk(passwdDialog, popup)
+				progressMessage("Welcome!")
 			})
 	}
 
