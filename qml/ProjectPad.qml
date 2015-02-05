@@ -5,7 +5,7 @@ import QtQuick.Layouts 1.1
 import QtQml 2.2
 
 Window {
-	width: 800; height: 600;
+	width: 800; height: 650;
 	title: 'ProjectPAD';
 	visible: true;
 	id: window
@@ -30,23 +30,60 @@ Window {
 		}
 	}
 
-	Loader {
+	SplitView {
 		width: parent.width
 		y: toolbar.height
 		height: parent.height-toolbar.height
-		id: loader
-		onLoaded: {
-			// putting it here ensures it's called
-			// also for the first screen of the app
-			// which is not displayed as the result
-			// of a click.
-			toolbar.actions = loader.item.actions
-			var breadcrumbsInfo = loader.item.getBreadCrumbs()
-			toolbar.pathLinks = breadcrumbsInfo.pathLinks
-			toolbar.title = breadcrumbsInfo.title
-			if (loader.item.appContext !== undefined) {
-				loader.item.appContext = window
+		orientation: Qt.Vertical
+
+		Loader {
+			id: loader
+			Layout.fillWidth: true
+			Layout.fillHeight: true
+			height: parent.height - outputText.height
+			onLoaded: {
+				// putting it here ensures it's called
+				// also for the first screen of the app
+				// which is not displayed as the result
+				// of a click.
+				toolbar.actions = loader.item.actions
+				var breadcrumbsInfo = loader.item.getBreadCrumbs()
+				toolbar.pathLinks = breadcrumbsInfo.pathLinks
+				toolbar.title = breadcrumbsInfo.title
+				if (loader.item.appContext !== undefined) {
+					loader.item.appContext = window
+				}
 			}
+		}
+
+		TextArea {
+			id: outputText
+			height: 150
+			Layout.fillWidth: true
+			readOnly: true
+
+			MouseArea {
+				anchors.fill: parent
+				acceptedButtons: Qt.RightButton
+				onClicked: outputMenu.popup()
+			}
+		}
+	}
+
+	Menu {
+		id: outputMenu
+		MenuItem {
+			text: "Copy"
+			onTriggered: {
+				if (outputText.selectedText.length === 0) {
+					outputText.selectAll()
+				}
+				outputText.copy()
+			}
+		}
+		MenuItem {
+			text: "Clear"
+			onTriggered: outputText.text = ""
 		}
 	}
 
@@ -62,16 +99,17 @@ Window {
 	function processRunCommandSignal(result) {
 		var text
 		if (result[0] === "succeeded") {
-			text = "\nExecution terminated!"
-			toastOpacity.running = true
+			text = "Execution terminated!"
+			successMessage(text)
+			text = "\n" + text
 		} else if (result[0] === "failed") {
-			toast.color = "#c9302c"
-			text = "\nExecution failed!\n" + result[1]
-			toastOpacity.running = true
+			text = "Execution failed!\n" + result[1]
+			errorMessage(text)
+			text = "\n" + text
 		} else {
 			text =  result[1]
 		}
-		toast.msgText += text
+		progressMessage(text)
 	}
 
 	Connections {
@@ -149,9 +187,11 @@ Window {
 	}
 	
 	function progressMessage(txt) {
-		toast.color = "green"
-		toast.msgText = txt
-		toast.opacity = 1.0
+		var atEnd = true // outputText.cursorPosition == outputText.text.length
+		outputText.text += txt
+		if (atEnd) {
+			outputText.cursorPosition = outputText.text.length
+		}
 	}
 
 	function successMessage(txt) {
