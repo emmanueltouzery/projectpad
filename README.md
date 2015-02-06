@@ -25,6 +25,12 @@ That does complicate the installation of the application though.
 ![Action ring](https://raw.githubusercontent.com/wiki/emmanueltouzery/projectpad/action_ring.png)
 
 ## Installation
+
+On Fedora, you'll need to install the qt5-qtdeclarative-devel and qt5-qtquickcontrols packages.
+In the releases sections you can find binaries which have been tested on Fedora 20 and Fedora 21 x86-64.
+
+Let's now cover installation from source...
+
 You must first install sqlcipher itself. If your distribution doesn't have packages, you'll have to compile it:
 https://github.com/sqlcipher/sqlcipher#compiling
 (dynamic linking worked best for me)
@@ -49,7 +55,5 @@ You can also compile and run against a sqlcipher that was not installed globably
     LD_LIBRARY_PATH=$LD_LIBRARY_PATH:<sqlcipher install dir>/lib/ cabal build
 
 The same to run the application.
-
-On Fedora, you'll need to install the qt5-qtdeclarative-devel and qt5-qtquickcontrols packages.
 
 [SQLcipher]: https://www.zetetic.net/sqlcipher/
