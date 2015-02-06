@@ -50,4 +50,6 @@ You can also compile and run against a sqlcipher that was not installed globably
 
 The same to run the application.
 
+On Fedora, you'll need to install the qt5-qtdeclarative-devel and qt5-qtquickcontrols packages.
+
 [SQLcipher]: https://www.zetetic.net/sqlcipher/
