@@ -78,9 +78,9 @@ tryCommandAsync cmd params mCwd envVal readCallback = do
 	void $ forkFinally runCmd notifyIfFail
 	where
 		-- in case runCmd returns Right, it managed to start the external
-		-- process, we'll get notified of the success when it finishes.
+		-- process, and we already notified of the success when it finished.
 		-- If it returns Left however, we couldn't start it => tell about
-		-- the failure right away.
+		-- the failure.
 		notifyIfFail (Left x) = readCallback $ CommandFailed $ textEx x
 		notifyIfFail _ = return ()
 
