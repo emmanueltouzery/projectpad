@@ -9,6 +9,7 @@ import Control.Applicative
 import System.Directory
 import Control.Exception
 import System.Process
+import System.Exit
 import GHC.IO.Handle
 import System.Environment
 import System.Posix.Files
@@ -40,7 +41,7 @@ runRdp serverIp serverUsername serverPassword width height = do
 		_ -> error "run RDP unexpected process output"
 
 tryCommand :: String -> [String] -> Maybe FilePath
-	-> Maybe [(String, String)] -> (Text -> IO ()) -> IO (Either Text ())
+	-> Maybe [(String, String)] -> (CommandProgress -> IO ()) -> IO (Either Text ())
 tryCommand cmd params mCwd envVal readCallback = do
 	r <- try (createProcess (proc cmd params)
 		{
@@ -49,26 +50,39 @@ tryCommand cmd params mCwd envVal readCallback = do
 			cwd = mCwd
 		})
 	case r of
-		Right (_, Just stdout, _, _) -> Right <$> readHandleProgress stdout readCallback
+		Right (_, Just stdout, _, phndl) -> Right <$> readHandleProgress stdout readCallback phndl
 		Left (SomeException x) -> return $ Left $ T.pack $ show x
 		_ -> error "Try command unexpected process output"
 
-readHandleProgress :: Handle -> (Text -> IO ()) -> IO ()
-readHandleProgress hndl readCallback = do
+readHandleProgress :: Handle -> (CommandProgress -> IO ()) -> ProcessHandle -> IO ()
+readHandleProgress hndl cmdProgress phndl = do
 	chunk <- T.hGetChunk hndl
-	readCallback chunk
-	when (not $ T.null chunk) $
-		readHandleProgress hndl readCallback
+	cmdProgress $ CommandOutput chunk
+	if (not $ T.null chunk)
+		then readHandleProgress hndl cmdProgress phndl
+		else handleProgramFinished cmdProgress phndl
+
+handleProgramFinished :: (CommandProgress -> IO ()) -> ProcessHandle -> IO ()
+handleProgramFinished cmdProgress phndl = do
+	mExitCode <- getProcessExitCode phndl
+	case mExitCode of
+		Nothing -> error "Can't get process exit code from handle?"
+		Just ExitSuccess -> cmdProgress CommandSucceeded
+		Just (ExitFailure code) -> cmdProgress $
+			CommandFailed (T.pack $ "Error code: " ++ show code)
 
 tryCommandAsync :: String -> [String] -> Maybe FilePath
 	-> Maybe [(String, String)] -> (CommandProgress -> IO ())  -> IO ()
 tryCommandAsync cmd params mCwd envVal readCallback = do
-	let runCmd = tryCommand cmd params mCwd envVal
-		(readCallback . CommandOutput)
-	void $ forkFinally runCmd (readCallback . convert)
+	let runCmd = tryCommand cmd params mCwd envVal readCallback
+	void $ forkFinally runCmd notifyIfFail
 	where
-		convert (Right x) = eitherToCmdProgress x
-		convert (Left x) = CommandFailed $ textEx x
+		-- in case runCmd returns Right, it managed to start the external
+		-- process, we'll get notified of the success when it finishes.
+		-- If it returns Left however, we couldn't start it => tell about
+		-- the failure right away.
+		notifyIfFail (Left x) = readCallback $ CommandFailed $ textEx x
+		notifyIfFail _ = return ()
 
 openAssociatedFile :: Text -> IO (Either Text ())
 openAssociatedFile path = do
