@@ -13,6 +13,7 @@ import qualified Data.Text as T
 import qualified Database.Persist as P
 
 import Model
+import ModelBase
 import ChildEntityCache
 import System
 import Util
@@ -150,7 +151,18 @@ getAllDatabases sqlBackend _ = do
 executePoiAction :: ObjRef ServerViewState -> ObjRef (Entity Server)
 	-> ObjRef (Entity ServerPointOfInterest) -> IO (Either Text ())
 executePoiAction srvState (entityVal . fromObjRef -> server)
-		(entityVal . fromObjRef -> serverPoi) = do
+		(entityVal . fromObjRef -> serverPoi) =
+	case serverPointOfInterestInterestType serverPoi of
+		PoiCommandToRun -> executePoiCommand srvState server serverPoi
+		PoiLogFile -> executePoiLogFile server serverPoi
+		_ -> return $ Right ()
+
+executePoiLogFile :: Server -> ServerPointOfInterest -> IO (Either Text ())
+executePoiLogFile server serverPoi = openSshSession (serverIp server) (serverUsername server)
+	(serverPassword server) (Just $ "tail -f " `T.append` serverPointOfInterestPath serverPoi)
+
+executePoiCommand :: ObjRef ServerViewState -> Server -> ServerPointOfInterest -> IO (Either Text ())
+executePoiCommand srvState server serverPoi = do
 	let workDir = case serverPointOfInterestPath serverPoi of
 		"" -> Nothing
 		x -> Just x

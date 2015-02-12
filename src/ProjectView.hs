@@ -150,7 +150,7 @@ runServerRdp (entityVal . fromObjRef -> server) =
 
 openServerSshSession :: ObjRef (Entity Server) -> IO (Either Text Text)
 openServerSshSession (entityVal . fromObjRef -> server) = fmapR (const "") <$>
-	openSshSession (serverIp server) (serverUsername server) (serverPassword server)
+	openSshSession (serverIp server) (serverUsername server) (serverPassword server) Nothing
 
 data ServerExtraInfo = ServerExtraInfo
 	{

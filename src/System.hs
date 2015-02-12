@@ -101,6 +101,11 @@ runSshContents :: Text -> Text -> Text
 runSshContents hostname username = T.concat ["#!/usr/bin/sh\n\
 	\/usr/bin/setsid /usr/bin/ssh ", username, "@", hostname, "\n"]
 
+-- http://stackoverflow.com/a/18522811/516188
+runSshContentsCommand :: Text -> Text -> Text -> Text
+runSshContentsCommand hostname username command = T.concat ["#!/usr/bin/sh\n\
+	\/usr/bin/setsid /usr/bin/ssh ", username, "@", hostname, " -t '", command, "; bash -l'"]
+
 echoPassContents :: FilePath -> Text -> Text
 echoPassContents fname password = T.concat ["#!/bin/sh\n",
 	"set -f\necho '", password, "'\nrm ", T.pack fname]
@@ -118,13 +123,16 @@ prepareSshPassword password tmpDir = do
 -- with the ssh app in the terminal, but environment variables
 -- get propagated. I must use a temporary file to store the
 -- password, but it's quickly deleted and with 700 permissions.
-openSshSession :: Text -> Text -> Text -> IO (Either Text ())
-openSshSession server username password = do
+openSshSession :: Text -> Text -> Text -> Maybe Text -> IO (Either Text ())
+openSshSession server username password command = do
 	tmpDir <- getTemporaryDirectory
 	-- TODO here I'm creating a temp file but not deleting it..
 	-- it is small though and tmpfs will not persist across reboots.
 	let runSshPath = tmpDir </> "runssh.sh"
-	writeTempScript runSshPath (runSshContents server username)
+	let scriptContents = case command of
+		Nothing -> runSshContents server username
+		Just cmd -> runSshContentsCommand server username cmd
+	writeTempScript runSshPath scriptContents
 	let params = ["-e", runSshPath]
 	sshEnv <- prepareSshPassword password tmpDir
 	-- TODO detect other xterm types than gnome-terminal

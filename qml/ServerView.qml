@@ -240,15 +240,23 @@ ScrollView {
 										poisrepeater.model = serverViewState.getPois(pv.model.id)
 									})
 								}]]
-							if (modelData.interestType === "PoiCommandToRun"
-									&& pv.model.serverIp.length > 0
-									&& pv.model.accessType === "SrvAccessSsh"
-									&& pv.model.username.length > 0
-									&& pv.model.password.length > 0) {
-								options.push(["glyphicons-138-cogwheels", function() {
-									var info = serverViewState.executePoiAction(pv.model, modelData)
-									appContext.progressMessage("\nStarted program\n")
-								}])
+							if (pv.model.accessType === "SrvAccessSsh"
+								&& pv.model.serverIp.length > 0
+								&& pv.model.username.length > 0
+								&& pv.model.password.length > 0) {
+								switch (modelData.interestType) {
+								case "PoiCommandToRun":
+									options.push(["glyphicons-138-cogwheels", function() {
+										var info = serverViewState.executePoiAction(pv.model, modelData)
+										appContext.progressMessage("\nStarted program\n")
+									}])
+									break
+								case "PoiLogFile":
+									options.push(["glyphicons-283-cardio", function() {
+										serverViewState.executePoiAction(pv.model, modelData)
+									}])
+									break
+								}
 							}
 							selectMenu.options = options
 							selectMenu.show(parent)
