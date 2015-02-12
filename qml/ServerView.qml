@@ -255,6 +255,9 @@ ScrollView {
 									options.push(["glyphicons-283-cardio", function() {
 										serverViewState.executePoiAction(pv.model, modelData)
 									}])
+									options.push(["glyphicons-52-eye-open", function() {
+										serverViewState.executePoiSecondaryAction(pv.model, modelData)
+									}])
 									break
 								}
 							}

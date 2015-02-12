@@ -154,12 +154,20 @@ executePoiAction srvState (entityVal . fromObjRef -> server)
 		(entityVal . fromObjRef -> serverPoi) =
 	case serverPointOfInterestInterestType serverPoi of
 		PoiCommandToRun -> executePoiCommand srvState server serverPoi
-		PoiLogFile -> executePoiLogFile server serverPoi
+		PoiLogFile -> executePoiLogFile server serverPoi "tail -f "
 		_ -> return $ Right ()
 
-executePoiLogFile :: Server -> ServerPointOfInterest -> IO (Either Text ())
-executePoiLogFile server serverPoi = openSshSession (serverIp server) (serverUsername server)
-	(serverPassword server) (Just $ "tail -f " `T.append` serverPointOfInterestPath serverPoi)
+executePoiSecondaryAction :: ObjRef ServerViewState -> ObjRef (Entity Server)
+	-> ObjRef (Entity ServerPointOfInterest) -> IO (Either Text ())
+executePoiSecondaryAction _ (entityVal . fromObjRef -> server)
+		(entityVal . fromObjRef -> serverPoi) =
+	case serverPointOfInterestInterestType serverPoi of
+		PoiLogFile -> executePoiLogFile server serverPoi "less "
+		_ -> return $ Right ()
+
+executePoiLogFile :: Server -> ServerPointOfInterest -> Text -> IO (Either Text ())
+executePoiLogFile server serverPoi cmd = openSshSession (serverIp server) (serverUsername server)
+	(serverPassword server) (Just $ cmd `T.append` serverPointOfInterestPath serverPoi)
 
 executePoiCommand :: ObjRef ServerViewState -> Server -> ServerPointOfInterest -> IO (Either Text ())
 executePoiCommand srvState server serverPoi = do
@@ -196,6 +204,8 @@ createServerViewState sqlBackend = do
 			defMethod "getAllDatabases" (getAllDatabases sqlBackend),
 			defMethod' "executePoiAction" (\srvState server serverPoi -> serializeEither' <$>
 				executePoiAction srvState server serverPoi),
+			defMethod' "executePoiSecondaryAction" (\srvState server serverPoi -> serializeEither' <$>
+				executePoiSecondaryAction srvState server serverPoi),
 			defSignalNamedParams "gotOutput" (Proxy :: Proxy SignalOutput) $
 				fstName "output"
 		]
