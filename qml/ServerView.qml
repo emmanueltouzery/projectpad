@@ -259,6 +259,11 @@ ScrollView {
 										serverViewState.executePoiSecondaryAction(pv.model, modelData)
 									}])
 									break
+								case "PoiConfigFile":
+									options.push(["glyphicons-52-eye-open", function() {
+										serverViewState.executePoiAction(pv.model, modelData)
+									}])
+									break
 								}
 							}
 							selectMenu.options = options

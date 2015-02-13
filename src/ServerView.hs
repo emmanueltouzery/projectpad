@@ -155,6 +155,7 @@ executePoiAction srvState (entityVal . fromObjRef -> server)
 	case serverPointOfInterestInterestType serverPoi of
 		PoiCommandToRun -> executePoiCommand srvState server serverPoi
 		PoiLogFile -> executePoiLogFile server serverPoi "tail -f "
+		PoiConfigFile -> executePoiLogFile server serverPoi "vim "
 		_ -> return $ Right ()
 
 executePoiSecondaryAction :: ObjRef ServerViewState -> ObjRef (Entity Server)
