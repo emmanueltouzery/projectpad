@@ -15,6 +15,15 @@ Rectangle {
 					"text": "", "interestType": ""}
 	}
 
+	function getTextLabel() {
+		switch (model.interestType) {
+			case "PoiCommandToRun":
+				return "Command:";
+			default:
+				return "Text:";
+		}
+	}
+
 	function activate(_model) {
 		poiEdit.model = _model
 		interestType.currentIndex = Math.max(0, Utils.listModelGetValueIndex(interestType.model, _model.interestType))
@@ -72,7 +81,7 @@ Rectangle {
 		}
 
 		Text {
-			text: "Text:"
+			text: getTextLabel()
 		}
 		TextField {
 			id: text
