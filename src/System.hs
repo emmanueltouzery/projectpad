@@ -97,13 +97,15 @@ writeTempScript fname contents = do
 	T.writeFile fname contents
 	setFileMode fname ownerModes
 
-runSshContents :: Text -> Text -> Text
-runSshContents hostname username = T.concat ["#!/usr/bin/sh\n\
+runSshContents :: FilePath -> Text -> Text -> Text
+runSshContents fname hostname username = T.concat ["#!/usr/bin/sh\n\
+	\rm ", T.pack fname, "\n\
 	\/usr/bin/setsid /usr/bin/ssh ", username, "@", hostname, "\n"]
 
 -- http://stackoverflow.com/a/18522811/516188
-runSshContentsCommand :: Text -> Text -> Text -> Text
-runSshContentsCommand hostname username command = T.concat ["#!/usr/bin/sh\n\
+runSshContentsCommand :: FilePath -> Text -> Text -> Text -> Text
+runSshContentsCommand fname hostname username command = T.concat ["#!/usr/bin/sh\n\
+	\rm ", T.pack fname, "\n\
 	\/usr/bin/setsid /usr/bin/ssh ", username, "@", hostname, " -t '", command, "; bash -l'"]
 
 echoPassContents :: FilePath -> Text -> Text
@@ -130,8 +132,8 @@ openSshSession server username password command = do
 	-- it is small though and tmpfs will not persist across reboots.
 	let runSshPath = tmpDir </> "runssh.sh"
 	let scriptContents = case command of
-		Nothing -> runSshContents server username
-		Just cmd -> runSshContentsCommand server username cmd
+		Nothing -> runSshContents runSshPath server username
+		Just cmd -> runSshContentsCommand runSshPath server username cmd
 	writeTempScript runSshPath scriptContents
 	let params = ["-e", runSshPath]
 	sshEnv <- prepareSshPassword password tmpDir
