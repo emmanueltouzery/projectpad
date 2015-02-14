@@ -15,7 +15,7 @@ Canvas {
 	onPaint: {
 		var ctx = canvas.getContext("2d")
 		ctx.fillStyle = "light gray"
-		ctx.clearRect (0 , 0 , canvas.width, canvas.height);
+		ctx.clearRect(0, 0, canvas.width, canvas.height);
 		ctx.beginPath()
 		ctx.moveTo(0, topOffset)
 		ctx.lineTo(canvas.width - arrowStartOffsetFromEnd, topOffset)
