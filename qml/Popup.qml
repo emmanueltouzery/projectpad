@@ -3,8 +3,9 @@ import QtQuick.Controls 1.2
 import QtQuick.Layouts 1.1
 
 Rectangle {
+	id: popupHost
 	anchors.fill: parent
-	color: "#aa000000"
+	color: "black"
 	z: 1
 	property var curCallback
 	property bool implicitClose: true
@@ -33,6 +34,7 @@ Rectangle {
 		okButton.clicked.connect(f)
 		curCallback = f
 		cancelButton.visible = true
+		shadeOpacity.start()
 		popup.visible = true
 	}
 
@@ -120,5 +122,16 @@ Rectangle {
 	Component {
 		id: dangerButtonStyle
 		DangerButtonStyle {}
+	}
+
+	// TODO I think this can be made more compact using state transitions, behaviours etc.
+	ColorAnimation {
+		id: shadeOpacity
+		property: "color"
+		easing.type: Easing.Linear
+		duration: 500
+		from: "#00000000"
+		to: "#aa000000"
+		target: popupHost
 	}
 }
