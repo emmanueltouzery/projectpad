@@ -83,9 +83,8 @@ Rectangle {
 		Text {
 			text: "Password:"
 		}
-		TextField {
+		PasswordField {
 			id: password
-			echoMode: TextInput.Password
 			Layout.fillWidth: true
 			text: srvWebsiteEdit.model.password
 		}
