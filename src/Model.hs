@@ -46,6 +46,7 @@ Server
 ServerWebsite
 	desc Text
 	url Text
+	text Text
 	username Text
 	password Password
 	serverDatabaseId ServerDatabaseId Maybe
@@ -130,6 +131,7 @@ instance DefaultClass (Entity ServerWebsite) where
 		[
 			("desc", serverWebsiteDesc),
 			("url", serverWebsiteUrl),
+			("text", serverWebsiteText),
 			("username", serverWebsiteUsername),
 			("password", serverWebsitePassword)
 		]

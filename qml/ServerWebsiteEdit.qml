@@ -6,13 +6,13 @@ import "utils.js" as Utils
 Rectangle {
 	id: srvWebsiteEdit
 	color: "light grey"
-	property int preferredHeight: 200
+	property int preferredHeight: 230
 
 	property variant model: getDefaultModel()
 
 	function getDefaultModel() {
-		return {"desc": "New server website", "url": "",
-					"username": "", "password": "", "serverDatabaseId": -1}
+		return {"desc": "New server website", "url": "", "text": "",
+			"username": "", "password": "", "serverDatabaseId": -1}
 	}
 
 	function activate(_model) {
@@ -38,11 +38,11 @@ Rectangle {
 		}
 		if (model.id) {
 			srvWebsiteEdit.model = serverViewState.updateServerWebsite(
-				model, description.text, url.text,
+				model, description.text, url.text, txt.text,
 				username.text, password.text, dbId)
 		} else {
 			serverViewState.addServerWebsite(description.text, url.text,
-				username.text, password.text, dbId)
+		        	txt.text, username.text, password.text, dbId)
 		}
 	}
 
@@ -69,6 +69,15 @@ Rectangle {
 			id: url
 			Layout.fillWidth: true
 			text: srvWebsiteEdit.model.url
+		}
+
+		Text {
+			text: "Text:"
+		}
+		TextField {
+			id: txt
+			Layout.fillWidth: true
+			text: srvWebsiteEdit.model.text
 		}
 
 		Text {

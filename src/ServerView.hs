@@ -78,22 +78,23 @@ readServerWebsites serverId = select $ from $ \p -> do
 	return p
 
 addServerWebsite :: SqlBackend -> ObjRef ServerViewState
-	-> Text -> Text -> Text -> Text -> Maybe Int -> IO ()
+	-> Text -> Text -> Text -> Text -> Text -> Maybe Int -> IO ()
 addServerWebsite sqlBackend stateRef
-	pDesc url username password mDatabaseId = do
+	pDesc url text username password mDatabaseId = do
 	let mDatabaseKey = fmap toSqlKey32 mDatabaseId
 	addHelper sqlBackend stateRef readServerWebsites
-		$ ServerWebsite pDesc url username password mDatabaseKey
+		$ ServerWebsite pDesc url text username password mDatabaseKey
 
 updateServerWebsite :: SqlBackend -> ObjRef ServerViewState -> ObjRef (Entity ServerWebsite)
-	-> Text -> Text -> Text -> Text -> Maybe Int -> IO (ObjRef (Entity ServerWebsite))
+	-> Text -> Text -> Text -> Text -> Text
+	-> Maybe Int -> IO (ObjRef (Entity ServerWebsite))
 updateServerWebsite sqlBackend stateRef srvWwwRef
-	pDesc url username password mDatabaseId = do
+	pDesc url text username password mDatabaseId = do
 	let mDatabaseKey = fmap toSqlKey32 mDatabaseId
 	updateHelper sqlBackend stateRef srvWwwRef readServerWebsites serverWebsites
 		[
 			ServerWebsiteDesc P.=. pDesc, ServerWebsiteUrl P.=. url,
-			ServerWebsiteUsername P.=. username,
+			ServerWebsiteText P.=. text, ServerWebsiteUsername P.=. username,
 			ServerWebsitePassword P.=. password,
 			ServerWebsiteServerDatabaseId P.=. mDatabaseKey
 		]
