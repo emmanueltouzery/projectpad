@@ -141,14 +141,16 @@ Window {
 			},
 			function (passwdDialog) {
 				passwdDialog.onOk(passwdDialog, popup)
-				progressMessage("Welcome!\n")
 			})
 	}
 
 	Component {
 		id: enterPasswordComponent
 		PasswordEnter {
-			onLoadView: loadViewAction(name, model)
+			onLoadView: {
+				progressMessage("Welcome!\n")
+				loadViewAction(name, model)
+			}
 		}
 	}
 
