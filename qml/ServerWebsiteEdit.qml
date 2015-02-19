@@ -25,7 +25,7 @@ Rectangle {
 			database.model.append({"text": "No database", "value": -1})
 		for (var i=0;i<dbs.length;i++) {
 			var db = dbs[i]
-			database.model.append({"text": db.name, "value": db.id})
+			database.model.append({"text": db.desc, "value": db.id})
 		}
 		var actualIndex = Utils.listModelGetValueIndex(database.model, _model.serverDatabaseId)
 		database.currentIndex = Math.max(actualIndex, 0) // want "No db" if nothing.
