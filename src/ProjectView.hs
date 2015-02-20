@@ -122,7 +122,7 @@ runPoiAction prjViewState (entityVal . fromObjRef -> poi)
 		let (prog:parameters) = T.unpack <$> T.splitOn " " txt
 		tryCommandAsync prog parameters path Nothing
 			(fireSignal (Proxy :: Proxy SignalOutput) prjViewState . cmdProgressToJs)
-	| interest == PoiLogFile = do
+	| interest `elem` [PoiLogFile, PoiApplication] = do
 		result <- openAssociatedFile (projectPointOfInterestPath poi)
 		fireSignal (Proxy :: Proxy SignalOutput) prjViewState (cmdProgressToJs $ eitherToCmdProgress result)
 	| otherwise = putStrLn "poi action not handled"
