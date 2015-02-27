@@ -6,13 +6,13 @@ import "utils.js" as Utils
 Rectangle {
 	id: srvDatabaseEdit
 	color: "light grey"
-	property int preferredHeight: 200
+	property int preferredHeight: 230
 
 	property variant model: getDefaultModel()
 
 	function getDefaultModel() {
 		return {"desc": "New database", "name": "",
-					"username": "", "password": ""}
+			"text": "", "username": "", "password": ""}
 	}
 
 	function activate(_model) {
@@ -24,11 +24,11 @@ Rectangle {
 	function onOk() {
 		if (model.id) {
 			srvDatabaseEdit.model = serverViewState.updateServerDatabase(
-				model, description.text, name.text,
+				model, description.text, name.text, txt.text,
 				username.text, password.text)
 		} else {
 			serverViewState.addServerDatabase(description.text, name.text,
-				username.text, password.text)
+				txt.text, username.text, password.text)
 		}
 	}
 
@@ -64,6 +64,15 @@ Rectangle {
 			id: username
 			Layout.fillWidth: true
 			text: srvDatabaseEdit.model.username
+		}
+
+		Text {
+			text: "Text:"
+		}
+		TextField {
+			id: txt
+			Layout.fillWidth: true
+			text: srvDatabaseEdit.model.text
 		}
 
 		Text {

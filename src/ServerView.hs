@@ -109,18 +109,19 @@ readServerDatabases serverId = select $ from $ \p -> do
 	return p
 
 addServerDatabase :: SqlBackend -> ObjRef ServerViewState
-	-> Text -> Text -> Text -> Text -> IO ()
-addServerDatabase sqlBackend stateRef pDesc name
+	-> Text -> Text -> Text -> Text -> Text -> IO ()
+addServerDatabase sqlBackend stateRef pDesc name txt
 	username password = addHelper sqlBackend stateRef readServerDatabases
-		$ ServerDatabase pDesc name username password
+		$ ServerDatabase pDesc name txt username password
 
 updateServerDatabase :: SqlBackend -> ObjRef ServerViewState -> ObjRef (Entity ServerDatabase)
-	-> Text -> Text -> Text -> Text -> IO (ObjRef (Entity ServerDatabase))
+	-> Text -> Text -> Text -> Text -> Text -> IO (ObjRef (Entity ServerDatabase))
 updateServerDatabase sqlBackend stateRef srvDbRef
-	pDesc name username password = updateHelper sqlBackend stateRef
+	pDesc name txt username password = updateHelper sqlBackend stateRef
 		srvDbRef readServerDatabases serverDatabases
 		[
 			ServerDatabaseDesc P.=. pDesc, ServerDatabaseName P.=. name,
+			ServerDatabaseText P.=. txt,
 			ServerDatabaseUsername P.=. username,
 			ServerDatabasePassword P.=. password
 		]

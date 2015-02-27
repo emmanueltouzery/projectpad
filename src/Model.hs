@@ -55,6 +55,7 @@ ServerWebsite
 ServerDatabase
 	desc Text
 	name Text
+	text Text
 	username Text
 	password Password
 	serverId ServerId
@@ -144,6 +145,7 @@ instance DefaultClass (Entity ServerDatabase) where
 		[
 			("desc", serverDatabaseDesc),
 			("name", serverDatabaseName),
+			("text", serverDatabaseText),
 			("username", serverDatabaseUsername),
 			("password", serverDatabasePassword)
 		]
