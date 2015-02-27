@@ -5,7 +5,7 @@ import QtQuick.Layouts 1.1
 import "utils.js" as Utils
 import "poiactions.js" as PoiActions
 
-ScrollView {
+Rectangle {
 	id: pv
 	anchors.fill: parent
 	signal loadView(string name, variant model)
@@ -21,7 +21,7 @@ ScrollView {
 		var projectModel = Utils.findById(projectListState.projects, model.projectId)
 		return {pathLinks:
 			[
-				{screen: "ProjectView.qml", 
+				{screen: "ProjectView.qml",
 				model: projectModel,
 				display: projectModel.name}
 			],
@@ -140,163 +140,166 @@ ScrollView {
 		}
 	}
 
-	Flickable {
+	ScrollView {
 		width: parent.width
-		anchors.topMargin: 70
-		contentHeight: flow.implicitHeight
-		Flow {
+		anchors.top: serverHeader.bottom
+		anchors.bottom: parent.bottom
+		Flickable {
 			anchors.fill: parent
-			anchors.margins: 4
-			spacing: 10
-			id: flow
+			contentHeight: flow.implicitHeight
+			Flow {
+				anchors.fill: parent
+				anchors.margins: 4
+				spacing: 10
+				id: flow
 
-			Repeater {
-				id: wwwsrepeater
-				model: serverViewState.getServerWebsites(pv.model.id)
+				Repeater {
+					id: wwwsrepeater
+					model: serverViewState.getServerWebsites(pv.model.id)
 
-				ItemTile {
-					property int modelId: modelData.id
-					property bool selected: false
-					color: "dark gray"
-					border.width: selected ? 4 : 0
-					border.color: "green"
-					itemDesc: modelData.desc
-					icon: "glyphicons-372-global"
-					MouseArea {
-						anchors.fill: parent
-						onClicked: {
-							selectMenu.options = [["glyphicons-151-edit", function() { editSrvWww(modelData)}],
-								["glyphicons-372-global", function() { openAssociatedFile(modelData.url)}],
-								["glyphicons-512-copy", function() { appContext.copyItem(modelData.password, true) }],
-								["glyphicons-193-circle-remove", function() {
-									appContext.confirmDelete(function() {
-										serverViewState.deleteServerWebsites([modelData.id])
-										wwwsrepeater.model = serverViewState.getServerWebsites(pv.model.id)
-									})
-								}]]
-							selectMenu.show(parent)
-						}
-					}
-				}
-			}
-
-			Repeater {
-				id: dbsrepeater
-				model: serverViewState.getServerDatabases(pv.model.id)
-
-				ItemTile {
-					property int modelId: modelData.id
-					property bool selected: false
-					width: 180; height: 180
-					color: "gray"
-					border.width: selected ? 4 : 0
-					border.color: "green"
-					itemDesc: modelData.desc
-					icon: "glyphicons-528-database"
-
-					MouseArea {
-						anchors.fill: parent
-						onClicked: {
-							selectMenu.options = [["glyphicons-151-edit", function() { editDb(modelData)}],
-								["glyphicons-512-copy", function() { appContext.copyItem(modelData.password, true) }],
-								["glyphicons-193-circle-remove", function() {
-									appContext.confirmDelete(function() {
-										var msg = serverViewState.canDeleteServerDatabase(modelData)
-										if (msg !== null) {
-											appContext.errorMessage(msg)
-											return
-										}
-										serverViewState.deleteServerDatabases([modelData.id])
-										dbsrepeater.model = serverViewState.getServerDatabases(pv.model.id)
-									})
-								}]]
-							selectMenu.show(parent)
-						}
-					}
-				}
-			}
-
-			Repeater {
-				id: poisrepeater
-				model: serverViewState.getPois(pv.model.id)
-
-				ItemTile {
-					property int modelId: modelData.id
-					property bool selected: false
-					color: "light gray"
-					border.width: selected ? 4 : 0
-					border.color: "green"
-					itemDesc: modelData.desc
-					icon: PoiActions.actions[modelData.interestType].icon
-
-					MouseArea {
-						anchors.fill: parent
-						onClicked: {
-							var options = [["glyphicons-151-edit", function() { editPoi(modelData)}],
-								["glyphicons-512-copy", function() { appContext.copyItem(modelData.path, false) }],
-								["glyphicons-193-circle-remove", function() {
-									appContext.confirmDelete(function() {
-										serverViewState.deleteServerPois([modelData.id])
-										poisrepeater.model = serverViewState.getPois(pv.model.id)
-									})
-								}]]
-							if (pv.model.accessType === "SrvAccessSsh"
-								&& pv.model.serverIp.length > 0
-								&& pv.model.username.length > 0
-								&& pv.model.password.length > 0) {
-								switch (modelData.interestType) {
-								case "PoiCommandToRun":
-									options.push(["glyphicons-138-cogwheels", function() {
-										var info = serverViewState.executePoiAction(pv.model, modelData)
-										appContext.progressMessage("\nStarted program\n")
-									}])
-									break
-								case "PoiLogFile":
-									options.push(["glyphicons-283-cardio", function() {
-										serverViewState.executePoiAction(pv.model, modelData)
-									}])
-									options.push(["glyphicons-52-eye-open", function() {
-										serverViewState.executePoiSecondaryAction(pv.model, modelData)
-									}])
-									break
-								case "PoiConfigFile":
-									options.push(["glyphicons-52-eye-open", function() {
-										serverViewState.executePoiAction(pv.model, modelData)
-									}])
-									break
-								}
+					ItemTile {
+						property int modelId: modelData.id
+						property bool selected: false
+						color: "dark gray"
+						border.width: selected ? 4 : 0
+						border.color: "green"
+						itemDesc: modelData.desc
+						icon: "glyphicons-372-global"
+						MouseArea {
+							anchors.fill: parent
+							onClicked: {
+								selectMenu.options = [["glyphicons-151-edit", function() { editSrvWww(modelData)}],
+									["glyphicons-372-global", function() { openAssociatedFile(modelData.url)}],
+									["glyphicons-512-copy", function() { appContext.copyItem(modelData.password, true) }],
+									["glyphicons-193-circle-remove", function() {
+										appContext.confirmDelete(function() {
+											serverViewState.deleteServerWebsites([modelData.id])
+											wwwsrepeater.model = serverViewState.getServerWebsites(pv.model.id)
+										})
+									}]]
+								selectMenu.show(parent)
 							}
-							selectMenu.options = options
-							selectMenu.show(parent)
+						}
+					}
+				}
+
+				Repeater {
+					id: dbsrepeater
+					model: serverViewState.getServerDatabases(pv.model.id)
+
+					ItemTile {
+						property int modelId: modelData.id
+						property bool selected: false
+						width: 180; height: 180
+						color: "gray"
+						border.width: selected ? 4 : 0
+						border.color: "green"
+						itemDesc: modelData.desc
+						icon: "glyphicons-528-database"
+
+						MouseArea {
+							anchors.fill: parent
+							onClicked: {
+								selectMenu.options = [["glyphicons-151-edit", function() { editDb(modelData)}],
+									["glyphicons-512-copy", function() { appContext.copyItem(modelData.password, true) }],
+									["glyphicons-193-circle-remove", function() {
+										appContext.confirmDelete(function() {
+											var msg = serverViewState.canDeleteServerDatabase(modelData)
+											if (msg !== null) {
+												appContext.errorMessage(msg)
+												return
+											}
+											serverViewState.deleteServerDatabases([modelData.id])
+											dbsrepeater.model = serverViewState.getServerDatabases(pv.model.id)
+										})
+									}]]
+								selectMenu.show(parent)
+							}
+						}
+					}
+				}
+
+				Repeater {
+					id: poisrepeater
+					model: serverViewState.getPois(pv.model.id)
+
+					ItemTile {
+						property int modelId: modelData.id
+						property bool selected: false
+						color: "light gray"
+						border.width: selected ? 4 : 0
+						border.color: "green"
+						itemDesc: modelData.desc
+						icon: PoiActions.actions[modelData.interestType].icon
+
+						MouseArea {
+							anchors.fill: parent
+							onClicked: {
+								var options = [["glyphicons-151-edit", function() { editPoi(modelData)}],
+									["glyphicons-512-copy", function() { appContext.copyItem(modelData.path, false) }],
+									["glyphicons-193-circle-remove", function() {
+										appContext.confirmDelete(function() {
+											serverViewState.deleteServerPois([modelData.id])
+											poisrepeater.model = serverViewState.getPois(pv.model.id)
+										})
+									}]]
+								if (pv.model.accessType === "SrvAccessSsh"
+									&& pv.model.serverIp.length > 0
+									&& pv.model.username.length > 0
+									&& pv.model.password.length > 0) {
+									switch (modelData.interestType) {
+									case "PoiCommandToRun":
+										options.push(["glyphicons-138-cogwheels", function() {
+											var info = serverViewState.executePoiAction(pv.model, modelData)
+											appContext.progressMessage("\nStarted program\n")
+										}])
+										break
+									case "PoiLogFile":
+										options.push(["glyphicons-283-cardio", function() {
+											serverViewState.executePoiAction(pv.model, modelData)
+										}])
+										options.push(["glyphicons-52-eye-open", function() {
+											serverViewState.executePoiSecondaryAction(pv.model, modelData)
+										}])
+										break
+									case "PoiConfigFile":
+										options.push(["glyphicons-52-eye-open", function() {
+											serverViewState.executePoiAction(pv.model, modelData)
+										}])
+										break
+									}
+								}
+								selectMenu.options = options
+								selectMenu.show(parent)
+							}
 						}
 					}
 				}
 			}
-		}
-		SelectMenu {
-			id: selectMenu
-			visible: false
-			z: 3
-		}
+			SelectMenu {
+				id: selectMenu
+				visible: false
+				z: 3
+			}
 
-		Component {
-			id: editPoiComponent
-			PoiEdit {
-				id: poiEdit
+			Component {
+				id: editPoiComponent
+				PoiEdit {
+					id: poiEdit
+				}
 			}
-		}
-		Component {
-			id: editSrvWwwComponent
-			ServerWebsiteEdit {
-				id: wwwEdit
+			Component {
+				id: editSrvWwwComponent
+				ServerWebsiteEdit {
+					id: wwwEdit
+				}
 			}
-		}
-		Component {
-			id: editDatabaseComponent
-			ServerDatabaseEdit {
-				id: dbEdit
+			Component {
+				id: editDatabaseComponent
+				ServerDatabaseEdit {
+					id: dbEdit
+				}
 			}
 		}
 	}
 }
-
