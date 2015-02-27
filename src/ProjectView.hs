@@ -57,26 +57,28 @@ processAuthKeyInfo keyPath = case T.stripPrefix "file://" keyPath of
 		return $ Just (contents, last $ T.splitOn "/" p)
 
 addServer :: SqlBackend -> ObjRef ProjectViewState
-	-> Text -> IpAddress -> Text -> Text -> Text -> Text -> Text -> IO ()
-addServer sqlBackend stateRef sDesc ipAddr username password
+	-> Text -> IpAddress -> Text -> Text -> Text -> Text -> Text -> Text -> IO ()
+addServer sqlBackend stateRef sDesc ipAddr txt username password
 		keyPath serverTypeT serverAccessTypeT = do
 	let srvType = read $ T.unpack serverTypeT
 	let srvAccessType = read $ T.unpack serverAccessTypeT
 	authKeyInfo <- processAuthKeyInfo keyPath
 	addHelper sqlBackend stateRef readServers
-		$ Server sDesc ipAddr username password
+		$ Server sDesc ipAddr txt username password
 			(fst <$> authKeyInfo) (snd <$> authKeyInfo) srvType srvAccessType
 
 updateServer :: SqlBackend -> ObjRef ProjectViewState -> ObjRef (Entity Server)
-	-> Text -> IpAddress -> Text -> Text -> Text -> Text -> Text -> IO (ObjRef (Entity Server))
-updateServer sqlBackend stateRef serverRef sDesc ipAddr username password
-		keyPath serverTypeT serverAccessTypeT = do
+	-> Text -> IpAddress -> Text -> Text -> Text -> Text -> Text
+	-> Text -> IO (ObjRef (Entity Server))
+updateServer sqlBackend stateRef serverRef sDesc ipAddr txt
+  username password keyPath serverTypeT serverAccessTypeT = do
 	let srvType = read $ T.unpack serverTypeT
 	let srvAccessType = read $ T.unpack serverAccessTypeT
 	authKeyInfo <- processAuthKeyInfo keyPath
 	updateHelper sqlBackend stateRef serverRef readServers servers
 		[
 			ServerDesc P.=. sDesc, ServerIp P.=. ipAddr,
+			ServerText P.=. txt,
 			ServerUsername P.=. username, ServerPassword P.=. password,
 			ServerType P.=. srvType, ServerAccessType P.=. srvAccessType,
 			ServerAuthKey P.=. fst <$> authKeyInfo,
@@ -127,7 +129,7 @@ runPoiAction prjViewState (entityVal . fromObjRef -> poi)
 		fireSignal (Proxy :: Proxy SignalOutput) prjViewState (cmdProgressToJs $ eitherToCmdProgress result)
 	| otherwise = putStrLn "poi action not handled"
 	where
-		interest = projectPointOfInterestInterestType poi 
+		interest = projectPointOfInterestInterestType poi
 		path = case T.unpack $ projectPointOfInterestPath poi of
 			"" -> Nothing
 			x@_ -> Just x

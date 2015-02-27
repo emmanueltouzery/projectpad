@@ -7,13 +7,14 @@ import "utils.js" as Utils
 Rectangle {
 	id: serverEdit
 	color: "light grey"
-	property int preferredHeight: 280
+	property int preferredHeight: 310
 
 	property variant model: getDefaultModel()
 	property string keyFilepath
-       
+
 	function getDefaultModel() {
 		return {"desc": "New server", "serverIp": "",
+			"text": "",
 			"username": "", "password": "",
 			"authKeyFilename": "...",
 			"type": "", "accessType": ""}
@@ -32,11 +33,13 @@ Rectangle {
 		if (model.id) {
 			serverEdit.model = projectViewState.updateServer(
 				model, serverDescription.text, ipAddress.text,
+				txt.text,
 				username.text, password.text, serverEdit.keyFilepath,
 				serverTypeItems.get(serverType.currentIndex).value,
 				serverAccessTypeItems.get(serverAccessType.currentIndex).value);
 		} else {
 			projectViewState.addServer(serverDescription.text, ipAddress.text,
+				txt.text,
 				username.text, password.text, serverEdit.keyFilepath,
 				serverTypeItems.get(serverType.currentIndex).value,
 				serverAccessTypeItems.get(serverAccessType.currentIndex).value)
@@ -66,6 +69,15 @@ Rectangle {
 			id: ipAddress
 			Layout.fillWidth: true
 			text: serverEdit.model.serverIp
+		}
+
+		Text {
+			text: "Text"
+		}
+		TextField {
+			id: txt
+			Layout.fillWidth: true
+			text: serverEdit.model.text
 		}
 
 		Text {

@@ -35,6 +35,7 @@ ProjectPointOfInterest
 Server
 	desc Text
 	ip IpAddress
+	text Text
 	username Text
 	password Password
 	authKey ByteString Maybe
@@ -107,6 +108,7 @@ instance DefaultClass (Entity Server) where
 		[
 			("desc", serverDesc),
 			("serverIp", serverIp),
+			("text", serverText),
 			("username", serverUsername),
 			("password", serverPassword),
 			("authKeyFilename", fromMaybe "..." . serverAuthKeyFilename),
