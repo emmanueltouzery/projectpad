@@ -39,6 +39,7 @@ Rectangle {
 			onClicked: loadView("ProjectList.qml", null)
 			style: breadcbrumbsButton
 			height: toolbarRoot.height
+			checked: pathLinks.length === 0 && title.length === 0
 		}
 		Repeater {
 			model: pathLinks
