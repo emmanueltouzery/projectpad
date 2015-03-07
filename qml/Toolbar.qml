@@ -5,7 +5,9 @@ Rectangle {
 	id: toolbarRoot
 	color: 'light gray';
 	width: parent.width
-	height: 32
+	height: 32+toolbarPadding*2
+
+	property int toolbarPadding: 3
 
 	signal loadView(string name, variant model)
 
@@ -30,15 +32,17 @@ Rectangle {
 	signal actionTriggered(string name);
 
 	Flow {
-		width: parent.width-x
-		height: parent.height
+		y: toolbarPadding
+		x: toolbarPadding
+		width: parent.width-x-toolbarPadding*2
+		height: parent.height-toolbarPadding*2
 
 		IconButton {
 			btnText: 'home'
 			iconName: 'glyphicons-21-home'
 			onClicked: loadView("ProjectList.qml", null)
 			style: breadcbrumbsButton
-			height: toolbarRoot.height
+			height: parent.height
 			checked: pathLinks.length === 0 && title.length === 0
 		}
 		Repeater {
@@ -46,7 +50,7 @@ Rectangle {
 
 			Button {
 				text: modelData.display
-				height: toolbarRoot.height
+				height: parent.height
 				onClicked: loadView(modelData.screen, modelData.model)
 				style: breadcbrumbsButton
 			}
@@ -54,7 +58,7 @@ Rectangle {
 		ExclusiveGroup { id: tabPositionGroup }
 		Button {
 			text: title
-			height: toolbarRoot.height
+			height: parent.height
 			visible: title.length > 0
 			checkable: true
 			checked: true
@@ -64,7 +68,10 @@ Rectangle {
 	}
 
 	Flow {
+		y: toolbarPadding
 		anchors.right: parent.right
+		anchors.rightMargin: toolbarPadding
+		height: parent.height-toolbarPadding*2
 		Repeater {
 			id: rightActions
 			model: actions
@@ -73,7 +80,7 @@ Rectangle {
 				btnText: modelData[2]
 				onClicked: actionTriggered(modelData[0])
 		//		style: normalButtonStyle
-				height: toolbarRoot.height
+				height: parent.height
 			}
 		}
 		ExclusiveGroup { id: menuGroup }
@@ -85,7 +92,7 @@ Rectangle {
 			iconSize: 20
 			onClicked: toggleMenu()
 			exclusiveGroup: menuGroup
-			height: toolbarRoot.height
+			height: parent.height
 			style: menuButton
 			checkable: true
 		}
