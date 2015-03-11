@@ -58,21 +58,21 @@ Rectangle {
 		}
 
 		Text {
-			text: "Username:"
-		}
-		TextField {
-			id: username
-			Layout.fillWidth: true
-			text: srvDatabaseEdit.model.username
-		}
-
-		Text {
 			text: "Text:"
 		}
 		TextField {
 			id: txt
 			Layout.fillWidth: true
 			text: srvDatabaseEdit.model.text
+		}
+
+		Text {
+			text: "Username:"
+		}
+		TextField {
+			id: username
+			Layout.fillWidth: true
+			text: srvDatabaseEdit.model.username
 		}
 
 		Text {
