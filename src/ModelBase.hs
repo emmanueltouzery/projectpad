@@ -20,3 +20,7 @@ derivePersistField "ServerAccessType"
 data ServerType = SrvDatabase | SrvApplication
 	deriving (Show, Read, Eq, Typeable)
 derivePersistField "ServerType"
+
+data EnvironmentType = EnvDevelopment | EnvUat | EnvStage | EnvProd
+	deriving (Show, Read, Eq, Typeable)
+derivePersistField "EnvironmentType"

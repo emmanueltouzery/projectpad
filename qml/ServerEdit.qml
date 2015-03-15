@@ -11,6 +11,7 @@ Rectangle {
 
 	property variant model: getDefaultModel()
 	property string keyFilepath
+	property string environment
 
 	function getDefaultModel() {
 		return {"desc": "New server", "serverIp": "",
@@ -20,8 +21,9 @@ Rectangle {
 			"type": "", "accessType": ""}
 	}
 
-	function activate(_model) {
+	function activate(_model, _environment) {
 		serverEdit.model = _model
+		serverEdit.environment = _environment
 		serverType.currentIndex = Math.max(0, Utils.listModelGetValueIndex(serverType.model, _model.type))
 		serverAccessType.currentIndex = Math.max(0, Utils.listModelGetValueIndex(serverAccessType.model, _model.accessType))
 		authFilename.text = keyFilepath = _model.authKeyFilename
@@ -42,7 +44,8 @@ Rectangle {
 				txt.text,
 				username.text, password.text, serverEdit.keyFilepath,
 				serverTypeItems.get(serverType.currentIndex).value,
-				serverAccessTypeItems.get(serverAccessType.currentIndex).value)
+					serverAccessTypeItems.get(serverAccessType.currentIndex).value,
+					serverEdit.environment)
 		}
 	}
 

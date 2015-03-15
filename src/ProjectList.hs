@@ -10,6 +10,7 @@ import Database.Esqueleto
 import Data.Text (Text)
 import Data.List
 import Data.Maybe
+import Control.Monad
 
 import Model
 import ChildEntityCache
@@ -33,16 +34,26 @@ reReadProjects sqlBackend changeKey state = do
 	modifyMVar_ (projects $ fromObjRef state) $ const newQmlProjects
 	fireSignal changeKey state
 
-addProject :: SqlBackend -> SignalKey (IO ()) -> ObjRef ProjectListState -> Text -> IO ()
-addProject sqlBackend changeKey state txt = do
-	runSqlBackend sqlBackend $ P.insert (Project txt "")
+addProject :: SqlBackend -> SignalKey (IO ()) -> ObjRef ProjectListState
+           -> Text -> Bool -> Bool -> Bool -> Bool -> IO ()
+addProject sqlBackend changeKey state txt hasDev hasUat hasStage hasProd = do
+	-- a project must have at least one environment. Refuse to update otherwise.
+	when (hasDev || hasUat || hasStage || hasProd) $ void $
+		runSqlBackend sqlBackend $ P.insert (Project txt ""
+			(text hasDev) (text hasUat)
+			(text hasStage) (text hasProd))
 	reReadProjects sqlBackend changeKey state
 
 updateProject :: SqlBackend -> SignalKey (IO ()) -> ObjRef ProjectListState
-	-> ObjRef (Entity Project) -> Text -> IO (ObjRef (Entity Project))
-updateProject sqlBackend changeKey state project name = do
-	let idKey = entityKey $ fromObjRef project
-	runSqlBackend sqlBackend $ P.update idKey [ProjectName P.=. name]
+	-> ObjRef (Entity Project) -> Text -> Bool -> Bool
+	-> Bool -> Bool -> IO (ObjRef (Entity Project))
+updateProject sqlBackend changeKey state
+	prj name hasDev hasUat
+	hasStage hasProd = do
+	let idKey = entityKey $ fromObjRef prj
+	runSqlBackend sqlBackend $ P.update idKey [ProjectName P.=. name,
+		ProjectHasDev P.=. text hasDev, ProjectHasUat P.=. text hasUat,
+		ProjectHasStage P.=. text hasStage, ProjectHasProd P.=. text hasProd]
 	reReadProjects sqlBackend changeKey state
 	newProjectList <- readMVar $ projects (fromObjRef state)
 	let mUpdatedProjectEntity = find ((== idKey) . entityKey . fromObjRef) newProjectList

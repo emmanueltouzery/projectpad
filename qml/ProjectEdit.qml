@@ -6,21 +6,43 @@ Rectangle {
 	id: projectEdit
 	color: "light grey"
 	property int preferredHeight: 120
+	property variant appContext: null
 
-	property variant model : {"name": "Project name"}
+	property variant model : {
+		"name": "Project name",
+		"hasDev" : "False",
+		"hasUat": "False",
+		"hasStaging" : "False",
+		"hasProd": "True"
+	}
 
 	function activate(_model) {
 		projectEdit.model = _model
+		envDevelopment.checked = projectEdit.model.hasDev === "True"
+		envUat.checked = projectEdit.model.hasUat === "True"
+		envStaging.checked = projectEdit.model.hasStaging === "True"
+		envProd.checked = projectEdit.model.hasProd === "True"
 		projectNameEntry.selectAll()
 		projectNameEntry.forceActiveFocus()
 	}
 
 	function onOk() {
-		if (model.id) {
-			projectEdit.model = projectListState.updateProject(model, projectNameEntry.text)
-		} else {
-			projectListState.addProject(projectNameEntry.text)
+		var oneEnv = envDevelopment.checked || envUat.checked ||
+			envStaging.checked || envProd.checked;
+		if (!oneEnv) {
+			appContext.errorMessage("Pick at least one environment! (Development, UAT, ...)");
+			return
 		}
+		if (model.id) {
+			projectEdit.model = projectListState.updateProject(model, projectNameEntry.text,
+				envDevelopment.checked, envUat.checked,
+				envStaging.checked, envProd.checked)
+		} else {
+			projectListState.addProject(projectNameEntry.text,
+                                  envDevelopment.checked, envUat.checked,
+                                  envStaging.checked, envProd.checked)
+		}
+		popup.doClose()
 		/* TODO now directly open the new project */
 	}
 
@@ -40,6 +62,49 @@ Rectangle {
 			Layout.fillWidth: true
 			id: projectNameEntry
 			text: projectEdit.model.name
+		}
+
+		GridLayout {
+			Layout.fillWidth: true
+			Layout.columnSpan: 2
+			columns: 2
+		
+			IconButton {
+				id: envDevelopment
+				iconX: 10
+				iconTextPadding: 5
+				Layout.fillWidth: true
+				iconName: "glyphicons-361-bug"
+				btnText: "Development"
+				checkable: true
+			}
+			IconButton {
+				id: envUat
+				iconX: 10
+				iconTextPadding: 5
+				Layout.fillWidth: true
+				iconName: "glyphicons-534-lab"
+				btnText: "UAT"
+				checkable: true
+			}
+			IconButton {
+				id: envStaging
+				iconX: 10
+				iconTextPadding: 5
+				Layout.fillWidth: true
+				iconName: "glyphicons-140-adjust-alt"
+				btnText: "Staging"
+				checkable: true
+			}
+			IconButton {
+				id: envProd
+				iconX: 10
+				iconTextPadding: 5
+				Layout.fillWidth: true
+				iconName: "glyphicons-333-certificate"
+				btnText: "PROD"
+				checkable: true
+			}
 		}
 	}
 }

@@ -57,15 +57,17 @@ processAuthKeyInfo keyPath = case T.stripPrefix "file://" keyPath of
 		return $ Just (contents, last $ T.splitOn "/" p)
 
 addServer :: SqlBackend -> ObjRef ProjectViewState
-	-> Text -> IpAddress -> Text -> Text -> Text -> Text -> Text -> Text -> IO ()
+	-> Text -> IpAddress -> Text -> Text -> Text -> Text -> Text -> Text -> Text -> IO ()
 addServer sqlBackend stateRef sDesc ipAddr txt username password
-		keyPath serverTypeT serverAccessTypeT = do
-	let srvType = read $ T.unpack serverTypeT
-	let srvAccessType = read $ T.unpack serverAccessTypeT
+		keyPath serverTypeT serverAccessTypeT srvEnvironmentT = do
+	let srvType = readT serverTypeT
+	let srvAccessType = readT serverAccessTypeT
+	let srvEnv = readT srvEnvironmentT
 	authKeyInfo <- processAuthKeyInfo keyPath
 	addHelper sqlBackend stateRef readServers
 		$ Server sDesc ipAddr txt username password
-			(fst <$> authKeyInfo) (snd <$> authKeyInfo) srvType srvAccessType
+			(fst <$> authKeyInfo) (snd <$> authKeyInfo)
+			srvType srvAccessType srvEnv
 
 updateServer :: SqlBackend -> ObjRef ProjectViewState -> ObjRef (Entity Server)
 	-> Text -> IpAddress -> Text -> Text -> Text -> Text -> Text
@@ -189,10 +191,12 @@ getInfosVal sqlBackend serversById tableId serverFk = do
 		tableId serverFk $ M.keys serversById
 	return $ M.fromList $ fmap (unValue *** unValue) poiInfosVal
 
-getServersExtraInfo :: SqlBackend -> ObjRef ProjectViewState -> Int -> IO [ObjRef ServerExtraInfo]
-getServersExtraInfo sqlBackend projectViewState projectId = do
+getServersExtraInfo :: SqlBackend -> ObjRef ProjectViewState -> Int -> Text -> IO [ObjRef ServerExtraInfo]
+getServersExtraInfo sqlBackend projectViewState projectId environment = do
+	let environmentType = readT environment
 	prjServers <- getChildren sqlBackend readServers projectViewState projectId
-	let serversById = M.fromList $ fmap (\s -> (objRefKey s, s)) prjServers
+	let envServers = filter ((==environmentType) . serverEnvironment . entityVal . fromObjRef) prjServers
+	let serversById = M.fromList $ fmap (\s -> (objRefKey s, s)) envServers
 
 	poiInfos <- getInfosVal sqlBackend serversById
 		ServerPointOfInterestId ServerPointOfInterestServerId
@@ -204,7 +208,7 @@ getServersExtraInfo sqlBackend projectViewState projectId = do
 	mapM (\s -> newObjectDC $ ServerExtraInfo s
 		(getServerCount s poiInfos)
 		(getServerCount s wwwInfos)
-		(getServerCount s dbInfos)) prjServers
+		(getServerCount s dbInfos)) envServers
 	where
 		objRefKey = entityKey . fromObjRef
 		getServerCount s = fromMaybe 0 . M.lookup (objRefKey s)

@@ -17,6 +17,8 @@ import Data.Maybe
 
 import ModelBase
 
+-- TODO Project hasDev, Uat and so on should be Bool...
+-- but currently fails with PersistMarshalError (persistent 2.1.1.4)
 mkPersist sqlSettings [persistLowerCase|
 ServerPointOfInterest
 	desc Text
@@ -42,6 +44,7 @@ Server
 	authKeyFilename Text Maybe
 	type ServerType
 	accessType ServerAccessType
+	environment EnvironmentType
 	projectId ProjectId
 	deriving Show Typeable
 ServerWebsite
@@ -64,6 +67,10 @@ ServerDatabase
 Project
 	name Text
 	icon ByteString
+        hasDev Text
+        hasUat Text
+        hasStage Text
+        hasProd Text
 	deriving Show Typeable
 DbVersion
 	code Int
@@ -73,6 +80,9 @@ DbVersion
 
 int64to32 :: Int64 -> Int
 int64to32 = fromIntegral
+
+fromSqlKey32 :: (ToBackendKey SqlBackend a) => Entity a -> Int
+fromSqlKey32 = int64to32 . fromSqlKey . entityKey
 
 toSqlKey32 :: ToBackendKey SqlBackend record => Int -> Key record
 toSqlKey32 = toSqlKey . fromIntegral
@@ -85,7 +95,7 @@ getStandardClassMembers pairs fkPairs
 	= idProperty:others ++ fks
 	where
 		idProperty = defPropertyConst "id"
-			(return . int64to32 . fromSqlKey . entityKey . fromObjRef)
+			(return . fromSqlKey32 . fromObjRef)
 		others = fmap (\(name, f) ->
 			defPropertyConst name (return . f . entityVal . fromObjRef)) pairs
 		fks = fmap (\(name, f) -> defPropertyConst name (return . f)) fkPairs
@@ -98,10 +108,21 @@ getKeyM f (fromObjRef -> entity) = do
 
 -- TODO generate this with TH?
 instance DefaultClass (Entity Project) where
-	classMembers = getStandardClassMembers [("name", projectName)] []
+	classMembers = getStandardClassMembers
+		[
+			("name", projectName),
+			("hasDev", projectHasDev), -- TODO bool as string, ugly..
+			("hasUat", projectHasUat),
+			("hasStaging", projectHasStage),
+			("hasProd", projectHasProd)
+		]
+		[]
 
 text :: Show a => a -> Text
 text = T.pack . show
+
+readT :: Read a => T.Text -> a
+readT = read . T.unpack
 
 instance DefaultClass (Entity Server) where
 	classMembers = getStandardClassMembers
@@ -113,7 +134,8 @@ instance DefaultClass (Entity Server) where
 			("password", serverPassword),
 			("authKeyFilename", fromMaybe "..." . serverAuthKeyFilename),
 			("type", text . serverType),
-			("accessType", text . serverAccessType)
+			("accessType", text . serverAccessType),
+			("environment", text . serverEnvironment)
 		]
 		[
 			("projectId", getKeyM $ Just . serverProjectId)

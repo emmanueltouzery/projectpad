@@ -6,6 +6,7 @@ Button {
 	property string btnText
 	property int iconSize: 16
 	property int iconX: 3
+	property int iconTextPadding: 0
 
 	width: text.width+image.width+10
 
@@ -20,7 +21,7 @@ Button {
 	}
 
 	Text {
-		x: image.width+5
+		x: image.width+iconX+iconTextPadding
 		id: text
 		text: parent.btnText
 		height: parent.height

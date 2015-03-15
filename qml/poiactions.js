@@ -4,3 +4,17 @@ var actions = {
 	"PoiApplication":{"text": "Open", "icon": "glyphicons-149-folder-flag"},
 	"PoiConfigFile":{"text": "Open", "icon": "glyphicons-281-settings"}
 }
+
+
+function envDesc(environment) {
+	switch (environment) {
+	case "EnvDevelopment":
+		return "Development"
+	case "EnvUat":
+		return "UAT"
+	case "EnvStage":
+		return "Staging"
+	case "EnvProd":
+		return "PROD"
+	}
+}

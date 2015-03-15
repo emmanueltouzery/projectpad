@@ -20,18 +20,18 @@ Rectangle {
 		["addpoi", "glyphicons-336-pushpin", "Add point of interest"]]
 
 	function getBreadCrumbs() {
-		return {pathLinks: [], title: model.name};
+		return {pathLinks: [], title: model.project.name + " " + PoiActions.envDesc(model.environment)};
 	}
 
 	function editServer(curServer) {
 		popup.setContents("Edit server", serverEditComponent,
 			function (serverEdit) {
-				serverEdit.activate(curServer)
+				serverEdit.activate(curServer, model.environment)
 			},
 			function (serverEdit) {
 				serverEdit.onOk()
 				// force refresh
-				itemsrepeater.model = projectViewState.getServers(pv.model.id)
+				itemsrepeater.model = projectViewState.getServers(pv.model.project.id, pv.model.environment)
 			})
 	}
 
@@ -43,7 +43,7 @@ Rectangle {
 			function (poiEdit) {
 				poiEdit.onOk()
 				// force refresh
-				poisrepeater.model = projectViewState.getPois(pv.model.id)
+				poisrepeater.model = projectViewState.getPois(pv.model.project.id)
 			})
 	}
 
@@ -52,12 +52,12 @@ Rectangle {
 			case "addsrv":
 				popup.setContents("Add server", serverEditComponent,
 						function (serverEdit) {
-							serverEdit.activate(serverEdit.getDefaultModel())
+							serverEdit.activate(serverEdit.getDefaultModel(), model.environment)
 						},
 						function (serverEdit) {
 							serverEdit.onOk()
 							// force refresh
-							itemsrepeater.model = projectViewState.getServers(pv.model.id)
+							itemsrepeater.model = projectViewState.getServers(pv.model.project.id, model.environment)
 						})
 				break;
 			case "addpoi":
@@ -68,7 +68,7 @@ Rectangle {
 						function (poiEdit) {
 							poiEdit.onOk();
 							// force refresh
-							poisrepeater.model = projectViewState.getPois(pv.model.id)
+							poisrepeater.model = projectViewState.getPois(pv.model.project.id)
 						})
 				break;
 		}
@@ -82,40 +82,11 @@ Rectangle {
 		height: 70
 
 		Text {
-			text: model.name
+			text: model.project.name + " " + PoiActions.envDesc(model.environment)
 			font.pointSize: 16
 			x: 10
 			height: 70
 			verticalAlignment: Text.AlignVCenter
-		}
-
-		Button {
-			anchors.right: deleteBtn.left
-			y: 35
-			id: copyBtn
-			text: "Edit project"
-			onClicked: {
-				popup.setContents("Edit project", projectEditComponent,
-					function (projectEdit) {
-						projectEdit.activate(pv.model)
-					},
-					function (projectEdit) {
-						projectEdit.onOk()
-						loadView("ProjectList.qml", null)
-					})
-			}
-		}
-		Button {
-			x: parent.width-width
-			id: deleteBtn
-			text: "Delete project"
-			y: 35
-			onClicked: {
-				appContext.confirmDelete(function() {
-					projectListState.deleteProjects([pv.model.id])
-					loadView("ProjectList.qml", null)
-				})
-			}
 		}
 	}
 
@@ -134,7 +105,7 @@ Rectangle {
 
 				Repeater {
 					id: itemsrepeater
-					model: projectViewState.getServers(pv.model.id)
+					model: projectViewState.getServers(pv.model.project.id, pv.model.environment)
 
 					ItemTile {
 						property int modelId: modelData.server.id
@@ -202,7 +173,7 @@ Rectangle {
 										appContext.confirmDelete(function() {
 											projectViewState.deleteServers([modelData.server.id])
 											// force refresh
-											itemsrepeater.model = projectViewState.getServers(pv.model.id)
+											itemsrepeater.model = projectViewState.getServers(pv.model.project.id, pv.model.environment)
 										})
 									}]]
 								if (modelData.server.accessType === "SrvAccessWww") {
@@ -253,7 +224,7 @@ Rectangle {
 
 				Repeater {
 					id: poisrepeater
-					model: projectViewState.getPois(pv.model.id)
+					model: projectViewState.getPois(pv.model.project.id)
 
 					ItemTile {
 						itemDesc: modelData.desc
@@ -276,7 +247,7 @@ Rectangle {
 										appContext.confirmDelete(function() {
 											projectViewState.deleteProjectPois([modelData.id])
 											// force refresh
-											poisrepeater.model = projectViewState.getPois(pv.model.id)
+											poisrepeater.model = projectViewState.getPois(pv.model.project.id)
 										})
 									}]]
 								selectMenu.show(parent)

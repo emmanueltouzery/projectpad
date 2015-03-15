@@ -22,8 +22,8 @@ Rectangle {
 		return {pathLinks:
 			[
 				{screen: "ProjectView.qml",
-				model: projectModel,
-				display: projectModel.name}
+				model: {"project": projectModel, "environment": model.environment},
+				display: projectModel.name + " " + PoiActions.envDesc(model.environment)}
 			],
 			title: model.desc}
 	}

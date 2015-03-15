@@ -68,6 +68,7 @@ Rectangle {
 	}
 
 	Flow {
+		id: flow
 		y: toolbarPadding
 		anchors.right: parent.right
 		anchors.rightMargin: toolbarPadding
@@ -80,7 +81,7 @@ Rectangle {
 				btnText: modelData[2]
 				onClicked: actionTriggered(modelData[0])
 		//		style: normalButtonStyle
-				height: parent.height
+				height: flow.height
 			}
 		}
 		ExclusiveGroup { id: menuGroup }
