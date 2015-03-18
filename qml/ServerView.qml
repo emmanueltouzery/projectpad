@@ -15,7 +15,8 @@ Rectangle {
 	property variant actions: [
 		["addpoi", "glyphicons-336-pushpin", "Add point of interest"],
 		["addwww", "glyphicons-372-global", "Add website"],
-		["adddb", "glyphicons-142-database-plus", "Add database"]]
+		  ["adddb", "glyphicons-142-database-plus", "Add database"],
+      ["add", "glyphicons-191-circle-plus", "Add..."]]
 
 	function getBreadCrumbs() {
 		var projectModel = Utils.findById(projectListState.projects, model.projectId)
@@ -96,6 +97,15 @@ Rectangle {
 							dbsrepeater.model = serverViewState.getServerDatabases(pv.model.id)
 						})
 				break;
+    case "add":
+				popup.setContents("Add...", serverAddPopupComponent,
+						function (srvAdd) {
+                srvAdd.init();
+						},
+						function (srvAdd) {
+							srvAdd.onNext();
+						})
+        break;
 		}
 	}
 
@@ -298,6 +308,12 @@ Rectangle {
 				id: editDatabaseComponent
 				ServerDatabaseEdit {
 					id: dbEdit
+				}
+			}
+			Component {
+				id: serverAddPopupComponent
+				ServerAddPopup {
+					id: addPopup
 				}
 			}
 		}

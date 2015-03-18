@@ -17,8 +17,33 @@ Rectangle {
 		}
 	}
 
+    function setOkButtonText(txt) {
+        okButton.text = txt
+    }
+
+    function disconnectOk() {
+				okButton.clicked.disconnect(curCallback)
+    }
+
 	function setContents(title, contents, initCallback, okCallback) {
 		implicitClose = true
+      replaceContents(title, contents, initCallback, okCallback)
+		cancelButton.visible = true
+		shadeOpacity.start()
+		popup.visible = true
+	}
+
+	function wizardReplaceContents(title, contents, initCallback, okCallback) {
+      disconnectOk()
+      replaceContents(title, contents, initCallback, function(x) {
+          implicitClose = true
+          okCallback(x)
+      })
+  }
+
+    // maybe make a second button and fuck it.
+    // but if i want three level wizards?
+	function replaceContents(title, contents, initCallback, okCallback) {
 		okButton.text = "OK"
 		okButton.style = defaultButtonStyle
 		popupTitle.text = title
@@ -27,15 +52,12 @@ Rectangle {
 		var f = function() {
 			okCallback(popupContentsLoader.item)
 			if (implicitClose) {
-				okButton.clicked.disconnect(curCallback)
+          disconnectOk()
 				popup.visible = false
 			}
 		}
 		okButton.clicked.connect(f)
 		curCallback = f
-		cancelButton.visible = true
-		shadeOpacity.start()
-		popup.visible = true
 	}
 
 	function setContentsDelete(title, contents, initCallback, okCallback) {
@@ -65,14 +87,14 @@ Rectangle {
 		height: popupHeader.height + popupContentsLoader.height
 		z: 2
 		radius: 5
-	
+
 		Rectangle {
 			id: popupHeader
 			width: parent.width
 			color: Qt.lighter("light gray", 1.1)
 			height: 40
 			radius: 5
-	
+
 			Button {
 				id: cancelButton
 				text: "Cancel"
@@ -89,7 +111,7 @@ Rectangle {
 				anchors.verticalCenter: parent.verticalCenter
 				font.bold: true
 			}
-	
+
 			Button {
 				id: okButton
 				text: "OK"
@@ -104,7 +126,12 @@ Rectangle {
 			id: popupContentsLoader
 			width: parent.width
 			y: popupHeader.height
-			onLoaded: height = item.preferredHeight
+			  onLoaded: {
+            height = item.preferredHeight
+            if (popupContentsLoader.item.popupContext !== undefined) {
+                popupContentsLoader.item.popupContext = popupHost
+            }
+        }
 		}
 	}
 
