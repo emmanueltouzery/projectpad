@@ -11,11 +11,9 @@ Rectangle {
 	signal loadView(string name, variant model)
 	property variant model
 	property variant appContext: null
+	property string _popupToDisplay
 
-	property variant actions: [
-		["addpoi", "glyphicons-336-pushpin", "Add point of interest"],
-		["addwww", "glyphicons-372-global", "Add website"],
-		["adddb", "glyphicons-142-database-plus", "Add database"]]
+	property variant actions: [["add", "glyphicons-191-circle-plus", "Add..."]]
 
 	function getBreadCrumbs() {
 		var projectModel = Utils.findById(projectListState.projects, model.projectId)
@@ -74,7 +72,7 @@ Rectangle {
 						function (poiEdit) {
 							poiEdit.onServerOk();
 							poisrepeater.model = serverViewState.getPois(pv.model.id)
-						})
+						}, {noOpacity: true})
 				break;
 			case "addwww":
 				popup.setContents("Add website", editSrvWwwComponent,
@@ -84,7 +82,7 @@ Rectangle {
 						function (wwwEdit) {
 							wwwEdit.onOk();
 							wwwsrepeater.model = serverViewState.getServerWebsites(pv.model.id)
-						})
+						}, {noOpacity: true})
 				break;
 			case "adddb":
 				popup.setContents("Add database", editDatabaseComponent,
@@ -94,8 +92,28 @@ Rectangle {
 						function (dbEdit) {
 							dbEdit.onOk();
 							dbsrepeater.model = serverViewState.getServerDatabases(pv.model.id)
-						})
+						}, {noOpacity: true})
 				break;
+			case "add":
+				popup.implicitClose = false
+				popup.setContents("Add...", addServerComponent,
+						function (srvAdd) {
+							srvAdd.init()
+						},
+						function (srvAdd) {
+							var matches = {1: "addpoi", 2: "addwww", 3: "adddb"}
+							_popupToDisplay = matches[srvAdd.next()]
+							displayPopupTimer.start()
+						}, {okBtnText: "Next"})
+				break;
+		}
+	}
+
+	Timer {
+		id: displayPopupTimer
+		interval: 0
+		onTriggered: {
+			actionTriggered(_popupToDisplay)
 		}
 	}
 
@@ -298,6 +316,12 @@ Rectangle {
 				id: editDatabaseComponent
 				ServerDatabaseEdit {
 					id: dbEdit
+				}
+			}
+			Component {
+				id: addServerComponent
+				ServerAddPopup {
+					id: srvAddPopup
 				}
 			}
 		}

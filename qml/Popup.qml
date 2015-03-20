@@ -17,9 +17,9 @@ Rectangle {
 		}
 	}
 
-	function setContents(title, contents, initCallback, okCallback) {
+	  function setContents(title, contents, initCallback, okCallback, options) {
 		implicitClose = true
-		okButton.text = "OK"
+		okButton.text = (options && options.okBtnText) || "OK"
 		okButton.style = defaultButtonStyle
 		popupTitle.text = title
 		popupContentsLoader.sourceComponent = contents
@@ -34,7 +34,10 @@ Rectangle {
 		okButton.clicked.connect(f)
 		curCallback = f
 		cancelButton.visible = true
-		shadeOpacity.start()
+		var noOpacity = options && options.noOpacity
+		if (!noOpacity) {
+			shadeOpacity.start()
+		}
 		popup.visible = true
 	}
 
@@ -65,14 +68,14 @@ Rectangle {
 		height: popupHeader.height + popupContentsLoader.height
 		z: 2
 		radius: 5
-	
+
 		Rectangle {
 			id: popupHeader
 			width: parent.width
 			color: Qt.lighter("light gray", 1.1)
 			height: 40
 			radius: 5
-	
+
 			Button {
 				id: cancelButton
 				text: "Cancel"
@@ -89,7 +92,7 @@ Rectangle {
 				anchors.verticalCenter: parent.verticalCenter
 				font.bold: true
 			}
-	
+
 			Button {
 				id: okButton
 				text: "OK"
