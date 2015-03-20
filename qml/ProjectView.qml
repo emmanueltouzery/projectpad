@@ -74,26 +74,8 @@ Rectangle {
 		}
 	}
 
-	Rectangle {
-		id: projectHeader
-		color: "light grey"
-		x: 0
-		width: parent.width
-		height: 70
-
-		Text {
-			text: model.project.name + " " + PoiActions.envDesc(model.environment)
-			font.pointSize: 16
-			x: 10
-			height: 70
-			verticalAlignment: Text.AlignVCenter
-		}
-	}
-
- 	ScrollView {
-		width: parent.width
-		anchors.top: projectHeader.bottom
-        	anchors.bottom: parent.bottom
+	ScrollView {
+		anchors.fill: parent
 		Flickable {
 			anchors.fill: parent
 			contentHeight: flow.implicitHeight

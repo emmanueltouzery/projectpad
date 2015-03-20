@@ -117,51 +117,8 @@ Rectangle {
 		}
 	}
 
-	Rectangle {
-		id: serverHeader
-		color: "light grey"
-		x: 0
-		width: parent.width
-		height: 70
-
-		Text {
-			text: model.desc
-			font.pointSize: 16
-			x: 10
-			height: 70
-			verticalAlignment: Text.AlignVCenter
-		}
-
-		Rectangle {
-			x: parent.width-width
-			width: Math.max(ipText.width, Math.max(usernameText.width, copyBtn.width))
-
-			Text {
-				id: ipText
-				text: model.serverIp
-			}
-
-			Text {
-				id: usernameText
-				text: model.username
-				y: 20
-			}
-
-			Button {
-				id: copyBtn
-				text: "Copy password"
-				y: 40
-				onClicked: {
-					appContext.copyItem(model.password, true)
-				}
-			}
-		}
-	}
-
 	ScrollView {
-		width: parent.width
-		anchors.top: serverHeader.bottom
-		anchors.bottom: parent.bottom
+		anchors.fill: parent
 		Flickable {
 			anchors.fill: parent
 			contentHeight: flow.implicitHeight
