@@ -64,6 +64,14 @@ ServerDatabase
 	password Password
 	serverId ServerId
 	deriving Show Typeable
+ServerExtraUserAccount
+	username Text
+	password Password
+	desc Text
+	authKey ByteString Maybe
+	authKeyFilename Text Maybe
+	serverId ServerId
+	deriving Show Typeable
 Project
 	name Text
 	icon ByteString
@@ -172,6 +180,16 @@ instance DefaultClass (Entity ServerDatabase) where
 			("text", serverDatabaseText),
 			("username", serverDatabaseUsername),
 			("password", serverDatabasePassword)
+		]
+		[]
+
+instance DefaultClass (Entity ServerExtraUserAccount) where
+	classMembers = getStandardClassMembers
+		[
+			("username", serverExtraUserAccountUsername),
+			("password", serverExtraUserAccountPassword),
+			("desc", serverExtraUserAccountDesc),
+			("authKeyFilename", fromMaybe "..." . serverExtraUserAccountAuthKeyFilename)
 		]
 		[]
 

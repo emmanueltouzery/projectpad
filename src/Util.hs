@@ -5,13 +5,15 @@ import Data.Text (Text)
 import Control.Error
 import Graphics.QML
 import Data.Typeable
+import qualified Data.ByteString as BS
+import qualified Data.Text as T
 
 serializeEither :: Either Text Text -> [Text]
 serializeEither (Left x) = ["error", x]
 serializeEither (Right x) = ["success", x]
 
 serializeEither' :: Either Text () -> [Text]
-serializeEither' = serializeEither . fmapR (const "") 
+serializeEither' = serializeEither . fmapR (const "")
 
 data CommandProgress = CommandOutput Text
 	| CommandSucceeded
@@ -29,3 +31,10 @@ cmdProgressToJs (CommandFailed x) = ["failed", x]
 data SignalOutput deriving Typeable
 instance SignalKeyClass SignalOutput where
 	type SignalParams SignalOutput = [Text] -> IO ()
+
+processAuthKeyInfo :: Text -> IO (Maybe (BS.ByteString, Text))
+processAuthKeyInfo keyPath = case T.stripPrefix "file://" keyPath of
+	Nothing -> return Nothing
+	Just p -> do
+		contents <- BS.readFile (T.unpack p)
+		return $ Just (contents, last $ T.splitOn "/" p)

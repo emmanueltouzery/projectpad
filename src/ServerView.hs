@@ -11,6 +11,9 @@ import Data.Typeable
 import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Database.Persist as P
+import qualified Data.ByteString as BS
+import Control.Error
+import Control.Exception
 
 import Model
 import ModelBase
@@ -23,7 +26,8 @@ data ServerViewState = ServerViewState
 		curServerId :: MVar (Maybe Int),
 		pois :: EntityListCache ServerPointOfInterest,
 		serverWebsites :: EntityListCache ServerWebsite,
-		serverDatabases :: EntityListCache ServerDatabase
+		serverDatabases :: EntityListCache ServerDatabase,
+		serverExtraUserAccounts :: EntityListCache ServerExtraUserAccount
 	} deriving Typeable
 
 instance DynParentHolder ServerViewState where
@@ -32,6 +36,7 @@ instance DynParentHolder ServerViewState where
 		swapMVar_ (pois state) Nothing
 		swapMVar_ (serverWebsites state) Nothing
 		swapMVar_ (serverDatabases state) Nothing
+		swapMVar_ (serverExtraUserAccounts state) Nothing
 
 instance CacheHolder ServerPointOfInterest ServerViewState where
 	cacheChildren = pois
@@ -41,6 +46,9 @@ instance CacheHolder ServerWebsite ServerViewState where
 
 instance CacheHolder ServerDatabase ServerViewState where
 	cacheChildren = serverDatabases
+
+instance CacheHolder ServerExtraUserAccount ServerViewState where
+	cacheChildren = serverExtraUserAccounts
 
 readPois :: Int -> SqlPersistM [Entity ServerPointOfInterest]
 readPois serverId = select $ from $ \p -> do
@@ -150,6 +158,49 @@ getAllDatabases sqlBackend _ = do
 		return p)
 	mapM newObjectDC dbs
 
+readServerExtraUserAccounts :: Int -> SqlPersistM [Entity ServerExtraUserAccount]
+readServerExtraUserAccounts serverId = select $ from $ \p -> do
+	where_ (p ^. ServerExtraUserAccountServerId ==. val (toSqlKey32 serverId))
+	orderBy [asc (p ^. ServerExtraUserAccountDesc)]
+	return p
+
+addServerExtraUserAccount :: SqlBackend -> ObjRef ServerViewState
+	-> Text -> Text -> Text -> Text -> IO ()
+addServerExtraUserAccount sqlBackend stateRef
+	pDesc username password keyPath = do
+	authKeyInfo <- processAuthKeyInfo keyPath
+	addHelper sqlBackend stateRef readServerExtraUserAccounts
+		$ ServerExtraUserAccount username password pDesc
+			(fst <$> authKeyInfo) (snd <$> authKeyInfo)
+
+updateServerExtraUserAccount :: SqlBackend -> ObjRef ServerViewState -> ObjRef (Entity ServerExtraUserAccount)
+	-> Text -> Text -> Text -> Text -> IO (ObjRef (Entity ServerExtraUserAccount))
+updateServerExtraUserAccount sqlBackend stateRef acctRef
+	pDesc username password keyPath = do
+	authKeyInfo <- processAuthKeyInfo keyPath
+	updateHelper sqlBackend stateRef acctRef readServerExtraUserAccounts serverExtraUserAccounts
+		[
+			ServerExtraUserAccountDesc P.=. pDesc, ServerExtraUserAccountUsername P.=. username,
+			ServerExtraUserAccountPassword P.=. password,
+			ServerExtraUserAccountAuthKey P.=. fst <$> authKeyInfo,
+			ServerExtraUserAccountAuthKeyFilename P.=. snd <$> authKeyInfo
+		]
+
+deleteServerExtraUserAccounts :: SqlBackend -> ObjRef ServerViewState -> [Int] -> IO ()
+deleteServerExtraUserAccounts = deleteHelper convertKey readServerExtraUserAccounts
+
+-- alternative implementations: http://stackoverflow.com/a/28101291/516188
+-- almost identical function in ProjectView.hs...
+saveExtraUserAuthKey :: ObjRef ServerViewState
+	-> Text -> ObjRef (Entity ServerExtraUserAccount) -> IO (Either Text Text)
+saveExtraUserAuthKey _ path (entityVal . fromObjRef -> userAcct) = runEitherT $ do
+	targetFile <- hoistEither $ note "Invalid target file name"
+		$ T.stripPrefix "file://" path
+	key <- hoistEither $ note "No authentication key for that user account!"
+		$ serverExtraUserAccountAuthKey userAcct
+	bimapEitherT textEx (const "") . EitherT . try
+		$ BS.writeFile (T.unpack targetFile) key
+
 executePoiAction :: ObjRef ServerViewState -> ObjRef (Entity Server)
 	-> ObjRef (Entity ServerPointOfInterest) -> IO (Either Text ())
 executePoiAction srvState (entityVal . fromObjRef -> server)
@@ -189,6 +240,7 @@ createServerViewState sqlBackend = do
 		<*> newMVar Nothing
 		<*> newMVar Nothing
 		<*> newMVar Nothing
+		<*> newMVar Nothing
 	serverViewClass <- newClass
 		[
 			defMethod "getPois" (getChildren sqlBackend readPois),
@@ -205,6 +257,12 @@ createServerViewState sqlBackend = do
 			defMethod "canDeleteServerDatabase" (canDeleteServerDatabase sqlBackend),
 			defMethod "deleteServerDatabases" (deleteServerDatabases sqlBackend),
 			defMethod "getAllDatabases" (getAllDatabases sqlBackend),
+			defMethod "getServerExtraUserAccounts" (getChildren sqlBackend readServerExtraUserAccounts),
+			defMethod "addServerExtraUserAccount" (addServerExtraUserAccount sqlBackend),
+			defMethod "updateServerExtraUserAccount" (updateServerExtraUserAccount sqlBackend),
+			defMethod "deleteServerExtraUserAccounts" (deleteServerExtraUserAccounts sqlBackend),
+			defMethod "saveAuthKey" (\state path server -> serializeEither <$>
+				saveExtraUserAuthKey state path server),
 			defMethod' "executePoiAction" (\srvState server serverPoi -> serializeEither' <$>
 				executePoiAction srvState server serverPoi),
 			defMethod' "executePoiSecondaryAction" (\srvState server serverPoi -> serializeEither' <$>

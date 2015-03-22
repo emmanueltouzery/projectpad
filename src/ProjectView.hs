@@ -49,13 +49,6 @@ readServers projectId = select $ from $ \s -> do
 	orderBy [asc (s ^. ServerDesc)]
 	return s
 
-processAuthKeyInfo :: Text -> IO (Maybe (BS.ByteString, Text))
-processAuthKeyInfo keyPath = case T.stripPrefix "file://" keyPath of
-	Nothing -> return Nothing
-	Just p -> do
-		contents <- BS.readFile (T.unpack p)
-		return $ Just (contents, last $ T.splitOn "/" p)
-
 addServer :: SqlBackend -> ObjRef ProjectViewState
 	-> Text -> IpAddress -> Text -> Text -> Text -> Text -> Text -> Text -> Text -> IO ()
 addServer sqlBackend stateRef sDesc ipAddr txt username password

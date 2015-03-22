@@ -2,6 +2,7 @@ import QtQuick 2.0
 import QtQuick.Window 2.0
 import QtQuick.Controls 1.2
 import QtQuick.Layouts 1.1
+import QtQuick.Dialogs 1.0
 import "utils.js" as Utils
 import "poiactions.js" as PoiActions
 
@@ -62,6 +63,18 @@ Rectangle {
 				})
 	}
 
+	function editExtraUserAccount(curUserAcct) {
+		popup.setContents("Edit extra user account", editExtraUserAccountComponent,
+				function (userEdit) {
+					userEdit.activate(curUserAcct)
+				},
+				function (userEdit) {
+					userEdit.onOk()
+					// force refresh
+					useraccountsrepeater.model = serverViewState.getServerExtraUserAccounts(pv.model.id)
+				})
+	}
+
 	function actionTriggered(name) {
 		switch (name) {
 			case "addpoi":
@@ -94,6 +107,16 @@ Rectangle {
 							dbsrepeater.model = serverViewState.getServerDatabases(pv.model.id)
 						}, {noOpacity: true})
 				break;
+    case "addaccount":
+				popup.setContents("Add extra user account", editExtraUserAccountComponent,
+						function (editUser) {
+							editUser.activate(editUser.getDefaultModel())
+						},
+						function (editUser) {
+							editUser.onOk();
+							useraccountsrepeater.model = serverViewState.getServerExtraUserAccounts(pv.model.id)
+						}, {noOpacity: true})
+        break;
 			case "add":
 				popup.implicitClose = false
 				popup.setContents("Add...", addServerComponent,
@@ -101,7 +124,7 @@ Rectangle {
 							srvAdd.init()
 						},
 						function (srvAdd) {
-							var matches = {1: "addpoi", 2: "addwww", 3: "adddb"}
+							  var matches = {1: "addpoi", 2: "addwww", 3: "adddb", 4: "addaccount"}
 							_popupToDisplay = matches[srvAdd.next()]
 							displayPopupTimer.start()
 						}, {okBtnText: "Next"})
@@ -129,13 +152,49 @@ Rectangle {
 				id: flow
 
 				Repeater {
+					id: useraccountsrepeater
+					model: serverViewState.getServerExtraUserAccounts(pv.model.id)
+
+					ItemTile {
+						property int modelId: modelData.id
+						property bool selected: false
+						color: "dark gray"
+						border.width: selected ? 4 : 0
+						border.color: "green"
+						itemDesc: modelData.desc
+						icon: "glyphicons-526-user-key"
+						MouseArea {
+							anchors.fill: parent
+							onClicked: {
+								var options = [["glyphicons-151-edit", function() { editExtraUserAccount(modelData)}],
+									["glyphicons-512-copy", function() { appContext.copyItem(modelData.password, true) }],
+									["glyphicons-193-circle-remove", function() {
+										appContext.confirmDelete(function() {
+											serverViewState.deleteServerExtraUserAccounts([modelData.id])
+											useraccountsrepeater.model = serverViewState.getServerExtraUserAccounts(pv.model.id)
+										})
+									}]]
+								if (modelData.authKeyFilename !== "...") {
+									options.push(["glyphicons-45-keys", function() {
+										saveAuthKeyDialog.userAcct = modelData
+										saveAuthKeyDialog.visible = true
+									}])
+								}
+								selectMenu.options = options
+								selectMenu.show(parent)
+							}
+						}
+					}
+				}
+
+				Repeater {
 					id: wwwsrepeater
 					model: serverViewState.getServerWebsites(pv.model.id)
 
 					ItemTile {
 						property int modelId: modelData.id
 						property bool selected: false
-						color: "dark gray"
+						color: "light slate gray"
 						border.width: selected ? 4 : 0
 						border.color: "green"
 						itemDesc: modelData.desc
@@ -279,6 +338,25 @@ Rectangle {
 				id: addServerComponent
 				ServerAddPopup {
 					id: srvAddPopup
+				}
+			}
+			Component {
+				id: editExtraUserAccountComponent
+				ServerExtraUserAccountEdit {
+					id: srvExtraUserAccountEdit
+				}
+			}
+			FileDialog {
+				id: saveAuthKeyDialog
+				title: "Please choose a destination"
+				property variant userAcct
+				visible: false
+				selectFolder: true
+				onAccepted: {
+					serverViewState.saveAuthKey(fileUrls[0]
+						+ "/" + userAcct.authKeyFilename, userAcct)
+					appContext.successMessage("Saved file to "
+						+ fileUrls[0] + "/" + userAcct.authKeyFilename)
 				}
 			}
 		}
