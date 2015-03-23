@@ -11,9 +11,6 @@ import Data.Typeable
 import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Database.Persist as P
-import qualified Data.ByteString as BS
-import Control.Error
-import Control.Exception
 
 import Model
 import ModelBase
@@ -193,13 +190,8 @@ deleteServerExtraUserAccounts = deleteHelper convertKey readServerExtraUserAccou
 -- almost identical function in ProjectView.hs...
 saveExtraUserAuthKey :: ObjRef ServerViewState
 	-> Text -> ObjRef (Entity ServerExtraUserAccount) -> IO (Either Text Text)
-saveExtraUserAuthKey _ path (entityVal . fromObjRef -> userAcct) = runEitherT $ do
-	targetFile <- hoistEither $ note "Invalid target file name"
-		$ T.stripPrefix "file://" path
-	key <- hoistEither $ note "No authentication key for that user account!"
-		$ serverExtraUserAccountAuthKey userAcct
-	bimapEitherT textEx (const "") . EitherT . try
-		$ BS.writeFile (T.unpack targetFile) key
+saveExtraUserAuthKey _ path (entityVal . fromObjRef -> userAcct) = saveAuthKeyBytes path $
+	serverExtraUserAccountAuthKey userAcct
 
 executePoiAction :: ObjRef ServerViewState -> ObjRef (Entity Server)
 	-> ObjRef (Entity ServerPointOfInterest) -> IO (Either Text ())

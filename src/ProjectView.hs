@@ -11,8 +11,6 @@ import qualified Database.Persist as P
 import Data.Typeable
 import Data.Text (Text)
 import qualified Data.Text as T
-import qualified Data.ByteString as BS
-import Control.Exception
 import qualified Data.Map as M
 import Data.Maybe
 import Control.Arrow
@@ -133,13 +131,8 @@ runPoiAction prjViewState (entityVal . fromObjRef -> poi)
 -- alternative implementations: http://stackoverflow.com/a/28101291/516188
 saveAuthKey :: ObjRef ProjectViewState
 	-> Text -> ObjRef (Entity Server) -> IO (Either Text Text)
-saveAuthKey _ path (entityVal . fromObjRef -> server) = runEitherT $ do
-	targetFile <- hoistEither $ note "Invalid target file name"
-		$ T.stripPrefix "file://" path
-	key <- hoistEither $ note "No authentication key for that server!"
-		$ serverAuthKey server
-	bimapEitherT textEx (const "") . EitherT . try
-		$ BS.writeFile (T.unpack targetFile) key
+saveAuthKey _ path (entityVal . fromObjRef -> server) =
+	saveAuthKeyBytes path (serverAuthKey server)
 
 runServerRdp :: ObjRef (Entity Server) -> Int -> Int -> IO (Either Text Text)
 runServerRdp (entityVal . fromObjRef -> server) =

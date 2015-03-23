@@ -17,6 +17,7 @@ import System.FilePath.Posix
 import Control.Error
 import Control.Monad
 import Control.Concurrent
+import qualified Data.ByteString as BS
 
 import Util
 
@@ -150,3 +151,12 @@ runProgramOverSshAsync server username password workDir program readCallback = d
 	let command = workDirCommand ++ T.unpack program
 	let params = ["/usr/bin/ssh", T.unpack username ++ "@" ++ T.unpack server, command]
 	tryCommandAsync "setsid" params Nothing (Just sshEnv) readCallback
+
+-- alternative implementations: http://stackoverflow.com/a/28101291/516188
+saveAuthKeyBytes ::Text -> Maybe BS.ByteString -> IO (Either Text Text)
+saveAuthKeyBytes path bytes  = runEitherT $ do
+	targetFile <- hoistEither $ note "Invalid target file name"
+		$ T.stripPrefix "file://" path
+	key <- hoistEither $ note "No authentication key for that server!" bytes
+	bimapEitherT textEx (const "") . EitherT . try
+		$ BS.writeFile (T.unpack targetFile) key
