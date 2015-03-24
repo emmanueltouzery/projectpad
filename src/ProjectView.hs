@@ -147,7 +147,8 @@ data ServerExtraInfo = ServerExtraInfo
 		srvExtraInfoServer :: ObjRef (Entity Server),
 		srvExtraInfoPoiCount :: Int,
 		srvExtraInfoWwwCount :: Int,
-		srvExtraInfoDbCount :: Int
+		srvExtraInfoDbCount :: Int,
+		srvExtraInfoUserCount :: Int
 	} deriving Typeable
 
 -- server entity, together with some stats about the
@@ -158,7 +159,8 @@ instance DefaultClass ServerExtraInfo where
 			defPropertyConst "server" (return . srvExtraInfoServer . fromObjRef),
 			defPropertyConst "poiCount" (return . srvExtraInfoPoiCount . fromObjRef),
 			defPropertyConst "wwwCount" (return . srvExtraInfoWwwCount . fromObjRef),
-			defPropertyConst "dbCount" (return . srvExtraInfoDbCount . fromObjRef)
+			defPropertyConst "dbCount" (return . srvExtraInfoDbCount . fromObjRef),
+			defPropertyConst "userCount" (return . srvExtraInfoUserCount . fromObjRef)
 		]
 
 readServersExtraInfo :: (PersistEntity val,
@@ -190,11 +192,14 @@ getServersExtraInfo sqlBackend projectViewState projectId environment = do
 		ServerWebsiteId ServerWebsiteServerId
 	dbInfos <- getInfosVal sqlBackend serversById
 		ServerDatabaseId ServerDatabaseServerId
+	userInfos <- getInfosVal sqlBackend serversById
+		ServerExtraUserAccountId ServerExtraUserAccountServerId
 
 	mapM (\s -> newObjectDC $ ServerExtraInfo s
 		(getServerCount s poiInfos)
 		(getServerCount s wwwInfos)
-		(getServerCount s dbInfos)) envServers
+		(getServerCount s dbInfos)
+ 		(getServerCount s userInfos)) envServers
 	where
 		objRefKey = entityKey . fromObjRef
 		getServerCount s = fromMaybe 0 . M.lookup (objRefKey s)

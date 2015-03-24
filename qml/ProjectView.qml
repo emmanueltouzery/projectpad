@@ -113,6 +113,17 @@ Rectangle {
 								height: 16
 								fillMode: Image.PreserveAspectFit
 								smooth: true
+								source: '../glyphicons-free/glyphicons-526-user-key.png'
+								visible: modelData.userCount > 0
+							}
+							Text {
+								text: modelData.userCount
+								visible: modelData.userCount > 0
+							}
+							Image {
+								height: 16
+								fillMode: Image.PreserveAspectFit
+								smooth: true
 								source: '../glyphicons-free/glyphicons-372-global.png'
 								visible: modelData.wwwCount > 0
 							}
