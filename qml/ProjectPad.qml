@@ -188,7 +188,7 @@ Window {
 		toast.msgText = txt
 		toastOpacity.running = true
 	}
-	
+
 	function progressMessage(txt) {
 		var atEnd = true // outputText.cursorPosition == outputText.text.length
 		outputText.text += txt
@@ -217,6 +217,9 @@ Window {
 		onVisibleChanged: {
 			toolbar.setMenuDisplayed(popupMenu.visible)
 		}
+      onSearchTextChanged: {
+          console.log(text)
+      }
 	}
 
 	Rectangle {

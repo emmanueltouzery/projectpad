@@ -7,6 +7,7 @@ Column {
 	width: 150
 	property int cellHeight: 30
 	property variant menuItems: []
+	signal searchTextChanged(string text)
 	Canvas {
 		id: canvas
 		width: 150
@@ -57,6 +58,9 @@ Column {
 						fillMode: Image.PreserveAspectFit
 						height: parent.height - 7 * 2
 						width: parent.height - 7 * 2
+					}
+					onTextChanged: {
+						searchTextChanged(searchField.text)
 					}
 				}
 				Repeater {
