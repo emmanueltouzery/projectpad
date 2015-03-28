@@ -33,8 +33,9 @@ Column {
 		}
 	}
 	Rectangle {
+		id: menuRect
 		width: parent.width
-		height: cellHeight
+		height: searchField.height+cellHeight*menuItems.length
 		color: "black"
 		Rectangle {
 			anchors.fill: parent
@@ -43,9 +44,14 @@ Column {
 			anchors.bottomMargin: 1
 			color: "light gray"
 			Column {
+				id: menuColumn
 				anchors.fill: parent
-				height: cellHeight*menuItems.length
-				anchors.leftMargin: 5
+				height: menuRect.height
+				anchors.margins: 5
+				TextField {
+					id: searchField
+					width: parent.width
+				}
 				Repeater {
 					model: menuItems
 					Label {
