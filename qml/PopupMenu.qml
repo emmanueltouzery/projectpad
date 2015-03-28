@@ -1,51 +1,68 @@
 import QtQuick 2.0
+import QtQuick.Controls 1.3
+import "utils.js" as Utils
 
-Canvas {
-	id: canvas
+Column {
+    id: popupMenu
 	width: 150
-	height: 10+menuItems.length*cellHeight
-
-	property variant menuItems: []
-	property variant fontSpec: "14px sans-serif"
 	property int cellHeight: 30
-	property int arrowStartOffsetFromEnd: 25
-	property int arrowEndOffsetFromEnd: 5
-	property int topOffset: 10
+	property variant menuItems: []
+    Canvas {
+	      id: canvas
+	      width: 150
+	      height: 10
 
-	onPaint: {
-		var ctx = canvas.getContext("2d")
-		ctx.fillStyle = "light gray"
-		ctx.clearRect(0, 0, canvas.width, canvas.height);
-		ctx.beginPath()
-		ctx.moveTo(0, topOffset)
-		ctx.lineTo(canvas.width - arrowStartOffsetFromEnd, topOffset)
-		ctx.lineTo(canvas.width - arrowStartOffsetFromEnd
-			+ (arrowStartOffsetFromEnd-arrowEndOffsetFromEnd)/2, 0)
-		ctx.lineTo(canvas.width - arrowEndOffsetFromEnd, topOffset)
-		ctx.lineTo(canvas.width, topOffset)
-		ctx.lineTo(canvas.width, canvas.height)
-		ctx.lineTo(0, canvas.height)
-		ctx.lineTo(0, topOffset)
-		ctx.fill()
-		ctx.stroke()
+	      property variant fontSpec: "14px sans-serif"
+	      property int arrowStartOffsetFromEnd: 25
+	      property int arrowEndOffsetFromEnd: 5
+	      property int topOffset: 10
 
-		ctx.fillStyle = "black"
-		ctx.font = fontSpec
-		ctx.textBaseline = "middle"
-		for (var i=0;i<menuItems.length;i++) {
-			ctx.fillText(menuItems[i][0], 5, 10+cellHeight*i+cellHeight/2)
-		}
-	}
+	      onPaint: {
+		        var ctx = canvas.getContext("2d")
+		        ctx.fillStyle = "light gray"
+		        ctx.clearRect(0, 0, canvas.width, canvas.height);
+		        ctx.beginPath()
+		        ctx.moveTo(0, topOffset)
+		        ctx.lineTo(canvas.width - arrowStartOffsetFromEnd, topOffset)
+		        ctx.lineTo(canvas.width - arrowStartOffsetFromEnd
+			                 + (arrowStartOffsetFromEnd-arrowEndOffsetFromEnd)/2, 0)
+		        ctx.lineTo(canvas.width - arrowEndOffsetFromEnd, topOffset)
+		        ctx.lineTo(canvas.width, topOffset)
+		        ctx.lineTo(canvas.width, canvas.height)
+		        ctx.lineTo(0, canvas.height)
+		        ctx.lineTo(0, topOffset)
+		        ctx.fill()
+		        ctx.stroke()
+	      }
+    }
+    Flow {
+        width: parent.width
+        height: cellHeight
 
-	MouseArea {
-		anchors.fill: parent
-		onClicked: {
-			if (mouse.y < topOffset) {
-				return
-			}
-			parent.visible = false
-			var index = Math.floor((mouse.y-topOffset) / cellHeight)
-			menuItems[index][1]()
-		}
-	}
+        Repeater {
+            model: menuItems
+            Rectangle {
+                width: parent.width
+                height: cellHeight
+                color: "light gray"
+                Label {
+                    anchors.fill: parent
+                    anchors.margins: 5
+                    text: modelData[0]
+                    anchors.verticalCenter: parent.verticalCenter
+	                  MouseArea {
+		                    anchors.fill: parent
+		                    onClicked: {
+			                      popupMenu.visible = false
+                            // apparently when I set the menuItems as the model, the items
+                            // get copied and mangled and the functions are lost
+                            // => find back the original item in the original list.
+                            var item = Utils.filter(menuItems, function(item) { return item[0] === modelData[0]})[0];
+                            item[1]()
+		                    }
+	                  }
+                }
+            }
+        }
+    }
 }
