@@ -32,27 +32,27 @@ Column {
 			ctx.stroke()
 		}
 	}
-	Flow {
+	Rectangle {
 		width: parent.width
 		height: cellHeight
-		
+		color: "black"
 		Rectangle {
-			width: parent.width
-			height: cellHeight
-			color: "black"
-			Rectangle {
+			anchors.fill: parent
+			anchors.leftMargin: 1
+			anchors.rightMargin: 1
+			anchors.bottomMargin: 1
+			color: "light gray"
+			Column {
 				anchors.fill: parent
-				anchors.leftMargin: 1
-				anchors.rightMargin: 1
-				anchors.bottomMargin: 1
-				color: "light gray"
+				height: cellHeight*menuItems.length
+				anchors.leftMargin: 5
 				Repeater {
 					model: menuItems
 					Label {
-						anchors.fill: parent
-						anchors.margins: 5
+						height: cellHeight
+						width: parent.width
 						text: modelData[0]
-						anchors.verticalCenter: parent.verticalCenter
+						verticalAlignment: Text.AlignVCenter
 						MouseArea {
 							anchors.fill: parent
 							onClicked: {
