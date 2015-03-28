@@ -89,8 +89,8 @@ Rectangle {
 					id: itemsrepeater
 					model: projectViewState.getServers(pv.model.project.id, pv.model.environment)
 
-            TileServer {
-            }
+					TileServer {
+					}
 				}
 
 				Repeater {

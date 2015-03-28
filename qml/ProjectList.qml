@@ -48,8 +48,8 @@ ScrollView {
 				id: itemsrepeater
 				model: projectListState.projects
 
-          TileProject {
-          }
+				TileProject {
+				}
 			}
 		}
 		SelectMenu {
