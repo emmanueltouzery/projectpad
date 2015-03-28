@@ -51,6 +51,13 @@ Column {
 				TextField {
 					id: searchField
 					width: parent.width
+					Image {
+						anchors { top: parent.top; right: parent.right; margins: 7 }
+						source: '../glyphicons-free/glyphicons-28-search.png'
+						fillMode: Image.PreserveAspectFit
+						height: parent.height - 7 * 2
+						width: parent.height - 7 * 2
+					}
 				}
 				Repeater {
 					model: menuItems
