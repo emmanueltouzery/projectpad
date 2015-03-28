@@ -28,9 +28,6 @@ Column {
 			                 + (arrowStartOffsetFromEnd-arrowEndOffsetFromEnd)/2, 0)
 		        ctx.lineTo(canvas.width - arrowEndOffsetFromEnd, topOffset)
 		        ctx.lineTo(canvas.width, topOffset)
-		        ctx.lineTo(canvas.width, canvas.height)
-		        ctx.lineTo(0, canvas.height)
-		        ctx.lineTo(0, topOffset)
 		        ctx.fill()
 		        ctx.stroke()
 	      }
@@ -39,28 +36,35 @@ Column {
         width: parent.width
         height: cellHeight
 
-        Repeater {
-            model: menuItems
+        Rectangle {
+            width: parent.width
+            height: cellHeight
+            color: "black"
             Rectangle {
-                width: parent.width
-                height: cellHeight
-                color: "light gray"
-                Label {
-                    anchors.fill: parent
-                    anchors.margins: 5
-                    text: modelData[0]
-                    anchors.verticalCenter: parent.verticalCenter
-	                  MouseArea {
-		                    anchors.fill: parent
-		                    onClicked: {
-			                      popupMenu.visible = false
-                            // apparently when I set the menuItems as the model, the items
-                            // get copied and mangled and the functions are lost
-                            // => find back the original item in the original list.
-                            var item = Utils.filter(menuItems, function(item) { return item[0] === modelData[0]})[0];
-                            item[1]()
-		                    }
-	                  }
+               anchors.fill: parent
+               anchors.leftMargin: 1
+               anchors.rightMargin: 1
+               anchors.bottomMargin: 1
+               color: "light gray"
+                Repeater {
+                    model: menuItems
+                    Label {
+                        anchors.fill: parent
+                        anchors.margins: 5
+                        text: modelData[0]
+                        anchors.verticalCenter: parent.verticalCenter
+	                      MouseArea {
+		                        anchors.fill: parent
+		                        onClicked: {
+			                          popupMenu.visible = false
+                                // apparently when I set the menuItems as the model, the items
+                                // get copied and mangled and the functions are lost
+                                // => find back the original item in the original list.
+                                var item = Utils.filter(menuItems, function(item) { return item[0] === modelData[0]})[0];
+                                item[1]()
+		                        }
+	                      }
+                    }
                 }
             }
         }
