@@ -257,7 +257,7 @@ Rectangle {
 					id: poisrepeater
 					model: serverViewState.getPois(pv.model.id)
 
-					TileProjectPoi {
+					TileServerPoi {
 					}
 				}
 			}
