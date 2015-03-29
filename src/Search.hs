@@ -18,6 +18,12 @@ data ServerSearchMatch = ServerSearchMatch
 		smServerPoi :: [ObjRef (Entity ServerPointOfInterest)]
 	} deriving Typeable
 
+instance DefaultClass ServerSearchMatch where
+	classMembers =
+		[
+			defPropertyConst "server" (return . smServer . fromObjRef)
+		]
+
 data ProjectSearchMatch = ProjectSearchMatch
 	{
 		smProject :: ObjRef (Entity Project),
@@ -65,6 +71,15 @@ getByIds keySelector ids = select $ from $ \s -> do
   where_ (s ^. keySelector `in_` valList ids)
   return s
 
+getProjectSearchMatch :: [Entity Server]
+                      -> ObjRef (Entity Project) -> IO (ObjRef ProjectSearchMatch)
+getProjectSearchMatch allServers project = do
+  let projectServers = filter (\s -> serverProjectId (entityVal s) == entityKey (fromObjRef project)) allServers
+  projectServersDC <- mapM newObjectDC projectServers
+  let serverSearchMatch = (\s -> ServerSearchMatch s [] [] []) <$> projectServersDC
+  serverSearchMatchDC <- mapM newObjectDC serverSearchMatch
+  newObjectDC $ ProjectSearchMatch project [] serverSearchMatchDC
+
 searchText :: SqlBackend -> Text -> IO [ObjRef ProjectSearchMatch]
 searchText sqlBackend txt = do
 	let query = (%) ++. val txt ++. (%)
@@ -81,10 +96,11 @@ searchText sqlBackend txt = do
         let allServerIds = Set.unions [serverServerIds, serverWebsitesServerIds]
 
         let projectProjectIds = Set.fromList $ entityKey <$> projects
-        serverProjectIds <- Set.fromList <$> fmap (serverProjectId . entityVal) <$>
-                            runSqlBackend sqlBackend (getByIds ServerId $ Set.toList allServerIds)
+        allServers <- runSqlBackend sqlBackend
+                      (getByIds ServerId $ Set.toList allServerIds)
+        let serverProjectIds = Set.fromList $ serverProjectId . entityVal <$> allServers
         let allProjectIds = Set.unions [projectProjectIds, serverProjectIds]
         allProjects <- runSqlBackend sqlBackend (getByIds ProjectId $ Set.toList allProjectIds)
 	projectRefs <- mapM newObjectDC allProjects
 
-	mapM newObjectDC $ (\x -> ProjectSearchMatch x [] []) <$> projectRefs
+	mapM (getProjectSearchMatch allServers) projectRefs
