@@ -78,10 +78,10 @@ getProjectSearchMatch allServers allProjectPois project = do
   let projectServers = filter (\s -> serverProjectId (entityVal s) == projectKey) allServers
   projectServersDC <- mapM newObjectDC projectServers
   let serverSearchMatch = (\s -> ServerSearchMatch s [] [] []) <$> projectServersDC
-  serverSearchMatchDC <- mapM newObjectDC serverSearchMatch
   let projectPois = filter (\p -> projectPointOfInterestProjectId (entityVal p) == projectKey) allProjectPois
-  projectPoisDC <- mapM newObjectDC projectPois
-  newObjectDC $ ProjectSearchMatch project projectPoisDC serverSearchMatchDC
+  newObjectDC =<< ProjectSearchMatch project
+    <$> mapM newObjectDC projectPois
+    <*> mapM newObjectDC serverSearchMatch
 
 searchText :: SqlBackend -> Text -> IO [ObjRef ProjectSearchMatch]
 searchText sqlBackend txt = do
