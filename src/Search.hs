@@ -1,4 +1,4 @@
-{-# LANGUAGE OverloadedStrings, DeriveDataTypeable #-}
+{-# LANGUAGE MultiParamTypeClasses, ViewPatterns, DeriveDataTypeable #-}
 module Search where
 
 import Data.Text (Text)
@@ -58,9 +58,11 @@ filterServerWebsites query = select $ from $ \w -> do
          ||. (w ^. ServerWebsiteText `like` query))
   return w
 
-getServersProjectIds :: [Key Server] -> SqlPersistM [Entity Server]
-getServersProjectIds serverIds = select $ from $ \s -> do
-  where_ (s ^. ServerId `in_` valList serverIds)
+-- TODO don't manage to specify the type signature for this...
+-- getByIds :: (PersistEntity a, PersistEntityBackend a ~ SqlBackend) =>
+--             EntityField a (Key a) -> [Key a] -> SqlPersistM [Entity a]
+getByIds keySelector ids = select $ from $ \s -> do
+  where_ (s ^. keySelector `in_` valList ids)
   return s
 
 searchText :: SqlBackend -> Text -> IO [ObjRef ProjectSearchMatch]
@@ -68,7 +70,6 @@ searchText sqlBackend txt = do
 	let query = (%) ++. val txt ++. (%)
         let runQ f = runSqlBackend sqlBackend (f query)
 	projects <- runQ filterProjects
-	projectRefs <- mapM newObjectDC projects
         projectPois <- runQ filterProjectPois
         servers <- runQ filterServers
         serverWebsites <- runQ filterServerWebsites
@@ -81,7 +82,9 @@ searchText sqlBackend txt = do
 
         let projectProjectIds = Set.fromList $ entityKey <$> projects
         serverProjectIds <- Set.fromList <$> fmap (serverProjectId . entityVal) <$>
-                            runSqlBackend sqlBackend (getServersProjectIds $ Set.toList allServerIds)
+                            runSqlBackend sqlBackend (getByIds ServerId $ Set.toList allServerIds)
         let allProjectIds = Set.unions [projectProjectIds, serverProjectIds]
+        allProjects <- runSqlBackend sqlBackend (getByIds ProjectId $ Set.toList allProjectIds)
+	projectRefs <- mapM newObjectDC allProjects
 
 	mapM newObjectDC $ (\x -> ProjectSearchMatch x [] []) <$> projectRefs
