@@ -71,17 +71,26 @@ getByIds keySelector ids = select $ from $ \s -> do
   where_ (s ^. keySelector `in_` valList ids)
   return s
 
-getProjectSearchMatch :: [Entity Server] -> [Entity ProjectPointOfInterest]
+getServerSearchMatch :: [Entity ServerWebsite] -> ObjRef (Entity Server) -> IO (ObjRef ServerSearchMatch)
+getServerSearchMatch allServerWebsites server = do
+  let serverKey = entityKey (fromObjRef server)
+  let serverWebsites = filter (\s -> serverWebsiteServerId (entityVal s) == serverKey) allServerWebsites
+  newObjectDC =<< ServerSearchMatch server
+    <$> mapM newObjectDC serverWebsites
+    <*> mapM newObjectDC []
+    <*> mapM newObjectDC []
+
+getProjectSearchMatch :: [Entity Server] -> [Entity ServerWebsite] -> [Entity ProjectPointOfInterest]
                       -> ObjRef (Entity Project) -> IO (ObjRef ProjectSearchMatch)
-getProjectSearchMatch allServers allProjectPois project = do
+getProjectSearchMatch allServers allServerWebsites allProjectPois project = do
   let projectKey = entityKey (fromObjRef project)
   let projectServers = filter (\s -> serverProjectId (entityVal s) == projectKey) allServers
-  serverSearchMatch <- fmap (\s -> ServerSearchMatch s [] [] [])
+  serverSearchMatch <- mapM (getServerSearchMatch allServerWebsites)
                        <$> mapM newObjectDC projectServers
   let projectPois = filter (\p -> projectPointOfInterestProjectId (entityVal p) == projectKey) allProjectPois
   newObjectDC =<< ProjectSearchMatch project
     <$> mapM newObjectDC projectPois
-    <*> mapM newObjectDC serverSearchMatch
+    <*> serverSearchMatch
 
 searchText :: SqlBackend -> Text -> IO [ObjRef ProjectSearchMatch]
 searchText sqlBackend txt = do
@@ -90,12 +99,12 @@ searchText sqlBackend txt = do
 	projects <- runQ filterProjects
         allProjectPois <- runQ filterProjectPois
         servers <- runQ filterServers
-        serverWebsites <- runQ filterServerWebsites
+        allServerWebsites <- runQ filterServerWebsites
 
         -- start by the leaves of the tree, and go up,
         -- to catch all the cases.
         let serverServerIds = Set.fromList $ entityKey <$> servers
-        let serverWebsitesServerIds = Set.fromList $ serverWebsiteServerId . entityVal <$> serverWebsites
+        let serverWebsitesServerIds = Set.fromList $ serverWebsiteServerId . entityVal <$> allServerWebsites
         let allServerIds = Set.unions [serverServerIds, serverWebsitesServerIds]
 
         let projectProjectIds = Set.fromList $ entityKey <$> projects
@@ -106,4 +115,4 @@ searchText sqlBackend txt = do
         allProjects <- runSqlBackend sqlBackend (getByIds ProjectId $ Set.toList allProjectIds)
 	projectRefs <- mapM newObjectDC allProjects
 
-	mapM (getProjectSearchMatch allServers allProjectPois) projectRefs
+	mapM (getProjectSearchMatch allServers allServerWebsites allProjectPois) projectRefs
