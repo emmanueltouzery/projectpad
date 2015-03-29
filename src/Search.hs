@@ -71,21 +71,24 @@ getByIds keySelector ids = select $ from $ \s -> do
   where_ (s ^. keySelector `in_` valList ids)
   return s
 
-getProjectSearchMatch :: [Entity Server]
+getProjectSearchMatch :: [Entity Server] -> [Entity ProjectPointOfInterest]
                       -> ObjRef (Entity Project) -> IO (ObjRef ProjectSearchMatch)
-getProjectSearchMatch allServers project = do
-  let projectServers = filter (\s -> serverProjectId (entityVal s) == entityKey (fromObjRef project)) allServers
+getProjectSearchMatch allServers allProjectPois project = do
+  let projectKey = entityKey (fromObjRef project)
+  let projectServers = filter (\s -> serverProjectId (entityVal s) == projectKey) allServers
   projectServersDC <- mapM newObjectDC projectServers
   let serverSearchMatch = (\s -> ServerSearchMatch s [] [] []) <$> projectServersDC
   serverSearchMatchDC <- mapM newObjectDC serverSearchMatch
-  newObjectDC $ ProjectSearchMatch project [] serverSearchMatchDC
+  let projectPois = filter (\p -> projectPointOfInterestProjectId (entityVal p) == projectKey) allProjectPois
+  projectPoisDC <- mapM newObjectDC projectPois
+  newObjectDC $ ProjectSearchMatch project projectPoisDC serverSearchMatchDC
 
 searchText :: SqlBackend -> Text -> IO [ObjRef ProjectSearchMatch]
 searchText sqlBackend txt = do
 	let query = (%) ++. val txt ++. (%)
         let runQ f = runSqlBackend sqlBackend (f query)
 	projects <- runQ filterProjects
-        projectPois <- runQ filterProjectPois
+        allProjectPois <- runQ filterProjectPois
         servers <- runQ filterServers
         serverWebsites <- runQ filterServerWebsites
 
@@ -103,4 +106,4 @@ searchText sqlBackend txt = do
         allProjects <- runSqlBackend sqlBackend (getByIds ProjectId $ Set.toList allProjectIds)
 	projectRefs <- mapM newObjectDC allProjects
 
-	mapM (getProjectSearchMatch allServers) projectRefs
+	mapM (getProjectSearchMatch allServers allProjectPois) projectRefs
