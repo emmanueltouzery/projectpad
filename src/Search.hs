@@ -76,8 +76,8 @@ getProjectSearchMatch :: [Entity Server] -> [Entity ProjectPointOfInterest]
 getProjectSearchMatch allServers allProjectPois project = do
   let projectKey = entityKey (fromObjRef project)
   let projectServers = filter (\s -> serverProjectId (entityVal s) == projectKey) allServers
-  projectServersDC <- mapM newObjectDC projectServers
-  let serverSearchMatch = (\s -> ServerSearchMatch s [] [] []) <$> projectServersDC
+  serverSearchMatch <- fmap (\s -> ServerSearchMatch s [] [] [])
+                       <$> mapM newObjectDC projectServers
   let projectPois = filter (\p -> projectPointOfInterestProjectId (entityVal p) == projectKey) allProjectPois
   newObjectDC =<< ProjectSearchMatch project
     <$> mapM newObjectDC projectPois
