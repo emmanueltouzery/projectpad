@@ -1,8 +1,12 @@
 import QtQuick 2.0
+import QtQuick.Controls 1.2
+import QtQuick.Layouts 1.1
 
 Rectangle {
+	id: searchView
 	anchors.fill: parent
 	signal loadView(string name, variant model)
+	property variant model
 
 	function getBreadCrumbs() {
 		return {pathLinks: [], title: 'Search'};
@@ -18,8 +22,12 @@ Rectangle {
 				spacing: 10
 				id: flow
 				Repeater {
-					id: projectsRepeater
-					model: projectViewState.getSearchResults()
+					model: searchView.model.matches
+					Label {
+						width: parent.width
+						height: 40
+						text: modelData.project.name
+					}
 				}
 			}
 		}

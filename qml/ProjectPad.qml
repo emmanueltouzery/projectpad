@@ -222,10 +222,7 @@ Window {
 			// just tell him the search text changed.
 			// otherwise use loadViewAction() to load the search
 			// view and give him the search text.
-			var matches = search(text)
-			for (var i=0;i<matches.length;i++) {
-				console.log(matches[i].project.name)
-			}
+			loadViewAction("SearchView.qml", {matches: search(text)})
 		}
 	}
 
