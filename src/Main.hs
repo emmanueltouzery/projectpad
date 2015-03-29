@@ -32,6 +32,7 @@ import System
 import ProjectList
 import ProjectView
 import ServerView
+import Search
 import Util
 
 dbFileName :: String
@@ -84,7 +85,7 @@ isDbInitialized = do
 	fileExists <- doesFileExist path
 	if not fileExists
 		then return False
-		else (>0) <$> withFile path ReadMode hFileSize 
+		else (>0) <$> withFile path ReadMode hFileSize
 
 -- might fail on windows if sqlite reserves exclusive
 -- access to the file.
@@ -134,6 +135,7 @@ createContext sqlBackend = do
 				$ return . projectViewState . fromObjRef,
 			defPropertyConst "serverViewState"
 				$ return . serverViewState . fromObjRef,
+			defMethod' "search" (const $ searchText sqlBackend),
 			defMethod' "openAssociatedFile" (\_ path ->
 				serializeEither' <$> openAssociatedFile path)
 		]
