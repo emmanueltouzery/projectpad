@@ -84,18 +84,16 @@ getByIds keySelector ids = select $ from $ \s -> do
 	return s
 
 --filterEntityJoin :: Key Server -> ServerJoin record -> [Entity record]
-filterEntityJoin parentKey (Join fieldGetter entities) = filter (\e -> fieldGetter (entityVal e) == parentKey) entities
-
-filterForServerDC serverKey = mapM newObjectDC . filterEntityJoin serverKey
+filterEntityJoin parentKey (Join fieldGetter entities) = mapM newObjectDC $ filter (\e -> fieldGetter (entityVal e) == parentKey) entities
 
 getServerSearchMatch :: ServerJoin ServerWebsite -> ServerJoin ServerExtraUserAccount -> ServerJoin ServerPointOfInterest
                      -> ObjRef (Entity Server) -> IO (ObjRef ServerSearchMatch)
 getServerSearchMatch serverWebsitesJoin serverExtraUsersJoin serverPoisJoin  server = do
 	let serverKey = entityKey (fromObjRef server)
 	newObjectDC =<< ServerSearchMatch server
-		<$> filterForServerDC serverKey serverWebsitesJoin
-		<*> filterForServerDC serverKey serverExtraUsersJoin
-		<*> filterForServerDC serverKey serverPoisJoin
+		<$> filterEntityJoin serverKey serverWebsitesJoin
+		<*> filterEntityJoin serverKey serverExtraUsersJoin
+		<*> filterEntityJoin serverKey serverPoisJoin
 
 getProjectSearchMatch :: ProjectJoin Server -> ServerJoin ServerWebsite -> ServerJoin ServerExtraUserAccount
 	-> ServerJoin ServerPointOfInterest -> ProjectJoin ProjectPointOfInterest
@@ -103,9 +101,9 @@ getProjectSearchMatch :: ProjectJoin Server -> ServerJoin ServerWebsite -> Serve
 getProjectSearchMatch projectServersJoin serverWebsitesJoin serverExtraUsersJoin serverPoisJoin projectPoisJoin project = do
 	let projectKey = entityKey (fromObjRef project)
 	serverSearchMatch <- mapM (getServerSearchMatch serverWebsitesJoin serverExtraUsersJoin serverPoisJoin )
-		<$> filterForServerDC projectKey projectServersJoin
+		<$> filterEntityJoin projectKey projectServersJoin
 	newObjectDC =<< ProjectSearchMatch project
-		<$> filterForServerDC projectKey projectPoisJoin
+		<$> filterEntityJoin projectKey projectPoisJoin
 		<*> serverSearchMatch
 
 data Join a b = Join (a -> Key b) [Entity a]
