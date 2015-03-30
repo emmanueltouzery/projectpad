@@ -76,10 +76,13 @@ getByIds keySelector ids = select $ from $ \s -> do
 	where_ (s ^. keySelector `in_` valList ids)
 	return s
 
+filterParentEntity :: Eq a => a -> (record -> a) -> [Entity record] -> [Entity record]
+filterParentEntity parentKey fieldGetter = filter (\e -> fieldGetter (entityVal e) == parentKey)
+
 getServerSearchMatch :: [Entity ServerWebsite] -> [Entity ServerExtraUserAccount] -> ObjRef (Entity Server) -> IO (ObjRef ServerSearchMatch)
 getServerSearchMatch allServerWebsites allServerExtraUsers server = do
 	let serverKey = entityKey (fromObjRef server)
-	let filterForServer fieldGetter = filter (\e -> fieldGetter (entityVal e) == serverKey)
+	let filterForServer = filterParentEntity serverKey
 	let serverWebsites = filterForServer serverWebsiteServerId allServerWebsites
 	let serverExtraUsers = filterForServer serverExtraUserAccountServerId allServerExtraUsers
 	newObjectDC =<< ServerSearchMatch server
@@ -91,10 +94,11 @@ getProjectSearchMatch :: [Entity Server] -> [Entity ServerWebsite] -> [Entity Se
 	-> ObjRef (Entity Project) -> IO (ObjRef ProjectSearchMatch)
 getProjectSearchMatch allServers allServerWebsites allServerExtraUsers allProjectPois project = do
 	let projectKey = entityKey (fromObjRef project)
-	let projectServers = filter (\s -> serverProjectId (entityVal s) == projectKey) allServers
+	let filterForProject = filterParentEntity projectKey
+	let projectServers = filterForProject serverProjectId allServers
 	serverSearchMatch <- mapM (getServerSearchMatch allServerWebsites allServerExtraUsers)
 		<$> mapM newObjectDC projectServers
-	let projectPois = filter (\p -> projectPointOfInterestProjectId (entityVal p) == projectKey) allProjectPois
+	let projectPois = filterForProject projectPointOfInterestProjectId allProjectPois
 	newObjectDC =<< ProjectSearchMatch project
 		<$> mapM newObjectDC projectPois
 		<*> serverSearchMatch
