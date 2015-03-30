@@ -7,6 +7,7 @@ import Database.Esqueleto
 import Graphics.QML
 import Control.Applicative
 import qualified Data.Set as Set
+import Data.Set (Set)
 
 import Model
 
@@ -77,18 +78,19 @@ filterServerPois query = select $ from $ \w -> do
 	return w
 
 -- TODO don't manage to specify the type signature for this...
--- getByIds :: (PersistEntity a, PersistEntityBackend a ~ SqlBackend) =>
---             EntityField a (Key a) -> [Key a] -> SqlPersistM [Entity a]
 getByIds keySelector ids = select $ from $ \s -> do
 	where_ (s ^. keySelector `in_` valList ids)
 	return s
 
+-- filter a list of entities from a child table to get only those
+-- matching a FK from the parent table and serialize them to ObjRef for QML.
 filterEntityJoin :: (DefaultClass (Entity a), Eq (Key b)) =>
-                    Key b -> Join a b -> IO [ObjRef (Entity a)]
-filterEntityJoin parentKey (Join fieldGetter entities) = mapM newObjectDC $ filter (\e -> fieldGetter (entityVal e) == parentKey) entities
+	Key b -> Join a b -> IO [ObjRef (Entity a)]
+filterEntityJoin parentKey (Join parentKeyGetter entities) = mapM newObjectDC $
+	filter (\e -> parentKeyGetter (entityVal e) == parentKey) entities
 
 getServerSearchMatch :: ServerJoin ServerWebsite -> ServerJoin ServerExtraUserAccount -> ServerJoin ServerPointOfInterest
-                     -> ObjRef (Entity Server) -> IO (ObjRef ServerSearchMatch)
+	-> ObjRef (Entity Server) -> IO (ObjRef ServerSearchMatch)
 getServerSearchMatch serverWebsitesJoin serverExtraUsersJoin serverPoisJoin  server = do
 	let serverKey = entityKey (fromObjRef server)
 	newObjectDC =<< ServerSearchMatch server
@@ -107,12 +109,14 @@ getProjectSearchMatch projectServersJoin serverWebsitesJoin serverExtraUsersJoin
 		<$> filterEntityJoin projectKey projectPoisJoin
 		<*> serverSearchMatch
 
+-- A Join contains a list of child entities and the function
+-- from entity to parent key.
 data Join a b = Join (a -> Key b) [Entity a]
 type ServerJoin a = Join a Server
 type ProjectJoin a = Join a Project
 
-setFromFieldVal :: Ord (Key b) => Join a b -> Set.Set (Key b)
-setFromFieldVal (Join fieldGetter entities) = Set.fromList $ fieldGetter . entityVal <$> entities
+joinGetParentKeys :: Ord (Key b) => Join a b -> Set (Key b)
+joinGetParentKeys (Join parentKeyGetter entities) = Set.fromList $ parentKeyGetter . entityVal <$> entities
 
 searchText :: SqlBackend -> Text -> IO [ObjRef ProjectSearchMatch]
 searchText sqlBackend txt = do
@@ -129,9 +133,9 @@ searchText sqlBackend txt = do
 	-- to catch all the cases.
 	let serverServerIds = Set.fromList $ entityKey <$> servers
 	let allServerIds = serverServerIds
-		`Set.union` setFromFieldVal serverWebsitesJoin
-		`Set.union` setFromFieldVal serverExtraUsersJoin
-		`Set.union` setFromFieldVal serverPoisJoin
+		`Set.union` joinGetParentKeys serverWebsitesJoin
+		`Set.union` joinGetParentKeys serverExtraUsersJoin
+		`Set.union` joinGetParentKeys serverPoisJoin
 
 	let projectProjectIds = Set.fromList $ entityKey <$> projects
 	allServers <- runSqlBackend sqlBackend
