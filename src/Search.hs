@@ -64,6 +64,11 @@ filterServerWebsites query = select $ from $ \w -> do
 		||. (w ^. ServerWebsiteText `like` query))
 	return w
 
+filterServerExtraUsers :: SqlExpr (Value Text) -> SqlPersistM [Entity ServerExtraUserAccount]
+filterServerExtraUsers query = select $ from $ \w -> do
+	where_ (w ^. ServerExtraUserAccountDesc `like` query)
+	return w
+
 -- TODO don't manage to specify the type signature for this...
 -- getByIds :: (PersistEntity a, PersistEntityBackend a ~ SqlBackend) =>
 --             EntityField a (Key a) -> [Key a] -> SqlPersistM [Entity a]
@@ -71,21 +76,23 @@ getByIds keySelector ids = select $ from $ \s -> do
 	where_ (s ^. keySelector `in_` valList ids)
 	return s
 
-getServerSearchMatch :: [Entity ServerWebsite] -> ObjRef (Entity Server) -> IO (ObjRef ServerSearchMatch)
-getServerSearchMatch allServerWebsites server = do
+getServerSearchMatch :: [Entity ServerWebsite] -> [Entity ServerExtraUserAccount] -> ObjRef (Entity Server) -> IO (ObjRef ServerSearchMatch)
+getServerSearchMatch allServerWebsites allServerExtraUsers server = do
 	let serverKey = entityKey (fromObjRef server)
-	let serverWebsites = filter (\s -> serverWebsiteServerId (entityVal s) == serverKey) allServerWebsites
+	let filterForServer fieldGetter = filter (\e -> fieldGetter (entityVal e) == serverKey)
+	let serverWebsites = filterForServer serverWebsiteServerId allServerWebsites
+	let serverExtraUsers = filterForServer serverExtraUserAccountServerId allServerExtraUsers
 	newObjectDC =<< ServerSearchMatch server
 		<$> mapM newObjectDC serverWebsites
-		<*> mapM newObjectDC []
+		<*> mapM newObjectDC serverExtraUsers
 		<*> mapM newObjectDC []
 
-getProjectSearchMatch :: [Entity Server] -> [Entity ServerWebsite] -> [Entity ProjectPointOfInterest]
+getProjectSearchMatch :: [Entity Server] -> [Entity ServerWebsite] -> [Entity ServerExtraUserAccount]-> [Entity ProjectPointOfInterest]
 	-> ObjRef (Entity Project) -> IO (ObjRef ProjectSearchMatch)
-getProjectSearchMatch allServers allServerWebsites allProjectPois project = do
+getProjectSearchMatch allServers allServerWebsites allServerExtraUsers allProjectPois project = do
 	let projectKey = entityKey (fromObjRef project)
 	let projectServers = filter (\s -> serverProjectId (entityVal s) == projectKey) allServers
-	serverSearchMatch <- mapM (getServerSearchMatch allServerWebsites)
+	serverSearchMatch <- mapM (getServerSearchMatch allServerWebsites allServerExtraUsers)
 		<$> mapM newObjectDC projectServers
 	let projectPois = filter (\p -> projectPointOfInterestProjectId (entityVal p) == projectKey) allProjectPois
 	newObjectDC =<< ProjectSearchMatch project
@@ -100,13 +107,14 @@ searchText sqlBackend txt = do
 	allProjectPois <- runQ filterProjectPois
 	servers <- runQ filterServers
 	allServerWebsites <- runQ filterServerWebsites
-	
+	allServerExtraUsers <- runQ filterServerExtraUsers
+
 	-- start by the leaves of the tree, and go up,
 	-- to catch all the cases.
 	let serverServerIds = Set.fromList $ entityKey <$> servers
 	let serverWebsitesServerIds = Set.fromList $ serverWebsiteServerId . entityVal <$> allServerWebsites
 	let allServerIds = Set.unions [serverServerIds, serverWebsitesServerIds]
-	
+
 	let projectProjectIds = Set.fromList $ entityKey <$> projects
 	allServers <- runSqlBackend sqlBackend
 		(getByIds ServerId $ Set.toList allServerIds)
@@ -114,5 +122,5 @@ searchText sqlBackend txt = do
 	let allProjectIds = Set.unions [projectProjectIds, serverProjectIds]
 	allProjects <- runSqlBackend sqlBackend (getByIds ProjectId $ Set.toList allProjectIds)
 	projectRefs <- mapM newObjectDC allProjects
-	
-	mapM (getProjectSearchMatch allServers allServerWebsites allProjectPois) projectRefs
+
+	mapM (getProjectSearchMatch allServers allServerWebsites allServerExtraUsers allProjectPois) projectRefs
