@@ -83,7 +83,8 @@ getByIds keySelector ids = select $ from $ \s -> do
 	where_ (s ^. keySelector `in_` valList ids)
 	return s
 
---filterEntityJoin :: Key Server -> ServerJoin record -> [Entity record]
+filterEntityJoin :: (DefaultClass (Entity a), Eq (Key b)) =>
+                    Key b -> Join a b -> IO [ObjRef (Entity a)]
 filterEntityJoin parentKey (Join fieldGetter entities) = mapM newObjectDC $ filter (\e -> fieldGetter (entityVal e) == parentKey) entities
 
 getServerSearchMatch :: ServerJoin ServerWebsite -> ServerJoin ServerExtraUserAccount -> ServerJoin ServerPointOfInterest
