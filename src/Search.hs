@@ -150,7 +150,7 @@ searchText sqlBackend txt = do
 		(getByIds ServerId $ Set.toList allServerIds)
         let projectServersJoin = Join serverProjectId allServers
 	let serverProjectIds = Set.fromList $ serverProjectId . entityVal <$> allServers
-	let allProjectIds = Set.unions [projectProjectIds, serverProjectIds]
+	let allProjectIds = Set.unions [projectProjectIds, serverProjectIds, joinGetParentKeys projectPoisJoin]
 	allProjects <- runSqlBackend sqlBackend (getByIds ProjectId $ Set.toList allProjectIds)
 	projectRefs <- mapM newObjectDC allProjects
 
