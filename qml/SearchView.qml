@@ -23,10 +23,17 @@ Rectangle {
 				id: flow
 				Repeater {
 					model: searchView.model.matches
-					Label {
-						width: parent.width
-						height: 40
-						text: modelData.project.name
+					Flow {
+						width: searchView.width
+						Text {
+							width: searchView.width
+							height: 40
+							text: modelData.project.name
+						}
+						Repeater {
+							model: modelData.pois
+							TileProjectPoi {}
+						}
 					}
 				}
 			}
