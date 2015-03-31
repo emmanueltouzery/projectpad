@@ -16,13 +16,19 @@ data ServerSearchMatch = ServerSearchMatch
 		smServer :: ObjRef (Entity Server),
 		smServerWebsites :: [ObjRef (Entity ServerWebsite)],
 		smServerExtraUsers :: [ObjRef (Entity ServerExtraUserAccount)],
-		smServerPoi :: [ObjRef (Entity ServerPointOfInterest)]
+		smServerPois :: [ObjRef (Entity ServerPointOfInterest)]
 	} deriving Typeable
+
+-- TODO don't manage to specify the type signature for this...
+prop txt cb = defPropertyConst txt (return . cb . fromObjRef)
 
 instance DefaultClass ServerSearchMatch where
 	classMembers =
 		[
-			defPropertyConst "server" (return . smServer . fromObjRef)
+			prop "server" smServer,
+			prop "websites" smServerWebsites,
+			prop "extraUsers" smServerExtraUsers,
+			prop "pois" smServerPois
 		]
 
 data ProjectSearchMatch = ProjectSearchMatch
@@ -35,7 +41,9 @@ data ProjectSearchMatch = ProjectSearchMatch
 instance DefaultClass ProjectSearchMatch where
 	classMembers =
 		[
-			defPropertyConst "project" (return . smProject . fromObjRef)
+			prop "project" smProject,
+			prop "pois" smProjectPois,
+			prop "servers" smProjectServers
 		]
 
 filterProjects :: SqlExpr (Value Text) -> SqlPersistM [Entity Project]
