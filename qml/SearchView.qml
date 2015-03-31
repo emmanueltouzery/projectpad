@@ -24,6 +24,7 @@ Rectangle {
 				Repeater {
 					model: searchView.model.matches
 					Flow {
+						id: projectFlow
 						width: searchView.width
 						Text {
 							width: searchView.width
@@ -33,6 +34,30 @@ Rectangle {
 						Repeater {
 							model: modelData.pois
 							TileProjectPoi {}
+						}
+						Repeater {
+							model: modelData.servers
+							Flow {
+								id: serverFlow
+								width: searchView.width
+								Text {
+									width: searchView.width
+									height: 40
+									text: modelData.server.desc
+								}
+								Repeater {
+									model: modelData.extraUsers
+									TileExtraUserAccount {}
+								}
+								Repeater {
+									model: modelData.websites
+									TileServerWebsite {}
+								}
+								Repeater {
+									model: modelData.pois
+									TileServerPoi {}
+								}
+							}
 						}
 					}
 				}
