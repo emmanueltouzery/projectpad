@@ -23,30 +23,6 @@ Rectangle {
 		return {pathLinks: [], title: model.project.name + " " + PoiActions.envDesc(model.environment)};
 	}
 
-	function editServer(curServer) {
-		popup.setContents("Edit server", serverEditComponent,
-			function (serverEdit) {
-				serverEdit.activate(curServer, model.environment)
-			},
-			function (serverEdit) {
-				serverEdit.onOk()
-				// force refresh
-				itemsrepeater.model = projectViewState.getServers(pv.model.project.id, pv.model.environment)
-			})
-	}
-
-	function editPoi(curPoi) {
-		popup.setContents("Edit point of interest", poiEditComponent,
-			function (poiEdit) {
-				poiEdit.activate(curPoi)
-			},
-			function (poiEdit) {
-				poiEdit.onOk()
-				// force refresh
-				poisrepeater.model = projectViewState.getPois(pv.model.project.id)
-			})
-	}
-
 	function actionTriggered(name) {
 		switch (name) {
 			case "addsrv":

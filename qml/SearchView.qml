@@ -46,6 +46,12 @@ Rectangle {
 									width: searchView.width
 									height: 40
 									text: modelData.server.desc
+                    Button {
+                        text: "Actions"
+                        onClicked: {
+                            tileServer.showSelectMenu(modelData.server)
+                        }
+                    }
 								}
 								Repeater {
 									model: modelData.extraUsers
@@ -77,4 +83,8 @@ Rectangle {
 		visible: false
 		z: 3
 	}
+    TileServer {
+        id: tileServer
+        visible: false
+    }
 }
