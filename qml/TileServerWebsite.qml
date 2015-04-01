@@ -8,6 +8,19 @@ ItemTile {
 	border.color: "green"
 	itemDesc: modelData.desc
 	icon: "glyphicons-372-global"
+
+	function editSrvWww(curPoi) {
+		popup.setContents("Edit website", editSrvWwwComponent,
+				function (wwwEdit) {
+					wwwEdit.activate(curPoi)
+				},
+				function (wwwEdit) {
+					wwwEdit.onOk()
+					// force refresh
+					wwwsrepeater.model = serverViewState.getServerWebsites(pv.model.id)
+				})
+	}
+
 	MouseArea {
 		anchors.fill: parent
 		onClicked: {
@@ -21,6 +34,12 @@ ItemTile {
 					})
 				}]]
 			selectMenu.show(parent)
+		}
+	}
+	Component {
+		id: editSrvWwwComponent
+		ServerWebsiteEdit {
+			id: wwwEdit
 		}
 	}
 }

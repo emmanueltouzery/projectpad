@@ -10,6 +10,18 @@ ItemTile {
 	border.width: selected ? 4 : 0
 	border.color: "green"
 
+	function editPoi(curPoi) {
+		popup.setContents("Edit point of interest", poiEditComponent,
+			function (poiEdit) {
+				poiEdit.activate(curPoi)
+			},
+			function (poiEdit) {
+				poiEdit.onOk()
+				// force refresh
+				poisrepeater.model = projectViewState.getPois(pv.model.project.id)
+			})
+	}
+
 	MouseArea {
 		anchors.fill: parent
 		onClicked: {
@@ -26,6 +38,12 @@ ItemTile {
 					})
 				}]]
 			selectMenu.show(parent)
+		}
+	}
+	Component {
+		id: poiEditComponent
+		PoiEdit {
+			id: poiEdit
 		}
 	}
 }

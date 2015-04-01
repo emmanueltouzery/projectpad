@@ -16,7 +16,8 @@ data ServerSearchMatch = ServerSearchMatch
 		smServer :: ObjRef (Entity Server),
 		smServerWebsites :: [ObjRef (Entity ServerWebsite)],
 		smServerExtraUsers :: [ObjRef (Entity ServerExtraUserAccount)],
-		smServerPois :: [ObjRef (Entity ServerPointOfInterest)]
+		smServerPois :: [ObjRef (Entity ServerPointOfInterest)],
+		smServerDatabases :: [ObjRef (Entity ServerDatabase)]
 	} deriving Typeable
 
 -- TODO don't manage to specify the type signature for this...
@@ -28,7 +29,8 @@ instance DefaultClass ServerSearchMatch where
 			prop "server" smServer,
 			prop "websites" smServerWebsites,
 			prop "extraUsers" smServerExtraUsers,
-			prop "pois" smServerPois
+			prop "pois" smServerPois,
+			prop "databases" smServerDatabases
 		]
 
 data ProjectSearchMatch = ProjectSearchMatch
@@ -85,6 +87,13 @@ filterServerPois query = select $ from $ \w -> do
 		||. (w ^. ServerPointOfInterestText `like` query))
 	return w
 
+filterServerDatabases :: SqlExpr (Value Text) -> SqlPersistM [Entity ServerDatabase]
+filterServerDatabases query = select $ from $ \d -> do
+	where_ ((d ^. ServerDatabaseDesc `like` query)
+		||. (d ^. ServerDatabaseName `like` query)
+		||. (d ^. ServerDatabaseText `like` query))
+	return d
+
 -- TODO don't manage to specify the type signature for this...
 getByIds keySelector ids = select $ from $ \s -> do
 	where_ (s ^. keySelector `in_` valList ids)
@@ -98,20 +107,21 @@ filterEntityJoin parentKey (Join parentKeyGetter entities) = mapM newObjectDC $
 	filter (\e -> parentKeyGetter (entityVal e) == parentKey) entities
 
 getServerSearchMatch :: ServerJoin ServerWebsite -> ServerJoin ServerExtraUserAccount -> ServerJoin ServerPointOfInterest
-	-> ObjRef (Entity Server) -> IO (ObjRef ServerSearchMatch)
-getServerSearchMatch serverWebsitesJoin serverExtraUsersJoin serverPoisJoin  server = do
+	-> ServerJoin ServerDatabase -> ObjRef (Entity Server) -> IO (ObjRef ServerSearchMatch)
+getServerSearchMatch serverWebsitesJoin serverExtraUsersJoin serverPoisJoin serverDatabasesJoin server = do
 	let serverKey = entityKey (fromObjRef server)
 	newObjectDC =<< ServerSearchMatch server
 		<$> filterEntityJoin serverKey serverWebsitesJoin
 		<*> filterEntityJoin serverKey serverExtraUsersJoin
 		<*> filterEntityJoin serverKey serverPoisJoin
+		<*> filterEntityJoin serverKey serverDatabasesJoin
 
 getProjectSearchMatch :: ProjectJoin Server -> ServerJoin ServerWebsite -> ServerJoin ServerExtraUserAccount
-	-> ServerJoin ServerPointOfInterest -> ProjectJoin ProjectPointOfInterest
+	-> ServerJoin ServerPointOfInterest -> ServerJoin ServerDatabase -> ProjectJoin ProjectPointOfInterest
 	-> ObjRef (Entity Project) -> IO (ObjRef ProjectSearchMatch)
-getProjectSearchMatch projectServersJoin serverWebsitesJoin serverExtraUsersJoin serverPoisJoin projectPoisJoin project = do
+getProjectSearchMatch projectServersJoin serverWebsitesJoin serverExtraUsersJoin serverPoisJoin serverDatabasesJoin projectPoisJoin project = do
 	let projectKey = entityKey (fromObjRef project)
-	serverSearchMatch <- mapM (getServerSearchMatch serverWebsitesJoin serverExtraUsersJoin serverPoisJoin )
+	serverSearchMatch <- mapM (getServerSearchMatch serverWebsitesJoin serverExtraUsersJoin serverPoisJoin serverDatabasesJoin)
 		<$> filterEntityJoin projectKey projectServersJoin
 	newObjectDC =<< ProjectSearchMatch project
 		<$> filterEntityJoin projectKey projectPoisJoin
@@ -136,6 +146,7 @@ searchText sqlBackend txt = do
 	serverWebsitesJoin <- Join serverWebsiteServerId <$> runQ filterServerWebsites
 	serverExtraUsersJoin <- Join serverExtraUserAccountServerId <$> runQ filterServerExtraUsers
 	serverPoisJoin <- Join serverPointOfInterestServerId <$> runQ filterServerPois
+	serverDatabasesJoin <- Join serverDatabaseServerId <$> runQ filterServerDatabases
 
 	-- start by the leaves of the tree, and go up,
 	-- to catch all the cases.
@@ -144,6 +155,7 @@ searchText sqlBackend txt = do
 		`Set.union` joinGetParentKeys serverWebsitesJoin
 		`Set.union` joinGetParentKeys serverExtraUsersJoin
 		`Set.union` joinGetParentKeys serverPoisJoin
+		`Set.union` joinGetParentKeys serverDatabasesJoin
 
 	let projectProjectIds = Set.fromList $ entityKey <$> projects
 	allServers <- runSqlBackend sqlBackend
@@ -154,4 +166,4 @@ searchText sqlBackend txt = do
 	allProjects <- runSqlBackend sqlBackend (getByIds ProjectId $ Set.toList allProjectIds)
 	projectRefs <- mapM newObjectDC allProjects
 
-	mapM (getProjectSearchMatch projectServersJoin serverWebsitesJoin serverExtraUsersJoin serverPoisJoin projectPoisJoin) projectRefs
+	mapM (getProjectSearchMatch projectServersJoin serverWebsitesJoin serverExtraUsersJoin serverPoisJoin serverDatabasesJoin projectPoisJoin) projectRefs

@@ -7,6 +7,7 @@ Rectangle {
 	anchors.fill: parent
 	signal loadView(string name, variant model)
 	property variant model
+	property variant appContext: null
 
 	function getBreadCrumbs() {
 		return {pathLinks: [], title: 'Search'};
@@ -36,6 +37,7 @@ Rectangle {
 							TileProjectPoi {}
 						}
 						Repeater {
+							id: serverRepeater
 							model: modelData.servers
 							Flow {
 								id: serverFlow
@@ -54,8 +56,14 @@ Rectangle {
 									TileServerWebsite {}
 								}
 								Repeater {
+									model: modelData.databases
+									TileServerDatabase {}
+								}
+								Repeater {
 									model: modelData.pois
-									TileServerPoi {}
+									TileServerPoi {
+										server: serverRepeater.modelData.server
+									}
 								}
 							}
 						}
@@ -63,5 +71,10 @@ Rectangle {
 				}
 			}
 		}
+	}
+	SelectMenu {
+		id: selectMenu
+		visible: false
+		z: 3
 	}
 }

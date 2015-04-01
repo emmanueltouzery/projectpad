@@ -39,30 +39,6 @@ Rectangle {
 				})
 	}
 
-	function editSrvWww(curPoi) {
-		popup.setContents("Edit website", editSrvWwwComponent,
-				function (wwwEdit) {
-					wwwEdit.activate(curPoi)
-				},
-				function (wwwEdit) {
-					wwwEdit.onOk()
-					// force refresh
-					wwwsrepeater.model = serverViewState.getServerWebsites(pv.model.id)
-				})
-	}
-
-	function editDb(curDb) {
-		popup.setContents("Edit database", editDatabaseComponent,
-				function (dbEdit) {
-					dbEdit.activate(curDb)
-				},
-				function (dbEdit) {
-					dbEdit.onOk()
-					// force refresh
-					dbsrepeater.model = serverViewState.getServerDatabases(pv.model.id)
-				})
-	}
-
 	function editExtraUserAccount(curUserAcct) {
 		popup.setContents("Edit extra user account", editExtraUserAccountComponent,
 				function (userEdit) {
@@ -180,6 +156,7 @@ Rectangle {
 					model: serverViewState.getPois(pv.model.id)
 
 					TileServerPoi {
+              server: pv.model
 					}
 				}
 			}

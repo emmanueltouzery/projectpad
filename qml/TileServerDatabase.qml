@@ -10,6 +10,18 @@ ItemTile {
 	itemDesc: modelData.desc
 	icon: "glyphicons-528-database"
 
+	function editDb(curDb) {
+		popup.setContents("Edit database", editDatabaseComponent,
+				function (dbEdit) {
+					dbEdit.activate(curDb)
+				},
+				function (dbEdit) {
+					dbEdit.onOk()
+					// force refresh
+					dbsrepeater.model = serverViewState.getServerDatabases(pv.model.id)
+				})
+	}
+
 	MouseArea {
 		anchors.fill: parent
 		onClicked: {
@@ -27,6 +39,12 @@ ItemTile {
 					})
 				}]]
 			selectMenu.show(parent)
+		}
+	}
+	Component {
+		id: editDatabaseComponent
+		ServerDatabaseEdit {
+			id: dbEdit
 		}
 	}
 }

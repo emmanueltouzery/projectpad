@@ -8,6 +8,7 @@ ItemTile {
 	border.width: selected ? 4 : 0
 	border.color: "green"
 	itemDesc: modelData.desc
+	property variant server
 	icon: PoiActions.actions[modelData.interestType].icon
 
 	MouseArea {
@@ -18,31 +19,31 @@ ItemTile {
 				["glyphicons-193-circle-remove", function() {
 					appContext.confirmDelete(function() {
 						serverViewState.deleteServerPois([modelData.id])
-						poisrepeater.model = serverViewState.getPois(pv.model.id)
+						poisrepeater.model = serverViewState.getPois(server.id)
 					})
 				}]]
-			if (pv.model.accessType === "SrvAccessSsh"
-				&& pv.model.serverIp.length > 0
-				&& pv.model.username.length > 0
-				&& pv.model.password.length > 0) {
+			if (server.accessType === "SrvAccessSsh"
+				&& server.serverIp.length > 0
+				&& server.username.length > 0
+				&& server.password.length > 0) {
 				switch (modelData.interestType) {
 				case "PoiCommandToRun":
 					options.push(["glyphicons-138-cogwheels", function() {
-						var info = serverViewState.executePoiAction(pv.model, modelData)
+						var info = serverViewState.executePoiAction(server, modelData)
 						appContext.progressMessage("\nStarted program\n")
 					}])
 					break
 				case "PoiLogFile":
 					options.push(["glyphicons-283-cardio", function() {
-						serverViewState.executePoiAction(pv.model, modelData)
+						serverViewState.executePoiAction(server, modelData)
 					}])
 					options.push(["glyphicons-52-eye-open", function() {
-						serverViewState.executePoiSecondaryAction(pv.model, modelData)
+						serverViewState.executePoiSecondaryAction(server, modelData)
 					}])
 					break
 				case "PoiConfigFile":
 					options.push(["glyphicons-52-eye-open", function() {
-						serverViewState.executePoiAction(pv.model, modelData)
+						serverViewState.executePoiAction(server, modelData)
 					}])
 					break
 				}
