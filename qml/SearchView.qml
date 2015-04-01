@@ -42,17 +42,23 @@ Rectangle {
 							Flow {
 								id: serverFlow
 								width: searchView.width
-								Text {
-									width: searchView.width
+                  Row {
 									height: 40
+									width: searchView.width
+		                  IconButton {
+			                    width: 30
+			                    iconX: 12
+			                    iconName: 'glyphicons-518-option-vertical'
+			                    iconSize: 20
+			                    onClicked: tileServer.showSelectMenu(modelData.server)
+			                    height: parent.height
+		                  }
+								Text {
 									text: modelData.server.desc
-                    Button {
-                        text: "Actions"
-                        onClicked: {
-                            tileServer.showSelectMenu(modelData.server)
-                        }
-                    }
+                    height: parent.height
+                    verticalAlignment: Text.AlignVCenter
 								}
+                  }
 								Repeater {
 									model: modelData.extraUsers
 									TileExtraUserAccount {}
