@@ -83,7 +83,7 @@ Rectangle {
 							dbsrepeater.model = serverViewState.getServerDatabases(pv.model.id)
 						}, {noOpacity: true})
 				break;
-    case "addaccount":
+			case "addaccount":
 				popup.setContents("Add extra user account", editExtraUserAccountComponent,
 						function (editUser) {
 							editUser.activate(editUser.getDefaultModel())
@@ -92,7 +92,7 @@ Rectangle {
 							editUser.onOk();
 							useraccountsrepeater.model = serverViewState.getServerExtraUserAccounts(pv.model.id)
 						}, {noOpacity: true})
-        break;
+				break;
 			case "add":
 				popup.implicitClose = false
 				popup.setContents("Add...", addServerComponent,
@@ -140,6 +140,7 @@ Rectangle {
 					model: serverViewState.getServerWebsites(pv.model.id)
 
 					TileServerWebsite {
+						model: modelData
 					}
 				}
 
@@ -148,6 +149,7 @@ Rectangle {
 					model: serverViewState.getServerDatabases(pv.model.id)
 
 					TileServerDatabase {
+						model: modelData
 					}
 				}
 
@@ -156,7 +158,8 @@ Rectangle {
 					model: serverViewState.getPois(pv.model.id)
 
 					TileServerPoi {
-              server: pv.model
+						server: pv.model
+						model: modelData
 					}
 				}
 			}

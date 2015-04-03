@@ -9,6 +9,7 @@ ItemTile {
 	color: "light gray"
 	border.width: selected ? 4 : 0
 	border.color: "green"
+	property variant global: undefined
 
 	function editPoi(curPoi) {
 		popup.setContents("Edit point of interest", poiEditComponent,
@@ -37,7 +38,7 @@ ItemTile {
 						poisrepeater.model = projectViewState.getPois(pv.model.project.id)
 					})
 				}]]
-			selectMenu.show(parent)
+			selectMenu.show(parent, global)
 		}
 	}
 	Component {

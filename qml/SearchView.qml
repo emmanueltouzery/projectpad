@@ -1,6 +1,7 @@
 import QtQuick 2.0
 import QtQuick.Controls 1.2
 import QtQuick.Layouts 1.1
+import "server-menu.js" as ServerMenu
 
 Rectangle {
 	id: searchView
@@ -34,7 +35,9 @@ Rectangle {
 						}
 						Repeater {
 							model: modelData.pois
-							TileProjectPoi {}
+							TileProjectPoi {
+								global: searchView
+							}
 						}
 						Repeater {
 							id: serverRepeater
@@ -42,39 +45,50 @@ Rectangle {
 							Flow {
 								id: serverFlow
 								width: searchView.width
-                  Row {
+								Row {
 									height: 40
 									width: searchView.width
-		                  IconButton {
-			                    width: 30
-			                    iconX: 12
-			                    iconName: 'glyphicons-518-option-vertical'
-			                    iconSize: 20
-			                    onClicked: tileServer.showSelectMenu(modelData.server)
-			                    height: parent.height
-		                  }
-								Text {
-									text: modelData.server.desc
-                    height: parent.height
-                    verticalAlignment: Text.AlignVCenter
+									IconButton {
+										width: 30
+										iconX: 12
+										iconName: 'glyphicons-518-option-vertical'
+										iconSize: 20
+										onClicked: ServerMenu.showSelectMenu(modelData.server)
+										height: parent.height
+									}
+									Text {
+										text: modelData.server.desc
+										height: parent.height
+										verticalAlignment: Text.AlignVCenter
+									}
 								}
-                  }
 								Repeater {
 									model: modelData.extraUsers
-									TileExtraUserAccount {}
+									TileExtraUserAccount {
+										model: modelData.child
+										global: searchView
+									}
 								}
 								Repeater {
 									model: modelData.websites
-									TileServerWebsite {}
+									TileServerWebsite {
+										model: modelData.child
+										global: searchView
+									}
 								}
 								Repeater {
 									model: modelData.databases
-									TileServerDatabase {}
+									TileServerDatabase {
+										model: modelData.child
+										global: searchView
+									}
 								}
 								Repeater {
 									model: modelData.pois
 									TileServerPoi {
-										server: serverRepeater.modelData.server
+										model: modelData.child
+										server: modelData.server
+										global: searchView
 									}
 								}
 							}
@@ -89,8 +103,10 @@ Rectangle {
 		visible: false
 		z: 3
 	}
-    TileServer {
-        id: tileServer
-        visible: false
-    }
+	Component {
+		id: serverEditComponent
+		ServerEdit {
+			id: serverEdit
+		}
+	}
 }

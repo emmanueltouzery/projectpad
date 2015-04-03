@@ -11,13 +11,30 @@ import Data.Set (Set)
 
 import Model
 
+-- I don't know in the QML how to get the current
+-- item of the parent repeater => keep in the info
+-- at the child level because I need it when some
+-- menu actions are activated.
+data ServerChildInfo a = ServerChildInfo
+	{
+		sciServer :: ObjRef (Entity Server),
+		sciChild :: ObjRef (Entity a)
+	} deriving Typeable
+
+instance Typeable a => DefaultClass (ServerChildInfo a) where
+	classMembers =
+		[
+			prop "server" sciServer,
+			prop "child" sciChild
+		]
+
 data ServerSearchMatch = ServerSearchMatch
 	{
 		smServer :: ObjRef (Entity Server),
-		smServerWebsites :: [ObjRef (Entity ServerWebsite)],
-		smServerExtraUsers :: [ObjRef (Entity ServerExtraUserAccount)],
-		smServerPois :: [ObjRef (Entity ServerPointOfInterest)],
-		smServerDatabases :: [ObjRef (Entity ServerDatabase)]
+		smServerWebsites :: [ObjRef (ServerChildInfo ServerWebsite)],
+		smServerExtraUsers :: [ObjRef (ServerChildInfo ServerExtraUserAccount)],
+		smServerPois :: [ObjRef (ServerChildInfo ServerPointOfInterest)],
+		smServerDatabases :: [ObjRef (ServerChildInfo ServerDatabase)]
 	} deriving Typeable
 
 -- TODO don't manage to specify the type signature for this...
@@ -106,15 +123,22 @@ filterEntityJoin :: (DefaultClass (Entity a), Eq (Key b)) =>
 filterEntityJoin parentKey (Join parentKeyGetter entities) = mapM newObjectDC $
 	filter (\e -> parentKeyGetter (entityVal e) == parentKey) entities
 
+makeServerChildInfos :: (DefaultClass (Entity a), Typeable a) =>
+	ObjRef (Entity Server)
+	-> Join a Server -> IO [ObjRef (ServerChildInfo a)]
+makeServerChildInfos server childrenJoin = do
+	let serverKey = entityKey (fromObjRef server)
+	children <- filterEntityJoin serverKey childrenJoin
+	mapM (newObjectDC . ServerChildInfo server) children
+
 getServerSearchMatch :: ServerJoin ServerWebsite -> ServerJoin ServerExtraUserAccount -> ServerJoin ServerPointOfInterest
 	-> ServerJoin ServerDatabase -> ObjRef (Entity Server) -> IO (ObjRef ServerSearchMatch)
 getServerSearchMatch serverWebsitesJoin serverExtraUsersJoin serverPoisJoin serverDatabasesJoin server = do
-	let serverKey = entityKey (fromObjRef server)
 	newObjectDC =<< ServerSearchMatch server
-		<$> filterEntityJoin serverKey serverWebsitesJoin
-		<*> filterEntityJoin serverKey serverExtraUsersJoin
-		<*> filterEntityJoin serverKey serverPoisJoin
-		<*> filterEntityJoin serverKey serverDatabasesJoin
+		<$> makeServerChildInfos server serverWebsitesJoin
+		<*> makeServerChildInfos server serverExtraUsersJoin
+		<*> makeServerChildInfos server serverPoisJoin
+		<*> makeServerChildInfos server serverDatabasesJoin
 
 getProjectSearchMatch :: ProjectJoin Server -> ServerJoin ServerWebsite -> ServerJoin ServerExtraUserAccount
 	-> ServerJoin ServerPointOfInterest -> ServerJoin ServerDatabase -> ProjectJoin ProjectPointOfInterest
