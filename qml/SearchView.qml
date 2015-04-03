@@ -45,6 +45,7 @@ Rectangle {
 							Flow {
 								id: serverFlow
 								width: searchView.width
+								spacing: 10
 								Row {
 									height: 40
 									width: searchView.width
