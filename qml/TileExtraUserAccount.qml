@@ -10,6 +10,18 @@ ItemTile {
 	itemDesc: model.desc
 	icon: "glyphicons-526-user-key"
 	property variant global: undefined
+
+	function editExtraUserAccount(curUserAcct) {
+		popup.setContents("Edit extra user account", editExtraUserAccountComponent,
+				function (userEdit) {
+					userEdit.activate(curUserAcct)
+				},
+				function (userEdit) {
+					userEdit.onOk()
+					// force refresh
+					useraccountsrepeater.model = serverViewState.getServerExtraUserAccounts(pv.model.id)
+				})
+	}
 	MouseArea {
 		anchors.fill: parent
 		onClicked: {
@@ -29,6 +41,12 @@ ItemTile {
 			}
 			selectMenu.options = options
 			selectMenu.show(parent, global)
+		}
+	}
+	Component {
+		id: editExtraUserAccountComponent
+		ServerExtraUserAccountEdit {
+			id: srvExtraUserAccountEdit
 		}
 	}
 }

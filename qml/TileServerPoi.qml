@@ -13,6 +13,18 @@ ItemTile {
 	icon: PoiActions.actions[model.interestType].icon
 	property variant global: undefined
 
+	function editPoi(curPoi) {
+		popup.setContents("Edit point of interest", editPoiComponent,
+				function (poiEdit) {
+					poiEdit.activate(curPoi)
+				},
+				function (poiEdit) {
+					poiEdit.onServerOk()
+					// force refresh
+					poisrepeater.model = serverViewState.getPois(pv.model.id)
+				})
+	}
+
 	MouseArea {
 		anchors.fill: parent
 		onClicked: {
@@ -52,6 +64,12 @@ ItemTile {
 			}
 			selectMenu.options = options
 			selectMenu.show(parent, global)
+		}
+	}
+	Component {
+		id: editPoiComponent
+		PoiEdit {
+			id: poiEdit
 		}
 	}
 }

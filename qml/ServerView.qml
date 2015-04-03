@@ -27,30 +27,6 @@ Rectangle {
 			title: model.desc}
 	}
 
-	function editPoi(curPoi) {
-		popup.setContents("Edit point of interest", editPoiComponent,
-				function (poiEdit) {
-					poiEdit.activate(curPoi)
-				},
-				function (poiEdit) {
-					poiEdit.onServerOk()
-					// force refresh
-					poisrepeater.model = serverViewState.getPois(pv.model.id)
-				})
-	}
-
-	function editExtraUserAccount(curUserAcct) {
-		popup.setContents("Edit extra user account", editExtraUserAccountComponent,
-				function (userEdit) {
-					userEdit.activate(curUserAcct)
-				},
-				function (userEdit) {
-					userEdit.onOk()
-					// force refresh
-					useraccountsrepeater.model = serverViewState.getServerExtraUserAccounts(pv.model.id)
-				})
-	}
-
 	function actionTriggered(name) {
 		switch (name) {
 			case "addpoi":
