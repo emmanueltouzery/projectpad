@@ -34,6 +34,7 @@ import ProjectView
 import ServerView
 import Search
 import Util
+import ChildEntityCache
 
 dbFileName :: String
 dbFileName = "projectpad.db"
@@ -121,6 +122,16 @@ setupPasswordAndUpgradeDb sqlBackend changeKey state _ password = do
 				(Left (x :: SomeException)) -> print x >> return WrongPassword
 				Right _ -> reReadProjects sqlBackend changeKey state >> return Ok
 
+doSearch :: SqlBackend -> AppState -> Text -> IO [ObjRef ProjectSearchMatch]
+doSearch sqlBackend state txt = do
+	-- search needs the caches cleared otherwise if the user
+	-- does rename or delete an item, the backend wants to
+	-- update the cache, but it might be the cache or a completely
+	-- different view...
+	clearCache (projectViewState state)
+	clearCache (serverViewState state)
+	searchText sqlBackend txt
+
 createContext :: SqlBackend -> IO (ObjRef AppState)
 createContext sqlBackend = do
 	(projectState, projectsChangeSignal) <- createProjectListState sqlBackend
@@ -135,7 +146,7 @@ createContext sqlBackend = do
 				$ return . projectViewState . fromObjRef,
 			defPropertyConst "serverViewState"
 				$ return . serverViewState . fromObjRef,
-			defMethod' "search" (const $ searchText sqlBackend),
+			defMethod' "search" (doSearch sqlBackend . fromObjRef),
 			defMethod' "openAssociatedFile" (\_ path ->
 				serializeEither' <$> openAssociatedFile path)
 		]
