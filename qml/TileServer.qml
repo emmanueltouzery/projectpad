@@ -1,4 +1,5 @@
 import QtQuick 2.0
+import QtQuick.Window 2.2
 import "server-menu.js" as ServerMenu
 
 ItemTile {
