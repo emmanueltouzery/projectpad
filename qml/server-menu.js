@@ -10,7 +10,7 @@ function editServer(curServer) {
 		})
 }
 
-function showSelectMenu(server) {
+function showSelectMenu(server, parnt) {
 	var options = [
 		["glyphicons-145-folder-open", function() { loadView("ServerView.qml", server) }],
 		["glyphicons-151-edit", function() {editServer(server)}],
@@ -62,5 +62,5 @@ function showSelectMenu(server) {
 		}])
 	}
 	selectMenu.options = options
-	selectMenu.show(parent)
+	selectMenu.show(parnt || parent)
 }

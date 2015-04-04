@@ -70,7 +70,7 @@ ItemTile {
 
 	MouseArea {
 		anchors.fill: parent
-		onClicked: ServerMenu.showSelectMenu(modelData)
+		onClicked: ServerMenu.showSelectMenu(modelData, parent)
 	}
 	Component {
 		id: serverEditComponent
