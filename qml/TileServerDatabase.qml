@@ -21,7 +21,7 @@ ItemTile {
 				function (dbEdit) {
 					dbEdit.onOk()
 					// force refresh
-					dbsrepeater.model = serverViewState.getServerDatabases(pv.model.id)
+					refreshDbs()
 				})
 	}
 
@@ -38,7 +38,7 @@ ItemTile {
 							return
 						}
 						serverViewState.deleteServerDatabases([model.id])
-						dbsrepeater.model = serverViewState.getServerDatabases(pv.model.id)
+					refreshDbs()
 					})
 				}]]
 			selectMenu.show(parent, tileServerDatabase.global)

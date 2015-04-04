@@ -21,7 +21,7 @@ ItemTile {
 				function (poiEdit) {
 					poiEdit.onServerOk()
 					// force refresh
-					poisrepeater.model = serverViewState.getPois(pv.model.id)
+					refreshPois()
 				})
 	}
 
@@ -33,7 +33,7 @@ ItemTile {
 				["glyphicons-193-circle-remove", function() {
 					appContext.confirmDelete(function() {
 						serverViewState.deleteServerPois([model.id])
-						poisrepeater.model = serverViewState.getPois(server.id)
+						refreshPois()
 					})
 				}]]
 			if (server.accessType === "SrvAccessSsh"

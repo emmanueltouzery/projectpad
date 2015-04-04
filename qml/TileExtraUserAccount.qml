@@ -19,7 +19,7 @@ ItemTile {
 				function (userEdit) {
 					userEdit.onOk()
 					// force refresh
-					useraccountsrepeater.model = serverViewState.getServerExtraUserAccounts(pv.model.id)
+					refreshUsers()
 				})
 	}
 	MouseArea {
@@ -30,7 +30,7 @@ ItemTile {
 				["glyphicons-193-circle-remove", function() {
 					appContext.confirmDelete(function() {
 						serverViewState.deleteServerExtraUserAccounts([model.id])
-						useraccountsrepeater.model = serverViewState.getServerExtraUserAccounts(pv.model.id)
+					refreshUsers()
 					})
 				}]]
 			if (model.authKeyFilename !== "...") {

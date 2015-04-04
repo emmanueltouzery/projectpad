@@ -19,7 +19,7 @@ ItemTile {
 			function (poiEdit) {
 				poiEdit.onOk()
 				// force refresh
-				poisrepeater.model = projectViewState.getPois(pv.model.project.id)
+				refreshProjectPois()
 			})
 	}
 
@@ -35,7 +35,7 @@ ItemTile {
 					appContext.confirmDelete(function() {
 						projectViewState.deleteProjectPois([modelData.id])
 						// force refresh
-						poisrepeater.model = projectViewState.getPois(pv.model.project.id)
+				refreshProjectPois()
 					})
 				}]]
 			selectMenu.show(parent, global)

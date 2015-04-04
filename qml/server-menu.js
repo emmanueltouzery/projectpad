@@ -1,4 +1,4 @@
-function editServer(curServer) {
+function editServer(curServer, refreshAction) {
 	popup.setContents("Edit server", serverEditComponent,
 		function (serverEdit) {
 			serverEdit.activate(curServer, curServer.environment)
@@ -6,20 +6,20 @@ function editServer(curServer) {
 		function (serverEdit) {
 			serverEdit.onOk()
 			// force refresh
-			itemsrepeater.model = projectViewState.getServers(pv.model.project.id, pv.model.environment)
+			refreshAction()
 		})
 }
 
-function showSelectMenu(server, parnt) {
+function showSelectMenu(server, parnt, refreshAction) {
 	var options = [
 		["glyphicons-145-folder-open", function() { loadView("ServerView.qml", server) }],
-		["glyphicons-151-edit", function() {editServer(server)}],
+		["glyphicons-151-edit", function() {editServer(server, refreshAction)}],
 		["glyphicons-512-copy", function() { appContext.copyItem(server.password, true) }],
 		["glyphicons-193-circle-remove", function() {
 			appContext.confirmDelete(function() {
 				projectViewState.deleteServers([server.id])
 				// force refresh
-				itemsrepeater.model = projectViewState.getServers(pv.model.project.id, pv.model.environment)
+				refreshAction()
 			})
 		}]]
 	if (server.accessType === "SrvAccessWww") {

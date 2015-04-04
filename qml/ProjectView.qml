@@ -23,6 +23,10 @@ Rectangle {
 		return {pathLinks: [], title: model.project.name + " " + PoiActions.envDesc(model.environment)};
 	}
 
+	function refreshProjectPois() {
+		poisrepeater.model = projectViewState.getPois(pv.model.project.id)
+	}
+
 	function actionTriggered(name) {
 		switch (name) {
 			case "addsrv":
@@ -44,7 +48,7 @@ Rectangle {
 						function (poiEdit) {
 							poiEdit.onOk();
 							// force refresh
-							poisrepeater.model = projectViewState.getPois(pv.model.project.id)
+							refreshProjectPois()
 						})
 				break;
 		}

@@ -27,6 +27,21 @@ Rectangle {
 			title: model.desc}
 	}
 
+	function refreshPois() {
+		poisrepeater.model = serverViewState.getPois(pv.model.id)
+	}
+	
+	function refreshWwws() {
+		wwwsrepeater.model = serverViewState.getServerWebsites(pv.model.id)
+	}
+	function refreshDbs() {
+		dbsrepeater.model = serverViewState.getServerDatabases(pv.model.id)
+	}
+	
+	function refreshUsers() {
+		useraccountsrepeater.model = serverViewState.getServerExtraUserAccounts(pv.model.id)
+	}
+
 	function actionTriggered(name) {
 		switch (name) {
 			case "addpoi":
@@ -36,7 +51,7 @@ Rectangle {
 						},
 						function (poiEdit) {
 							poiEdit.onServerOk();
-							poisrepeater.model = serverViewState.getPois(pv.model.id)
+							refreshPois()
 						}, {noOpacity: true})
 				break;
 			case "addwww":
@@ -46,7 +61,7 @@ Rectangle {
 						},
 						function (wwwEdit) {
 							wwwEdit.onOk();
-							wwwsrepeater.model = serverViewState.getServerWebsites(pv.model.id)
+							refreshWwws()
 						}, {noOpacity: true})
 				break;
 			case "adddb":
@@ -56,7 +71,7 @@ Rectangle {
 						},
 						function (dbEdit) {
 							dbEdit.onOk();
-							dbsrepeater.model = serverViewState.getServerDatabases(pv.model.id)
+							refreshDbs()
 						}, {noOpacity: true})
 				break;
 			case "addaccount":
@@ -66,7 +81,7 @@ Rectangle {
 						},
 						function (editUser) {
 							editUser.onOk();
-							useraccountsrepeater.model = serverViewState.getServerExtraUserAccounts(pv.model.id)
+							refreshUsers()
 						}, {noOpacity: true})
 				break;
 			case "add":

@@ -13,6 +13,16 @@ Rectangle {
 	function getBreadCrumbs() {
 		return {pathLinks: [], title: 'Search'};
 	}
+
+	function refreshSearch() {
+		loadView("SearchView.qml", {matches: search(searchView.model.query), query: searchView.model.query })
+	}
+	function refreshPois() { refreshSearch() }
+	function refreshWwws() { refreshSearch() }
+	function refreshDbs() { refreshSearch() }
+	function refreshUsers() { refreshSearch() }
+	function refreshProjectPois() { refreshSearch() }
+
 	ScrollView {
 		anchors.fill: parent
 		Flickable {
@@ -54,7 +64,7 @@ Rectangle {
 										iconX: 12
 										iconName: 'glyphicons-518-option-vertical'
 										iconSize: 20
-										onClicked: ServerMenu.showSelectMenu(modelData.server)
+										onClicked: ServerMenu.showSelectMenu(modelData.server, undefined, refreshSearch)
 										height: parent.height
 									}
 									Text {

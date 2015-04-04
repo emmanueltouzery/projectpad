@@ -222,7 +222,7 @@ Window {
 			// just tell him the search text changed.
 			// otherwise use loadViewAction() to load the search
 			// view and give him the search text.
-			loadViewAction("SearchView.qml", {matches: search(text)})
+			loadViewAction("SearchView.qml", {matches: search(text), query: text})
 		}
 	}
 

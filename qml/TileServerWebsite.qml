@@ -19,7 +19,7 @@ ItemTile {
 				function (wwwEdit) {
 					wwwEdit.onOk()
 					// force refresh
-					wwwsrepeater.model = serverViewState.getServerWebsites(pv.model.id)
+					refreshWwws()
 				})
 	}
 
@@ -32,7 +32,7 @@ ItemTile {
 				["glyphicons-193-circle-remove", function() {
 					appContext.confirmDelete(function() {
 						serverViewState.deleteServerWebsites([model.id])
-						wwwsrepeater.model = serverViewState.getServerWebsites(pv.model.id)
+					refreshWwws()
 					})
 				}]]
 			selectMenu.show(parent, global)
