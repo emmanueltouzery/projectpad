@@ -8,6 +8,8 @@ import Graphics.QML
 import Control.Applicative
 import qualified Data.Set as Set
 import Data.Set (Set)
+import Data.List
+import Data.Ord
 
 import Model
 
@@ -188,6 +190,7 @@ searchText sqlBackend txt = do
 	let serverProjectIds = Set.fromList $ serverProjectId . entityVal <$> allServers
 	let allProjectIds = Set.unions [projectProjectIds, serverProjectIds, joinGetParentKeys projectPoisJoin]
 	allProjects <- runSqlBackend sqlBackend (getByIds ProjectId $ Set.toList allProjectIds)
-	projectRefs <- mapM newObjectDC allProjects
+	projectRefs <- mapM newObjectDC
+                       $ sortBy (comparing $ projectName . entityVal) allProjects
 
 	mapM (getProjectSearchMatch projectServersJoin serverWebsitesJoin serverExtraUsersJoin serverPoisJoin serverDatabasesJoin projectPoisJoin) projectRefs
