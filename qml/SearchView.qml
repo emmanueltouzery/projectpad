@@ -39,10 +39,14 @@ Rectangle {
 					Flow {
 						id: projectFlow
 						width: searchView.width
-						Text {
+						Rectangle {
+							color: "dark gray"
 							width: searchView.width
 							height: 40
-							text: modelData.project.name
+							Text {
+								anchors.fill: parent
+								text: modelData.project.name
+							}
 						}
 						Repeater {
 							model: modelData.pois
@@ -57,21 +61,25 @@ Rectangle {
 								id: serverFlow
 								width: searchView.width
 								spacing: 10
-								Row {
+								Rectangle {
+									color: "gray"
 									height: 40
 									width: searchView.width
-									IconButton {
-										width: 30
-										iconX: 12
-										iconName: 'glyphicons-518-option-vertical'
-										iconSize: 20
-										onClicked: ServerMenu.showSelectMenu(modelData.server, undefined, refreshSearch)
-										height: parent.height
-									}
-									Text {
-										text: modelData.server.desc
-										height: parent.height
-										verticalAlignment: Text.AlignVCenter
+									Row {
+										anchors.fill: parent
+										IconButton {
+											width: 30
+											iconX: 12
+											iconName: 'glyphicons-518-option-vertical'
+											iconSize: 20
+											onClicked: ServerMenu.showSelectMenu(modelData.server, undefined, refreshSearch)
+											height: parent.height
+										}
+										Text {
+											text: modelData.server.desc
+											height: parent.height
+											verticalAlignment: Text.AlignVCenter
+										}
 									}
 								}
 								Repeater {
