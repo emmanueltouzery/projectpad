@@ -79,11 +79,12 @@ Rectangle {
 										}
 										IconButton {
 											width: 30
-                        x: parent.width - 50
+											x: parent.width - 50
 											iconX: 12
 											iconName: 'glyphicons-518-option-vertical'
 											iconSize: 20
-											onClicked: ServerMenu.showSelectMenu(modelData.server, undefined, refreshSearch)
+											onClicked: ServerMenu.showSelectMenu(modelData.server,
+												parent, refreshSearch, lineSelectMenu, rootFlow)
 											height: parent.height
 										}
 								}
@@ -123,6 +124,11 @@ Rectangle {
 			}
 			SelectMenu {
 				id: selectMenu
+				visible: false
+				z: 3
+			}
+			LineSelectMenu {
+				id: lineSelectMenu
 				visible: false
 				z: 3
 			}

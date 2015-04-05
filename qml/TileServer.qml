@@ -72,7 +72,7 @@ ItemTile {
 		anchors.fill: parent
 		onClicked: ServerMenu.showSelectMenu(modelData, parent, function() {
 			itemsrepeater.model = projectViewState.getServers(pv.model.project.id, pv.model.environment)
-      })
+		}, selectMenu)
 	}
 	Component {
 		id: serverEditComponent
