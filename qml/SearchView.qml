@@ -71,22 +71,46 @@ Rectangle {
 									color: "dark gray"
 									height: 40
 									width: searchView.width
-										Text {
-											x: 5
-											text: modelData.server.desc
-											height: parent.height
-											verticalAlignment: Text.AlignVCenter
+									Image {
+										x: 5
+										source: {
+											var envIcon;
+											switch (modelData.server.environment) {
+												case "EnvDevelopment":
+												envIcon = 'glyphicons-361-bug';
+												break;
+											case "EnvUat":
+												envIcon = 'glyphicons-534-lab';
+												break;
+											case "EnvStage":
+												envIcon = 'glyphicons-140-adjust-alt';
+												break;
+											case "EnvProd":
+												envIcon = 'glyphicons-333-certificate';
+												break;
+											}
+											return '../glyphicons-free/' + envIcon + '.png'
 										}
-										IconButton {
-											width: 30
-											x: parent.width - 50
-											iconX: 12
-											iconName: 'glyphicons-518-option-vertical'
-											iconSize: 20
-											onClicked: ServerMenu.showSelectMenu(modelData.server,
-												parent, refreshSearch, lineSelectMenu, rootFlow)
-											height: parent.height
-										}
+										verticalAlignment: Image.AlignVCenter
+										fillMode: Image.Pad
+										height: parent.height
+									}
+									Text {
+										x: 35
+										text: modelData.server.desc
+										height: parent.height
+										verticalAlignment: Text.AlignVCenter
+									}
+									IconButton {
+										width: 30
+										x: parent.width - 50
+										iconX: 12
+										iconName: 'glyphicons-518-option-vertical'
+										iconSize: 20
+										onClicked: ServerMenu.showSelectMenu(modelData.server,
+											parent, refreshSearch, lineSelectMenu, rootFlow)
+										height: parent.height
+									}
 								}
 								Repeater {
 									model: modelData.extraUsers
