@@ -1,15 +1,17 @@
-{-# LANGUAGE MultiParamTypeClasses, ViewPatterns, DeriveDataTypeable, ExistentialQuantification, RankNTypes, FlexibleContexts #-}
+{-# LANGUAGE MultiParamTypeClasses, DeriveDataTypeable, ExistentialQuantification, RankNTypes, FlexibleContexts #-}
 module Search where
 
 import Data.Text (Text)
+import qualified Data.Text as T
 import Data.Typeable
-import Database.Esqueleto
+import Database.Esqueleto hiding (on)
 import Graphics.QML
 import Control.Applicative
 import qualified Data.Set as Set
 import Data.Set (Set)
 import Data.List
 import Data.Ord
+import Data.Function
 
 import Model
 
@@ -135,7 +137,7 @@ makeServerChildInfos server childrenJoin = do
 
 getServerSearchMatch :: ServerJoin ServerWebsite -> ServerJoin ServerExtraUserAccount -> ServerJoin ServerPointOfInterest
 	-> ServerJoin ServerDatabase -> ObjRef (Entity Server) -> IO (ObjRef ServerSearchMatch)
-getServerSearchMatch serverWebsitesJoin serverExtraUsersJoin serverPoisJoin serverDatabasesJoin server = do
+getServerSearchMatch serverWebsitesJoin serverExtraUsersJoin serverPoisJoin serverDatabasesJoin server =
 	newObjectDC =<< ServerSearchMatch server
 		<$> makeServerChildInfos server serverWebsitesJoin
 		<*> makeServerChildInfos server serverExtraUsersJoin
@@ -147,11 +149,19 @@ getProjectSearchMatch :: ProjectJoin Server -> ServerJoin ServerWebsite -> Serve
 	-> ObjRef (Entity Project) -> IO (ObjRef ProjectSearchMatch)
 getProjectSearchMatch projectServersJoin serverWebsitesJoin serverExtraUsersJoin serverPoisJoin serverDatabasesJoin projectPoisJoin project = do
 	let projectKey = entityKey (fromObjRef project)
-	serverSearchMatch <- mapM (getServerSearchMatch serverWebsitesJoin serverExtraUsersJoin serverPoisJoin serverDatabasesJoin)
-		<$> filterEntityJoin projectKey projectServersJoin
+	servers <- sortBy compareServerEntities <$> filterEntityJoin projectKey projectServersJoin
+	let serverSearchMatch = mapM (getServerSearchMatch serverWebsitesJoin serverExtraUsersJoin
+		serverPoisJoin serverDatabasesJoin) servers
 	newObjectDC =<< ProjectSearchMatch project
 		<$> filterEntityJoin projectKey projectPoisJoin
 		<*> serverSearchMatch
+
+compareServerEntities :: ObjRef (Entity Server) -> ObjRef (Entity Server) -> Ordering
+compareServerEntities ea eb = if envCompare /= EQ then envCompare else descCompare
+	where
+		[a, b] = entityVal . fromObjRef <$> [ea, eb]
+		envCompare = (compare `on` serverEnvironment) a b
+		descCompare = (compare `on` T.toCaseFold . serverDesc) a b
 
 -- A Join contains a list of child entities and the function
 -- from entity to parent key.
@@ -191,6 +201,6 @@ searchText sqlBackend txt = do
 	let allProjectIds = Set.unions [projectProjectIds, serverProjectIds, joinGetParentKeys projectPoisJoin]
 	allProjects <- runSqlBackend sqlBackend (getByIds ProjectId $ Set.toList allProjectIds)
 	projectRefs <- mapM newObjectDC
-                       $ sortBy (comparing $ projectName . entityVal) allProjects
+		$ sortBy (comparing $ T.toCaseFold . projectName . entityVal) allProjects
 
 	mapM (getProjectSearchMatch projectServersJoin serverWebsitesJoin serverExtraUsersJoin serverPoisJoin serverDatabasesJoin projectPoisJoin) projectRefs
