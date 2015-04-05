@@ -107,9 +107,16 @@ Rectangle {
 										iconX: 12
 										iconName: 'glyphicons-518-option-vertical'
 										iconSize: 20
-										onClicked: ServerMenu.showSelectMenu(modelData.server,
-											parent, refreshSearch, lineSelectMenu, rootFlow)
+										onClicked: {
+											if (checked) {
+												ServerMenu.showSelectMenu(modelData.server,
+													parent, refreshSearch, lineSelectMenu, rootFlow)
+											} else {
+												lineSelectMenu.visible = false
+											}
+										}
 										height: parent.height
+										checkable: true
 									}
 								}
 								Repeater {
