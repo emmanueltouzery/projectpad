@@ -26,13 +26,14 @@ Rectangle {
 	ScrollView {
 		anchors.fill: parent
 		Flickable {
+			id: flickable
 			anchors.fill: parent
-			contentHeight: flow.implicitHeight
+			contentHeight: rootFlow.implicitHeight
 			Flow {
 				anchors.fill: parent
 				anchors.margins: 4
 				spacing: 10
-				id: flow
+				id: rootFlow
 				Repeater {
 					model: searchView.model.matches
 					Flow {
@@ -46,7 +47,7 @@ Rectangle {
 						Repeater {
 							model: modelData.pois
 							TileProjectPoi {
-								global: searchView
+								global: rootFlow
 							}
 						}
 						Repeater {
@@ -77,21 +78,21 @@ Rectangle {
 									model: modelData.extraUsers
 									TileExtraUserAccount {
 										model: modelData.child
-										global: searchView
+										global: rootFlow
 									}
 								}
 								Repeater {
 									model: modelData.websites
 									TileServerWebsite {
 										model: modelData.child
-										global: searchView
+										global: rootFlow
 									}
 								}
 								Repeater {
 									model: modelData.databases
 									TileServerDatabase {
 										model: modelData.child
-										global: searchView
+										global: rootFlow
 									}
 								}
 								Repeater {
@@ -99,7 +100,7 @@ Rectangle {
 									TileServerPoi {
 										model: modelData.child
 										server: modelData.server
-										global: searchView
+										global: rootFlow
 									}
 								}
 							}
@@ -107,12 +108,12 @@ Rectangle {
 					}
 				}
 			}
+			SelectMenu {
+				id: selectMenu
+				visible: false
+				z: 3
+			}
 		}
-	}
-	SelectMenu {
-		id: selectMenu
-		visible: false
-		z: 3
 	}
 	Component {
 		id: serverEditComponent
