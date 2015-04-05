@@ -40,12 +40,14 @@ Rectangle {
 						id: projectFlow
 						width: searchView.width
 						Rectangle {
-							color: "dark gray"
+							color: "gray"
 							width: searchView.width
 							height: 40
 							Text {
-								anchors.fill: parent
+								x: 5
 								text: modelData.project.name
+								height: parent.height
+								verticalAlignment: Text.AlignVCenter
 							}
 						}
 						Repeater {
@@ -62,25 +64,28 @@ Rectangle {
 								width: searchView.width
 								spacing: 10
 								Rectangle {
-									color: "gray"
+									height: index > 0 ? 5 : 0
+									width: searchView.width
+								}
+								Rectangle {
+									color: "dark gray"
 									height: 40
 									width: searchView.width
-									Row {
-										anchors.fill: parent
+										Text {
+											x: 5
+											text: modelData.server.desc
+											height: parent.height
+											verticalAlignment: Text.AlignVCenter
+										}
 										IconButton {
 											width: 30
+                        x: parent.width - 50
 											iconX: 12
 											iconName: 'glyphicons-518-option-vertical'
 											iconSize: 20
 											onClicked: ServerMenu.showSelectMenu(modelData.server, undefined, refreshSearch)
 											height: parent.height
 										}
-										Text {
-											text: modelData.server.desc
-											height: parent.height
-											verticalAlignment: Text.AlignVCenter
-										}
-									}
 								}
 								Repeater {
 									model: modelData.extraUsers
