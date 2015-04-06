@@ -89,6 +89,7 @@ Rectangle {
 			id: searchBtn
 			iconName: 'glyphicons-28-search'
 			iconSize: 20
+			iconX: 5
 			onClicked: toggleSearch()
 			height: parent.height
 			checkable: true
