@@ -106,6 +106,12 @@ Rectangle {
 		}
 	}
 
+	Action {
+		id: searchAction
+		shortcut: "Ctrl+s"
+		onTriggered: { searchBtn.checked = !searchBtn.checked; toggleSearch() }
+	}
+
 	Component {
 		id: defaultButtonStyle
 		DefaultButtonStyle {}
