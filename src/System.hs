@@ -59,7 +59,7 @@ readHandleProgress :: Handle -> (CommandProgress -> IO ()) -> ProcessHandle -> I
 readHandleProgress hndl cmdProgress phndl = do
 	chunk <- T.hGetChunk hndl
 	cmdProgress $ CommandOutput chunk
-	if (not $ T.null chunk)
+	if not $ T.null chunk
 		then readHandleProgress hndl cmdProgress phndl
 		else handleProgramFinished cmdProgress phndl
 
@@ -67,7 +67,7 @@ handleProgramFinished :: (CommandProgress -> IO ()) -> ProcessHandle -> IO ()
 handleProgramFinished cmdProgress phndl = do
 	mExitCode <- getProcessExitCode phndl
 	case mExitCode of
-		Nothing -> error "Can't get process exit code from handle?"
+		Nothing -> cmdProgress $ CommandFailed "Can't get process exit code from handle"
 		Just ExitSuccess -> cmdProgress CommandSucceeded
 		Just (ExitFailure code) -> cmdProgress $
 			CommandFailed (T.pack $ "Error code: " ++ show code)
@@ -139,7 +139,7 @@ openSshSession server username password command = do
 	let params = ["-e", runSshPath]
 	sshEnv <- prepareSshPassword password tmpDir
 	-- TODO detect other xterm types than gnome-terminal
-	fmapL textEx <$> (try $ void $
+	fmapL textEx <$> try (void $
 		createProcess (proc "gnome-terminal" params)
 			{ env = Just sshEnv })
 
