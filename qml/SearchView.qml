@@ -39,6 +39,7 @@ Rectangle {
 					Flow {
 						id: projectFlow
 						width: searchView.width
+						spacing: 10
 						Rectangle {
 							color: "gray"
 							width: searchView.width
