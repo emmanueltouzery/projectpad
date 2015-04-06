@@ -12,6 +12,7 @@ Rectangle {
 	signal loadView(string name, variant model)
 
 	signal toggleMenu()
+	signal toggleSearch()
 
 	/**
 	 * actions to display in the toolbar
@@ -84,7 +85,14 @@ Rectangle {
 				height: flow.height
 			}
 		}
-		ExclusiveGroup { id: menuGroup }
+		IconButton {
+			id: searchBtn
+			iconName: 'glyphicons-28-search'
+			iconSize: 20
+			onClicked: toggleSearch()
+			height: parent.height
+			checkable: true
+		}
 		IconButton {
 			id: menuBtn
 			width: 30
@@ -92,7 +100,6 @@ Rectangle {
 			iconName: 'glyphicons-518-option-vertical'
 			iconSize: 20
 			onClicked: toggleMenu()
-			exclusiveGroup: menuGroup
 			height: parent.height
 			style: menuButton
 			checkable: true

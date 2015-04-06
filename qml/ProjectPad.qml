@@ -20,6 +20,13 @@ Window {
 			function (deleteDialog) { callback() })
 	}
 
+	function searchFieldHeight() {
+		if (searchField.visible) {
+			return searchField.height
+		}
+		return 0
+	}
+
 	Toolbar {
 		id: toolbar
 		onLoadView: loadViewAction(name, model)
@@ -28,12 +35,42 @@ Window {
 			popupMenu.visible = !popupMenu.visible
 			toolbar.setMenuDisplayed(popupMenu.visible)
 		}
+		onToggleSearch: {
+			searchField.text = ""
+			searchField.visible = !searchField.visible
+			if (!searchField.visible) {
+				loadView("ProjectList.qml", null)
+			} else {
+				searchField.forceActiveFocus()
+			}
+		}
+	}
+
+	TextField {
+		y: toolbar.height
+		id: searchField
+		visible: false
+		width: parent.width
+		Image {
+			anchors { top: parent.top; right: parent.right; margins: 7 }
+			source: '../glyphicons-free/glyphicons-28-search.png'
+			fillMode: Image.PreserveAspectFit
+			height: parent.height - 7 * 2
+			width: parent.height - 7 * 2
+		}
+		onTextChanged: {
+			// if the current loader view is already the search,
+			// just tell him the search text changed.
+			// otherwise use loadViewAction() to load the search
+			// view and give him the search text.
+			loadViewAction("SearchView.qml", {matches: search(searchField.text), query: searchField.text})
+		}
 	}
 
 	SplitView {
 		width: parent.width
-		y: toolbar.height
-		height: parent.height-toolbar.height
+		y: toolbar.height + searchFieldHeight()
+		height: parent.height-toolbar.height-searchFieldHeight()
 		orientation: Qt.Vertical
 
 		Loader {
@@ -216,13 +253,6 @@ Window {
 		visible: false
 		onVisibleChanged: {
 			toolbar.setMenuDisplayed(popupMenu.visible)
-		}
-		onSearchTextChanged: {
-			// if the current loader view is already the search,
-			// just tell him the search text changed.
-			// otherwise use loadViewAction() to load the search
-			// view and give him the search text.
-			loadViewAction("SearchView.qml", {matches: search(text), query: text})
 		}
 	}
 

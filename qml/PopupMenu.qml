@@ -7,7 +7,6 @@ Column {
 	width: 150
 	property int cellHeight: 30
 	property variant menuItems: []
-	signal searchTextChanged(string text)
 	Canvas {
 		id: canvas
 		width: 150
@@ -36,7 +35,7 @@ Column {
 	Rectangle {
 		id: menuRect
 		width: parent.width
-		height: searchField.height+cellHeight*menuItems.length
+		height: cellHeight*menuItems.length
 		color: "black"
 		Rectangle {
 			anchors.fill: parent
@@ -48,21 +47,7 @@ Column {
 				id: menuColumn
 				anchors.fill: parent
 				height: menuRect.height
-				anchors.margins: 5
-				TextField {
-					id: searchField
-					width: parent.width
-					Image {
-						anchors { top: parent.top; right: parent.right; margins: 7 }
-						source: '../glyphicons-free/glyphicons-28-search.png'
-						fillMode: Image.PreserveAspectFit
-						height: parent.height - 7 * 2
-						width: parent.height - 7 * 2
-					}
-					onTextChanged: {
-						searchTextChanged(searchField.text)
-					}
-				}
+				anchors.leftMargin: 5
 				Repeater {
 					model: menuItems
 					Label {
