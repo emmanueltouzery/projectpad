@@ -70,7 +70,7 @@ ItemTile {
 
 	MouseArea {
 		anchors.fill: parent
-		onClicked: ServerMenu.showSelectMenu(modelData, parent, function() {
+		onClicked: ServerMenu.showSelectMenu(modelData.server, parent, function() {
 			itemsrepeater.model = projectViewState.getServers(pv.model.project.id, pv.model.environment)
 		}, selectMenu)
 	}
