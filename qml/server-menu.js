@@ -10,7 +10,7 @@ function editServer(curServer, refreshAction) {
 		})
 }
 
-function showSelectMenu(server, parnt, refreshAction, menu, global) {
+function showSelectMenu(server, parnt, desktopSize, refreshAction, menu, global) {
 	var options = [
 		["glyphicons-145-folder-open", function() { loadView("ServerView.qml", server) }],
 		["glyphicons-151-edit", function() {editServer(server, refreshAction)}],
@@ -37,15 +37,15 @@ function showSelectMenu(server, parnt, refreshAction, menu, global) {
 			&& server.username.length > 0
 			&& server.password.length > 0) {
 		options.push(["glyphicons-489-multiple-displays", function() {
-			var desktopWidth = Screen.desktopAvailableWidth
-			if (Screen.desktopAvailableWidth / Screen.desktopAvailableHeight > 3) {
+			var desktopWidth = desktopSize.width
+			if (desktopSize.width / desktopSize.height > 3) {
 				// I can assume a double monitor setup: divide the
 				// width by two to compensate.
 				desktopWidth = desktopWidth / 2
 			}
 			var info = projectViewState.runRdp(server,
 				Math.round(desktopWidth * 0.75),
-				Math.round(Screen.desktopAvailableHeight * 0.75))
+				Math.round(desktopSize.height * 0.75))
 			if (info[0] === "error") {
 				appContext.errorMessage(info[1])
 			}

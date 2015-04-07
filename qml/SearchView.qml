@@ -1,6 +1,7 @@
 import QtQuick 2.0
 import QtQuick.Controls 1.2
 import QtQuick.Layouts 1.1
+import QtQuick.Window 2.2
 import "server-menu.js" as ServerMenu
 
 Rectangle {
@@ -110,8 +111,9 @@ Rectangle {
 										iconSize: 20
 										onClicked: {
 											if (checked) {
+												var desktopSize = {width: Screen.desktopAvailableWidth, height: Screen.desktopAvailableHeight}
 												ServerMenu.showSelectMenu(modelData.server,
-													parent, refreshSearch, lineSelectMenu, rootFlow)
+													parent, desktopSize, refreshSearch, lineSelectMenu, rootFlow)
 											} else {
 												lineSelectMenu.visible = false
 											}
