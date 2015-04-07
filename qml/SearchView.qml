@@ -30,6 +30,7 @@ Rectangle {
 			id: flickable
 			anchors.fill: parent
 			contentHeight: rootFlow.implicitHeight
+			ExclusiveGroup {id: serverOptionsGroup}
 			Flow {
 				anchors.fill: parent
 				anchors.margins: 4
@@ -109,6 +110,7 @@ Rectangle {
 										iconX: 12
 										iconName: 'glyphicons-518-option-vertical'
 										iconSize: 20
+										exclusiveGroup: serverOptionsGroup
 										onClicked: {
 											if (checked) {
 												var desktopSize = {width: Screen.desktopAvailableWidth, height: Screen.desktopAvailableHeight}
