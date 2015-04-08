@@ -93,6 +93,7 @@ Rectangle {
 			onClicked: toggleSearch()
 			height: parent.height
 			checkable: true
+			tooltip: 'Search (ctrl-s)'
 		}
 		IconButton {
 			id: menuBtn
