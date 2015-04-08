@@ -30,14 +30,14 @@ Rectangle {
 	function refreshPois() {
 		poisrepeater.model = serverViewState.getPois(pv.model.id)
 	}
-	
+
 	function refreshWwws() {
 		wwwsrepeater.model = serverViewState.getServerWebsites(pv.model.id)
 	}
 	function refreshDbs() {
 		dbsrepeater.model = serverViewState.getServerDatabases(pv.model.id)
 	}
-	
+
 	function refreshUsers() {
 		useraccountsrepeater.model = serverViewState.getServerExtraUserAccounts(pv.model.id)
 	}
@@ -123,6 +123,7 @@ Rectangle {
 					model: serverViewState.getServerExtraUserAccounts(pv.model.id)
 
 					TileExtraUserAccount {
+						model: modelData
 					}
 				}
 
