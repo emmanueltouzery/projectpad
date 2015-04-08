@@ -1,4 +1,4 @@
-{-# LANGUAGE MultiParamTypeClasses, DeriveDataTypeable, ExistentialQuantification, RankNTypes, FlexibleContexts #-}
+{-# LANGUAGE DeriveDataTypeable, FlexibleContexts, TypeFamilies #-}
 module Search where
 
 import Data.Text (Text)
@@ -41,7 +41,8 @@ data ServerSearchMatch = ServerSearchMatch
 		smServerDatabases :: [ObjRef (ServerChildInfo ServerDatabase)]
 	} deriving Typeable
 
--- TODO don't manage to specify the type signature for this...
+prop :: (Marshal tr, Typeable b, MarshalMode tr ICanReturnTo () ~ Yes) =>
+	String -> (b -> tr) -> Member (GetObjType (ObjRef b))
 prop txt cb = defPropertyConst txt (return . cb . fromObjRef)
 
 instance DefaultClass ServerSearchMatch where
@@ -115,7 +116,8 @@ filterServerDatabases query = select $ from $ \d -> do
 		||. (d ^. ServerDatabaseText `like` query))
 	return d
 
--- TODO don't manage to specify the type signature for this...
+getByIds :: (PersistEntityBackend a ~ SqlBackend, PersistEntity a) =>
+	EntityField a (Key a) -> [Key a] -> SqlPersistM [Entity a]
 getByIds keySelector ids = select $ from $ \s -> do
 	where_ (s ^. keySelector `in_` valList ids)
 	return s
@@ -174,8 +176,6 @@ joinGetParentKeys (Join parentKeyGetter entities) = Set.fromList $ parentKeyGett
 
 searchText :: SqlBackend -> Text -> IO [ObjRef ProjectSearchMatch]
 searchText sqlBackend txt = do
-	let query = (%) ++. val txt ++. (%)
-	let runQ f = runSqlBackend sqlBackend (f query)
 	projects <- runQ filterProjects
 	projectPoisJoin <- Join projectPointOfInterestProjectId <$> runQ filterProjectPois
 	servers <- runQ filterServers
@@ -202,5 +202,9 @@ searchText sqlBackend txt = do
 	allProjects <- runSqlBackend sqlBackend (getByIds ProjectId $ Set.toList allProjectIds)
 	projectRefs <- mapM newObjectDC
 		$ sortBy (comparing $ T.toCaseFold . projectName . entityVal) allProjects
-
-	mapM (getProjectSearchMatch projectServersJoin serverWebsitesJoin serverExtraUsersJoin serverPoisJoin serverDatabasesJoin projectPoisJoin) projectRefs
+	mapM (getProjectSearchMatch projectServersJoin serverWebsitesJoin serverExtraUsersJoin
+		serverPoisJoin serverDatabasesJoin projectPoisJoin) projectRefs
+	where
+		query = (%) ++. val txt ++. (%)
+		runQ :: (SqlExpr (Value Text) -> SqlPersistM [Entity a]) -> IO [Entity a]
+		runQ f = runSqlBackend sqlBackend (f query)
