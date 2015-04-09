@@ -30,6 +30,12 @@ Rectangle {
 		menuBtn.checked = displayed
 	}
 
+	function disableSearch() {
+		searchBtn.checked = false
+		searchField.text = ""
+		searchField.visible = false
+	}
+
 	signal actionTriggered(string name);
 
 	Flow {

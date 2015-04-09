@@ -11,6 +11,13 @@ Window {
 	id: window
 
 	function loadViewAction(name, model) {
+		if (name !== "SearchView.qml") {
+			// when we change view from the search view,
+			// that would mean for instance from search
+			// display of a server we open that server,
+			// go out of search mode.
+			toolbar.disableSearch()
+		}
 		loader.setSource(name, {"model": model})
 	}
 
