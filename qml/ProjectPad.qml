@@ -221,6 +221,7 @@ Window {
 		_copyItem(text)
 		if (isPassword) {
 			passwordCopyTimer.secondsLeft = 15
+			toast.opacity = 1.0
 			passwordCopyTimer.start()
 		} else {
 			successMessage("Text copied to the clipboard")
@@ -309,7 +310,6 @@ Window {
 		onTriggered: {
 			toast.color = "green"
 			toast.msgText = "Copied password, clipboard will be cleared in " + secondsLeft + "s."
-			toast.opacity = 1.0
 			if (secondsLeft-- <= 0) {
 				_copyItem(".") // doesn't work with ""...
 				toast.opacity = 0.0
