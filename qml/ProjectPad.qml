@@ -34,6 +34,13 @@ Window {
 		return 0
 	}
 
+	function finishPasswordCopy() {
+		toast.opacity = 0.0
+		passwordCopyTimer.running = false
+		toastButton.clicked.disconnect(finishPasswordCopy)
+		toastButton.visible = false
+	}
+
 	Toolbar {
 		id: toolbar
 		onLoadView: loadViewAction(name, model)
@@ -222,6 +229,9 @@ Window {
 		if (isPassword) {
 			passwordCopyTimer.secondsLeft = 15
 			toast.opacity = 1.0
+			toastButton.text = "Don't clear"
+			toastButton.visible = true
+			toastButton.clicked.connect(finishPasswordCopy)
 			passwordCopyTimer.start()
 		} else {
 			successMessage("Text copied to the clipboard")
@@ -271,14 +281,15 @@ Window {
 		z: 2
 		anchors.horizontalCenter: parent.horizontalCenter
 		width: 450
-		height: errorText.height
+		height: toastButton.height
 		property string msgText: ""
 		radius: 4
 		Text {
 			id: errorText
 			text: parent.msgText
+			height: parent.height
 			x: 15
-			width: parent.width-15
+			width: toastButton.left - x
 			verticalAlignment: Text.AlignVCenter
 			wrapMode: Text.WordWrap
 		}
@@ -288,7 +299,13 @@ Window {
 			onClicked: {
 				toastOpacity.running = false
 				toast.opacity = 0.0
+				toastButton.visible = false
 			}
+		}
+		Button {
+			visible: true
+			id: toastButton
+			x: parent.width - width
 		}
 	}
 	NumberAnimation {
@@ -312,8 +329,7 @@ Window {
 			toast.msgText = "Copied password, clipboard will be cleared in " + secondsLeft + "s."
 			if (secondsLeft-- <= 0) {
 				_copyItem(".") // doesn't work with ""...
-				toast.opacity = 0.0
-				running = false
+				finishPasswordCopy()
 			}
 		}
 	}
