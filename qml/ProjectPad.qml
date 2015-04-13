@@ -241,6 +241,7 @@ Window {
 	function errorMessage(txt) {
 		toast.color = "#c9302c"
 		toast.msgText = txt
+		toastButton.visible = false
 		toastOpacity.running = true
 	}
 
@@ -255,6 +256,7 @@ Window {
 	function successMessage(txt) {
 		toast.color = "green"
 		toast.msgText = txt
+		toastButton.visible = false
 		toastOpacity.running = true
 	}
 
