@@ -23,6 +23,7 @@ import System.IO
 import System.Directory
 import Control.Exception
 import System.FilePath.Posix
+import Control.Monad
 
 import Paths_projectpad
 
@@ -107,14 +108,16 @@ data UnlockResult = Ok
 	deriving (Read, Show)
 
 setupPasswordAndUpgradeDb :: SqlBackend -> SignalKey (IO ())
-	-> ObjRef ProjectListState -> ObjRef AppState -> Text -> IO Text
-setupPasswordAndUpgradeDb sqlBackend changeKey state _ password = do
+	-> ObjRef ProjectListState -> ObjRef AppState -> Text -> Text -> IO Text
+setupPasswordAndUpgradeDb sqlBackend changeKey state _ password newPassword = do
 	encrypted <- sanityCheckIsDbEncrypted
 	T.pack . show <$> if not encrypted
 		then return DbNotEncrypted
 		else do
 			upgrade <- try $ runSqlBackend sqlBackend $ do
 				rawExecute (T.concat ["PRAGMA key = '", password, "'"]) []
+				when (T.length newPassword > 0) $
+					rawExecute (T.concat ["PRAGMA rekey = '", newPassword, "'"]) []
 				upgradeSchema
 			-- print details to STDOUT in case of failure because maybe
 			-- it was the right password and the schema upgrade failed!

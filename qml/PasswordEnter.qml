@@ -3,10 +3,9 @@ import QtQuick.Controls 1.2
 import QtQuick.Layouts 1.1
 import "utils.js" as Utils
 
-Rectangle {
-	id: poiEdit
-	color: "light grey"
-	property int preferredHeight: 100
+Column {
+	id: passwordEnter
+	property int preferredHeight: 190
 
 	signal loadView(string name, variant model)
 
@@ -29,7 +28,15 @@ Rectangle {
 			introText.text = "You must enter a password"
 			return
 		}
-		var unlockResult = setupPasswordAndUpgradeDb(passwordText.text)
+		var newPassword = ""
+		if (checkboxChangePassword.checked) {
+			if (newPasswordText.text != repeatPasswordText.text || newPasswordText.text.length == 0) {
+				introText.text = "Invalid new password"
+				return
+			}
+			newPassword = newPasswordText.text
+		}
+		var unlockResult = setupPasswordAndUpgradeDb(passwordText.text, newPassword)
 		switch (unlockResult) {
 			case "WrongPassword":
 				introText.text = "Wrong password! Try again."
@@ -44,27 +51,79 @@ Rectangle {
 		}
 	}
 
-	Text {
-		id: introText
-		y: 10
-		x: 10
-		text: "Please enter the password to open the application."
-	}
-
-	GridLayout {
-		anchors.top: introText.bottom
-		anchors.left: parent.left
-		anchors.right: parent.right
-		anchors.margins: 10
-		columns: 2
+	Rectangle {
+		width: parent.width
+		height: 110
+		color: "light grey"
 
 		Text {
-			text: "Password:"
+			id: introText
+			y: 10
+			x: 10
+			text: "Please enter the password to open the application."
 		}
-		TextField {
-			id: passwordText
-			Layout.fillWidth: true
-			echoMode: TextInput.Password
+	
+		GridLayout {
+			anchors.top: introText.bottom
+			anchors.left: parent.left
+			anchors.right: parent.right
+			anchors.margins: 10
+			columns: 2
+	
+			Text {
+				text: "Password:"
+			}
+			TextField {
+				id: passwordText
+				Layout.fillWidth: true
+				echoMode: TextInput.Password
+			}
+	
+			CheckBox {
+				id: checkboxChangePassword
+				Layout.columnSpan: 2
+				text: "Change the password"
+				onClicked: {
+					changePasswordSection.visible = checked
+				}
+			}
+		}
+	}
+
+	Rectangle {
+		width: parent.width
+		height: 80
+		color: "transparent"
+
+		Rectangle {
+			id: changePasswordSection
+			width: parent.width
+			height: 80
+			color: "light gray"
+			visible: false
+
+			GridLayout {
+				anchors.left: parent.left
+				anchors.right: parent.right
+				anchors.margins: 10
+				columns: 2
+				Text {
+					text: "New password:"
+				}
+				TextField {
+					id: newPasswordText
+					Layout.fillWidth: true
+					echoMode: TextInput.Password
+				}
+				Text {
+					text: "Repeat new password:"
+				}
+				TextField {
+					id: repeatPasswordText
+					Layout.fillWidth: true
+					echoMode: TextInput.Password
+				}
+			}
 		}
 	}
 }

@@ -17,7 +17,7 @@ Rectangle {
 		}
 	}
 
-	  function setContents(title, contents, initCallback, okCallback, options) {
+	function setContents(title, contents, initCallback, okCallback, options) {
 		implicitClose = true
 		okButton.text = (options && options.okBtnText) || "OK"
 		okButton.style = defaultButtonStyle
@@ -65,9 +65,19 @@ Rectangle {
 		y: 40
 		width: 580
 		color: Qt.lighter("light gray", 1.15)
-		height: popupHeader.height + popupContentsLoader.height
+		height: popupHeader.height
 		z: 2
 		radius: 5
+
+		// this rectangle is only to cover the
+		// lower rounded corners of the header.
+		Rectangle {
+			width: parent.width
+			color: parent.color
+			y: 10
+			z: -1
+			height: parent.height - 10
+		}
 
 		Rectangle {
 			id: popupHeader
