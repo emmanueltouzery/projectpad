@@ -1,44 +1,44 @@
 function findById(list, id) {
-	for (var i=0;i<list.length;i++) {
-		if (list[i].id === id) {
-			return list[i];
-		}
-	}
-	return null
+    for (var i=0;i<list.length;i++) {
+        if (list[i].id === id) {
+            return list[i];
+        }
+    }
+    return null
 }
 
 function listModelGetValueIndex(listModel, value) {
-	for (var i=0;i<listModel.count;i++) {
-		if (listModel.get(i).value === value) {
-			return i;
-		}
-	}
-	return -1
+    for (var i=0;i<listModel.count;i++) {
+        if (listModel.get(i).value === value) {
+            return i;
+        }
+    }
+    return -1
 }
 
 function filter(list, predicate) {
-	var result = []
-	for (var i=0;i<list.length;i++) {
-		if (predicate(list[i])) {
-			result.push(list[i])
-		}
-	}
-	return result
+    var result = []
+    for (var i=0;i<list.length;i++) {
+        if (predicate(list[i])) {
+            result.push(list[i])
+        }
+    }
+    return result
 }
 
 function all(list, predicate) {
-	for (var i=0;i<list.length;i++) {
-		if (!predicate(list[i])) {
-			return false
-		}
-	}
-	return true
+    for (var i=0;i<list.length;i++) {
+        if (!predicate(list[i])) {
+            return false
+        }
+    }
+    return true
 }
 
 function map(list, transform) {
-	var result = []
-	for (var i=0;i<list.length;i++) {
-		result.push(transform(list[i]))
-	}
-	return result
+    var result = []
+    for (var i=0;i<list.length;i++) {
+        result.push(transform(list[i]))
+    }
+    return result
 }

@@ -16,8 +16,8 @@ serializeEither' :: Either Text () -> [Text]
 serializeEither' = serializeEither . fmapR (const "")
 
 data CommandProgress = CommandOutput Text
-	| CommandSucceeded
-	| CommandFailed Text
+    | CommandSucceeded
+    | CommandFailed Text
 
 eitherToCmdProgress :: Either Text b -> CommandProgress
 eitherToCmdProgress (Right _) = CommandSucceeded
@@ -30,11 +30,11 @@ cmdProgressToJs (CommandFailed x) = ["failed", x]
 
 data SignalOutput deriving Typeable
 instance SignalKeyClass SignalOutput where
-	type SignalParams SignalOutput = [Text] -> IO ()
+    type SignalParams SignalOutput = [Text] -> IO ()
 
 processAuthKeyInfo :: Text -> IO (Maybe (BS.ByteString, Text))
 processAuthKeyInfo keyPath = case T.stripPrefix "file://" keyPath of
-	Nothing -> return Nothing
-	Just p -> do
-		contents <- BS.readFile (T.unpack p)
-		return $ Just (contents, last $ T.splitOn "/" p)
+    Nothing -> return Nothing
+    Just p -> do
+        contents <- BS.readFile (T.unpack p)
+        return $ Just (contents, last $ T.splitOn "/" p)

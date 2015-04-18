@@ -26,100 +26,100 @@ textEx = T.pack . show
 
 runRdp :: Text -> Text -> Text -> Int -> Int -> IO (Either Text Text)
 runRdp serverIp serverUsername serverPassword width height = do
-	homeDir <- T.pack <$> getHomeDirectory
-	let params = T.unpack <$> [serverIp,
-		"-u", serverUsername,
-		"-g", T.concat $ T.pack <$> [show width, "x", show height],
-		"-r", T.concat ["disk:mydisk=", homeDir],
-		"-p", "-"]
-	r <- try (createProcess (proc "rdesktop" params) { std_in = CreatePipe})
-	case r of
-		Right (Just stdin, _, _, _) -> do
-			hPutStr stdin (T.unpack serverPassword)
-			hFlush stdin
-			return $ Right ""
-		Left x -> return $ Left $ textEx x
-		_ -> error "run RDP unexpected process output"
+    homeDir <- T.pack <$> getHomeDirectory
+    let params = T.unpack <$> [serverIp,
+                               "-u", serverUsername,
+                               "-g", T.concat $ T.pack <$> [show width, "x", show height],
+                               "-r", T.concat ["disk:mydisk=", homeDir],
+                               "-p", "-"]
+    r <- try (createProcess (proc "rdesktop" params) { std_in = CreatePipe})
+    case r of
+        Right (Just stdin, _, _, _) -> do
+            hPutStr stdin (T.unpack serverPassword)
+            hFlush stdin
+            return $ Right ""
+        Left x -> return $ Left $ textEx x
+        _ -> error "run RDP unexpected process output"
 
 tryCommand :: String -> [String] -> Maybe FilePath
-	-> Maybe [(String, String)] -> (CommandProgress -> IO ()) -> IO (Either Text ())
+    -> Maybe [(String, String)] -> (CommandProgress -> IO ()) -> IO (Either Text ())
 tryCommand cmd params mCwd envVal readCallback = do
-	r <- try (createProcess (proc cmd params)
-		{
-			std_out = CreatePipe,
-			env = envVal,
-			cwd = mCwd
-		})
-	case r of
-		Right (_, Just stdout, _, phndl) -> Right <$> readHandleProgress stdout readCallback phndl
-		Left (SomeException x) -> return $ Left $ T.pack $ show x
-		_ -> error "Try command unexpected process output"
+    r <- try (createProcess (proc cmd params)
+        {
+            std_out = CreatePipe,
+            env = envVal,
+            cwd = mCwd
+        })
+    case r of
+        Right (_, Just stdout, _, phndl) -> Right <$> readHandleProgress stdout readCallback phndl
+        Left (SomeException x) -> return $ Left $ T.pack $ show x
+        _ -> error "Try command unexpected process output"
 
 readHandleProgress :: Handle -> (CommandProgress -> IO ()) -> ProcessHandle -> IO ()
 readHandleProgress hndl cmdProgress phndl = do
-	chunk <- T.hGetChunk hndl
-	cmdProgress $ CommandOutput chunk
-	if not $ T.null chunk
-		then readHandleProgress hndl cmdProgress phndl
-		else handleProgramFinished cmdProgress phndl
+    chunk <- T.hGetChunk hndl
+    cmdProgress $ CommandOutput chunk
+    if not $ T.null chunk
+        then readHandleProgress hndl cmdProgress phndl
+        else handleProgramFinished cmdProgress phndl
 
 handleProgramFinished :: (CommandProgress -> IO ()) -> ProcessHandle -> IO ()
 handleProgramFinished cmdProgress phndl = do
-	mExitCode <- getProcessExitCode phndl
-	case mExitCode of
-		Nothing -> cmdProgress $ CommandFailed "Can't get process exit code from handle"
-		Just ExitSuccess -> cmdProgress CommandSucceeded
-		Just (ExitFailure code) -> cmdProgress $
-			CommandFailed (T.pack $ "Error code: " ++ show code)
+    mExitCode <- getProcessExitCode phndl
+    case mExitCode of
+        Nothing -> cmdProgress $ CommandFailed "Can't get process exit code from handle"
+        Just ExitSuccess -> cmdProgress CommandSucceeded
+        Just (ExitFailure code) -> cmdProgress $
+            CommandFailed (T.pack $ "Error code: " ++ show code)
 
 tryCommandAsync :: String -> [String] -> Maybe FilePath
-	-> Maybe [(String, String)] -> (CommandProgress -> IO ())  -> IO ()
+    -> Maybe [(String, String)] -> (CommandProgress -> IO ())  -> IO ()
 tryCommandAsync cmd params mCwd envVal readCallback = do
-	let runCmd = tryCommand cmd params mCwd envVal readCallback
-	void $ forkFinally runCmd notifyIfFail
-	where
-		-- in case runCmd returns Right, it managed to start the external
-		-- process, and we already notified of the success when it finished.
-		-- If it returns Left however, we couldn't start it => tell about
-		-- the failure.
-		notifyIfFail (Left x) = readCallback $ CommandFailed $ textEx x
-		notifyIfFail _ = return ()
+    let runCmd = tryCommand cmd params mCwd envVal readCallback
+    void $ forkFinally runCmd notifyIfFail
+    where
+        -- in case runCmd returns Right, it managed to start the external
+        -- process, and we already notified of the success when it finished.
+        -- If it returns Left however, we couldn't start it => tell about
+        -- the failure.
+        notifyIfFail (Left x) = readCallback $ CommandFailed $ textEx x
+        notifyIfFail _ = return ()
 
 openAssociatedFile :: Text -> IO (Either Text ())
 openAssociatedFile path = do
-	desktop <- getEnv "DESKTOP_SESSION"
-	let openCmd = case desktop of
-		"gnome" -> "gnome-open"
-		_ -> "xdg-open"
-	tryCommand openCmd [T.unpack path] Nothing Nothing (const $ return ())
+    desktop <- getEnv "DESKTOP_SESSION"
+    let openCmd = case desktop of
+          "gnome" -> "gnome-open"
+          _ -> "xdg-open"
+    tryCommand openCmd [T.unpack path] Nothing Nothing (const $ return ())
 
 writeTempScript :: String -> Text -> IO ()
 writeTempScript fname contents = do
-	T.writeFile fname contents
-	setFileMode fname ownerModes
+    T.writeFile fname contents
+    setFileMode fname ownerModes
 
 runSshContents :: FilePath -> Text -> Text -> Text
 runSshContents fname hostname username = T.concat ["#!/usr/bin/sh\n\
-	\rm ", T.pack fname, "\n\
-	\/usr/bin/setsid /usr/bin/ssh ", username, "@", hostname, "\n"]
+    \rm ", T.pack fname, "\n\
+    \/usr/bin/setsid /usr/bin/ssh ", username, "@", hostname, "\n"]
 
 -- http://stackoverflow.com/a/18522811/516188
 runSshContentsCommand :: FilePath -> Text -> Text -> Text -> Text
 runSshContentsCommand fname hostname username command = T.concat ["#!/usr/bin/sh\n\
-	\rm ", T.pack fname, "\n\
-	\/usr/bin/setsid /usr/bin/ssh ", username, "@", hostname, " -t '", command, "; bash -l'"]
+    \rm ", T.pack fname, "\n\
+    \/usr/bin/setsid /usr/bin/ssh ", username, "@", hostname, " -t '", command, "; bash -l'"]
 
 echoPassContents :: FilePath -> Text -> Text
 echoPassContents fname password = T.concat ["#!/bin/sh\n",
-	"set -f\necho '", password, "'\nrm ", T.pack fname]
+    "set -f\necho '", password, "'\nrm ", T.pack fname]
 
 prepareSshPassword :: Text -> FilePath -> IO [(String, String)]
 prepareSshPassword password tmpDir = do
-	let echoPassPath = tmpDir </> "echopass.sh"
-	writeTempScript echoPassPath (echoPassContents echoPassPath password)
-	parentEnv <- filter ((/= "SSH_ASKPASS") . fst) <$> getEnvironment
-	let sysEnv = [("SSH_ASKPASS", echoPassPath)]
-	return $ parentEnv ++ sysEnv
+    let echoPassPath = tmpDir </> "echopass.sh"
+    writeTempScript echoPassPath (echoPassContents echoPassPath password)
+    parentEnv <- filter ((/= "SSH_ASKPASS") . fst) <$> getEnvironment
+    let sysEnv = [("SSH_ASKPASS", echoPassPath)]
+    return $ parentEnv ++ sysEnv
 
 -- I have to jump through several hoops to make this work...
 -- I open in an external terminal so I can't communicate
@@ -128,35 +128,35 @@ prepareSshPassword password tmpDir = do
 -- password, but it's quickly deleted and with 700 permissions.
 openSshSession :: Text -> Text -> Text -> Maybe Text -> IO (Either Text ())
 openSshSession server username password command = do
-	tmpDir <- getTemporaryDirectory
-	-- TODO here I'm creating a temp file but not deleting it..
-	-- it is small though and tmpfs will not persist across reboots.
-	let runSshPath = tmpDir </> "runssh.sh"
-	let scriptContents = case command of
-		Nothing -> runSshContents runSshPath server username
-		Just cmd -> runSshContentsCommand runSshPath server username cmd
-	writeTempScript runSshPath scriptContents
-	let params = ["-e", runSshPath]
-	sshEnv <- prepareSshPassword password tmpDir
-	-- TODO detect other xterm types than gnome-terminal
-	fmapL textEx <$> try (void $
-		createProcess (proc "gnome-terminal" params)
-			{ env = Just sshEnv })
+    tmpDir <- getTemporaryDirectory
+    -- TODO here I'm creating a temp file but not deleting it..
+    -- it is small though and tmpfs will not persist across reboots.
+    let runSshPath = tmpDir </> "runssh.sh"
+    let scriptContents = case command of
+          Nothing -> runSshContents runSshPath server username
+          Just cmd -> runSshContentsCommand runSshPath server username cmd
+    writeTempScript runSshPath scriptContents
+    let params = ["-e", runSshPath]
+    sshEnv <- prepareSshPassword password tmpDir
+    -- TODO detect other xterm types than gnome-terminal
+    fmapL textEx <$> try (void $
+        createProcess (proc "gnome-terminal" params)
+            { env = Just sshEnv })
 
 runProgramOverSshAsync :: Text -> Text -> Text -> Maybe Text -> Text
-	-> (CommandProgress -> IO ()) -> IO ()
+    -> (CommandProgress -> IO ()) -> IO ()
 runProgramOverSshAsync server username password workDir program readCallback = do
-	sshEnv <- getTemporaryDirectory >>= prepareSshPassword password
-	let workDirCommand = maybe "" (\dir -> "cd " ++ dir ++ ";") (T.unpack <$> workDir)
-	let command = workDirCommand ++ T.unpack program
-	let params = ["/usr/bin/ssh", T.unpack username ++ "@" ++ T.unpack server, command]
-	tryCommandAsync "setsid" params Nothing (Just sshEnv) readCallback
+    sshEnv <- getTemporaryDirectory >>= prepareSshPassword password
+    let workDirCommand = maybe "" (\dir -> "cd " ++ dir ++ ";") (T.unpack <$> workDir)
+    let command = workDirCommand ++ T.unpack program
+    let params = ["/usr/bin/ssh", T.unpack username ++ "@" ++ T.unpack server, command]
+    tryCommandAsync "setsid" params Nothing (Just sshEnv) readCallback
 
 -- alternative implementations: http://stackoverflow.com/a/28101291/516188
 saveAuthKeyBytes ::Text -> Maybe BS.ByteString -> IO (Either Text Text)
 saveAuthKeyBytes path bytes  = runEitherT $ do
-	targetFile <- hoistEither $ note "Invalid target file name"
-		$ T.stripPrefix "file://" path
-	key <- hoistEither $ note "No authentication key for that server!" bytes
-	bimapEitherT textEx (const "") . EitherT . try
-		$ BS.writeFile (T.unpack targetFile) key
+    targetFile <- hoistEither $ note "Invalid target file name"
+        $ T.stripPrefix "file://" path
+    key <- hoistEither $ note "No authentication key for that server!" bytes
+    bimapEitherT textEx (const "") . EitherT . try
+        $ BS.writeFile (T.unpack targetFile) key

@@ -48,124 +48,124 @@ sqLiteDiscrimitator = "SQLite format 3"
 
 main :: IO ()
 main = do
-	appDir <- getAppDir
-	createDirectoryIfMissing True appDir
-	sqlBackend <- getSqlBackend (appDir </> dbFileName)
-	displayApp sqlBackend
+    appDir <- getAppDir
+    createDirectoryIfMissing True appDir
+    sqlBackend <- getSqlBackend (appDir </> dbFileName)
+    displayApp sqlBackend
 
 getAppDir :: IO String
 getAppDir = (</> projectPadFolder) <$> getHomeDirectory
 
 getDbPath :: IO String
 getDbPath = do
-	appDir <- getAppDir
-	return (appDir </> dbFileName)
+    appDir <- getAppDir
+    return (appDir </> dbFileName)
 
 getSqlBackend :: String -> IO SqlBackend
 getSqlBackend (T.pack -> t) = do
-	conn <- open t
-	prepare conn "PRAGMA foreign_keys = ON;" >>= step
-	-- to log the SQL queries as they're sent to the DB,
-	-- add: import System.Log.FastLogger
-	-- and use this callback:
-	-- print . fromLogStr
-	let logger _ _ _ = const $ return ()
-	wrapConnection conn logger
+    conn <- open t
+    prepare conn "PRAGMA foreign_keys = ON;" >>= step
+    -- to log the SQL queries as they're sent to the DB,
+    -- add: import System.Log.FastLogger
+    -- and use this callback:
+    -- print . fromLogStr
+    let logger _ _ _ = const $ return ()
+    wrapConnection conn logger
 
 data AppState = AppState
-	{
-		projectListState :: ObjRef ProjectListState,
-		projectViewState :: ObjRef ProjectViewState,
-		serverViewState :: ObjRef ServerViewState
-	} deriving Typeable
+    {
+        projectListState :: ObjRef ProjectListState,
+        projectViewState :: ObjRef ProjectViewState,
+        serverViewState :: ObjRef ServerViewState
+    } deriving Typeable
 
 -- might fail on windows if sqlite reserves exclusive
 -- access to the file.
 isDbInitialized :: IO Bool
 isDbInitialized = do
-	path <- getDbPath
-	fileExists <- doesFileExist path
-	if not fileExists
-		then return False
-		else (>0) <$> withFile path ReadMode hFileSize
+    path <- getDbPath
+    fileExists <- doesFileExist path
+    if not fileExists
+        then return False
+        else (>0) <$> withFile path ReadMode hFileSize
 
 -- might fail on windows if sqlite reserves exclusive
 -- access to the file.
 sanityCheckIsDbEncrypted :: IO Bool
 sanityCheckIsDbEncrypted = do
-	initialized <- isDbInitialized
-	path <- getDbPath
-	if not initialized
-		then return True
-		else do
-			fileStart <- withFile path ReadMode
-				(`BS.hGet` BS.length sqLiteDiscrimitator)
-			return $ fileStart /= sqLiteDiscrimitator
+    initialized <- isDbInitialized
+    path <- getDbPath
+    if not initialized
+        then return True
+        else do
+            fileStart <- withFile path ReadMode
+                (`BS.hGet` BS.length sqLiteDiscrimitator)
+            return $ fileStart /= sqLiteDiscrimitator
 
 data UnlockResult = Ok
-	| WrongPassword
-	| DbNotEncrypted
-	deriving (Read, Show)
+    | WrongPassword
+    | DbNotEncrypted
+    deriving (Read, Show)
 
 setupPasswordAndUpgradeDb :: SqlBackend -> SignalKey (IO ())
-	-> ObjRef ProjectListState -> ObjRef AppState -> Text -> Text -> IO Text
+    -> ObjRef ProjectListState -> ObjRef AppState -> Text -> Text -> IO Text
 setupPasswordAndUpgradeDb sqlBackend changeKey state _ password newPassword = do
-	encrypted <- sanityCheckIsDbEncrypted
-	T.pack . show <$> if not encrypted
-		then return DbNotEncrypted
-		else do
-			upgrade <- try $ runSqlBackend sqlBackend $ do
-				rawExecute (T.concat ["PRAGMA key = '", password, "'"]) []
-				when (T.length newPassword > 0) $
-					rawExecute (T.concat ["PRAGMA rekey = '", newPassword, "'"]) []
-				upgradeSchema
-			-- print details to STDOUT in case of failure because maybe
-			-- it was the right password and the schema upgrade failed!
-			case upgrade of
-				(Left (x :: SomeException)) -> print x >> return WrongPassword
-				Right _ -> reReadProjects sqlBackend changeKey state >> return Ok
+    encrypted <- sanityCheckIsDbEncrypted
+    T.pack . show <$> if not encrypted
+        then return DbNotEncrypted
+        else do
+            upgrade <- try $ runSqlBackend sqlBackend $ do
+                rawExecute (T.concat ["PRAGMA key = '", password, "'"]) []
+                when (T.length newPassword > 0) $
+                    rawExecute (T.concat ["PRAGMA rekey = '", newPassword, "'"]) []
+                upgradeSchema
+            -- print details to STDOUT in case of failure because maybe
+            -- it was the right password and the schema upgrade failed!
+            case upgrade of
+                (Left (x :: SomeException)) -> print x >> return WrongPassword
+                Right _ -> reReadProjects sqlBackend changeKey state >> return Ok
 
 doSearch :: SqlBackend -> AppState -> Text -> IO [ObjRef ProjectSearchMatch]
 doSearch sqlBackend state txt = do
-	-- search needs the caches cleared otherwise if the user
-	-- does rename or delete an item, the backend wants to
-	-- update the cache, but it might be the cache or a completely
-	-- different view...
-	clearCache (projectViewState state)
-	clearCache (serverViewState state)
-	searchText sqlBackend txt
+    -- search needs the caches cleared otherwise if the user
+    -- does rename or delete an item, the backend wants to
+    -- update the cache, but it might be the cache or a completely
+    -- different view...
+    clearCache (projectViewState state)
+    clearCache (serverViewState state)
+    searchText sqlBackend txt
 
 createContext :: SqlBackend -> IO (ObjRef AppState)
 createContext sqlBackend = do
-	(projectState, projectsChangeSignal) <- createProjectListState sqlBackend
-	rootClass <- newClass
-		[
-			defMethod' "isDbInitialized" $ const isDbInitialized,
-			defMethod "setupPasswordAndUpgradeDb" (setupPasswordAndUpgradeDb
-				sqlBackend projectsChangeSignal projectState),
-			defPropertyConst "projectListState"
-				$ return . projectListState . fromObjRef,
-			defPropertyConst "projectViewState"
-				$ return . projectViewState . fromObjRef,
-			defPropertyConst "serverViewState"
-				$ return . serverViewState . fromObjRef,
-			defMethod' "search" (doSearch sqlBackend . fromObjRef),
-			defMethod' "openAssociatedFile" (\_ path ->
-				serializeEither' <$> openAssociatedFile path)
-		]
-	rootContext <- AppState
-		<$> return projectState
-		<*> createProjectViewState sqlBackend
-		<*> createServerViewState sqlBackend
-	newObject rootClass rootContext
+    (projectState, projectsChangeSignal) <- createProjectListState sqlBackend
+    rootClass <- newClass
+        [
+            defMethod' "isDbInitialized" $ const isDbInitialized,
+            defMethod "setupPasswordAndUpgradeDb" (setupPasswordAndUpgradeDb
+                sqlBackend projectsChangeSignal projectState),
+            defPropertyConst "projectListState"
+                $ return . projectListState . fromObjRef,
+            defPropertyConst "projectViewState"
+                $ return . projectViewState . fromObjRef,
+            defPropertyConst "serverViewState"
+                $ return . serverViewState . fromObjRef,
+            defMethod' "search" (doSearch sqlBackend . fromObjRef),
+            defMethod' "openAssociatedFile" (\_ path ->
+                serializeEither' <$> openAssociatedFile path)
+        ]
+    rootContext <- AppState
+        <$> return projectState
+        <*> createProjectViewState sqlBackend
+        <*> createServerViewState sqlBackend
+    newObject rootClass rootContext
 
 
 displayApp :: SqlBackend -> IO ()
 displayApp sqlBackend = do
-	ctx <- createContext sqlBackend
-	mainQml <- Paths_projectpad.getDataFileName "qml/ProjectPad.qml"
-	runEngineLoop defaultEngineConfig
-		{
-			initialDocument = fileDocument mainQml,
-			contextObject = Just $ anyObjRef ctx
-		}
+    ctx <- createContext sqlBackend
+    mainQml <- Paths_projectpad.getDataFileName "qml/ProjectPad.qml"
+    runEngineLoop defaultEngineConfig
+        {
+            initialDocument = fileDocument mainQml,
+            contextObject = Just $ anyObjRef ctx
+        }
