@@ -15,6 +15,8 @@ import qualified Data.Map as M
 import Data.Maybe
 import Control.Arrow
 import Control.Error
+import Data.Monoid
+import Data.Attoparsec.Text hiding (count)
 
 import ModelBase
 import Model
@@ -110,25 +112,33 @@ updateProjectPoi sqlBackend stateRef poiRef
 deleteProjectPois :: SqlBackend -> ObjRef ProjectViewState -> [Int] -> IO ()
 deleteProjectPois = deleteHelper convertKey readPois
 
+splitParams :: Text -> Either String [Text]
+splitParams = eitherResult . flip feed T.empty . parse splitParamsParser
+	where
+		splitParamsParser = (parseQuotedParam <|> parseParam) `sepBy` char ' '
+		parseQuotedParam = char '"' *> takeWhile1 (/= '"') <* char '"'
+		parseParam = takeWhile1 (/= ' ')
+
 runPoiAction :: ObjRef ProjectViewState
 	-> ObjRef (Entity ProjectPointOfInterest) -> IO ()
 runPoiAction prjViewState (entityVal . fromObjRef -> poi)
-	| interest == PoiCommandToRun = do
-		let (prog:parameters) = T.unpack <$> T.splitOn " " txt
-		tryCommandAsync prog parameters path Nothing
-			(fireSignal (Proxy :: Proxy SignalOutput) prjViewState . cmdProgressToJs)
+	| interest == PoiCommandToRun = case fmap T.unpack <$> splitParams txt of
+		Left x -> notify (CommandFailed $ "Error parsing the command: " <> T.pack x)
+		Right [] -> notify (CommandFailed "Incomplete command line")
+		Right (prog:parameters) -> tryCommandAsync prog parameters path Nothing notify
 	| interest `elem` [PoiLogFile, PoiApplication] = do
 		result <- openAssociatedFile (projectPointOfInterestPath poi)
-		fireSignal (Proxy :: Proxy SignalOutput) prjViewState (cmdProgressToJs $ eitherToCmdProgress result)
+		notify (eitherToCmdProgress result)
 	| otherwise = putStrLn "poi action not handled"
 	where
+		notify = fireSignal (Proxy :: Proxy SignalOutput)
+			prjViewState . cmdProgressToJs
 		interest = projectPointOfInterestInterestType poi
 		path = case T.unpack $ projectPointOfInterestPath poi of
 			"" -> Nothing
 			x@_ -> Just x
 		txt = projectPointOfInterestText poi
 
--- alternative implementations: http://stackoverflow.com/a/28101291/516188
 saveAuthKey :: ObjRef ProjectViewState
 	-> Text -> ObjRef (Entity Server) -> IO (Either Text Text)
 saveAuthKey _ path (entityVal . fromObjRef -> server) =
