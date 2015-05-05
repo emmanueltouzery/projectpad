@@ -112,12 +112,15 @@ Rectangle {
                                         iconSize: 20
                                         exclusiveGroup: serverOptionsGroup
                                         onClicked: {
-                                            if (checked) {
+                                            if (lineSelectMenu.displayedServer !== modelData.server) {
                                                 var desktopSize = {width: Screen.desktopAvailableWidth, height: Screen.desktopAvailableHeight}
                                                 ServerMenu.showSelectMenu(modelData.server,
                                                     parent, desktopSize, refreshSearch, lineSelectMenu, rootFlow)
+                                                lineSelectMenu.displayedServer = modelData.server
                                             } else {
                                                 lineSelectMenu.visible = false
+                                                serverOptionsGroup.current = null
+                                                lineSelectMenu.displayedServer = null
                                             }
                                         }
                                         height: parent.height

@@ -5,6 +5,7 @@ Row {
     height: 40
     spacing: 8
     property variant options;
+    property variant displayedServer;
 
     function show(parnt, global) {
         if (global !== undefined) {
