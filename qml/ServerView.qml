@@ -1,5 +1,4 @@
 import QtQuick 2.0
-import QtQuick.Window 2.0
 import QtQuick.Controls 1.2
 import QtQuick.Layouts 1.1
 import QtQuick.Dialogs 1.0
@@ -118,6 +117,11 @@ Rectangle {
                 spacing: 10
                 id: flow
 
+                ServerHeader {
+                    server: pv.model
+                    rootFlowInParent: flow
+                }
+
                 Repeater {
                     id: useraccountsrepeater
                     model: serverViewState.getServerExtraUserAccounts(pv.model.id)
@@ -202,6 +206,18 @@ Rectangle {
                         + "/" + userAcct.authKeyFilename, userAcct)
                     appContext.successMessage("Saved file to "
                         + fileUrls[0] + "/" + userAcct.authKeyFilename)
+                }
+            }
+            ExclusiveGroup {id: serverOptionsGroup}
+            LineSelectMenu {
+                id: lineSelectMenu
+                visible: false
+                z: 3
+            }
+            Component {
+                id: serverEditComponent
+                ServerEdit {
+                    id: serverEdit
                 }
             }
         }

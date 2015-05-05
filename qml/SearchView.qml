@@ -1,8 +1,6 @@
 import QtQuick 2.0
 import QtQuick.Controls 1.2
 import QtQuick.Layouts 1.1
-import QtQuick.Window 2.2
-import "server-menu.js" as ServerMenu
 
 Rectangle {
     id: searchView
@@ -64,67 +62,17 @@ Rectangle {
                             model: modelData.servers
                             Flow {
                                 id: serverFlow
-                                width: searchView.width
+                                width: rootFlow.width
                                 spacing: 10
                                 Rectangle {
                                     height: index > 0 ? 5 : 0
                                     width: searchView.width
                                 }
-                                Rectangle {
-                                    color: "dark gray"
-                                    height: 40
-                                    width: searchView.width
-                                    Image {
-                                        x: 5
-                                        source: {
-                                            var envIcon;
-                                            switch (modelData.server.environment) {
-                                                case "EnvDevelopment":
-                                                envIcon = 'glyphicons-361-bug';
-                                                break;
-                                            case "EnvUat":
-                                                envIcon = 'glyphicons-534-lab';
-                                                break;
-                                            case "EnvStage":
-                                                envIcon = 'glyphicons-140-adjust-alt';
-                                                break;
-                                            case "EnvProd":
-                                                envIcon = 'glyphicons-333-certificate';
-                                                break;
-                                            }
-                                            return '../glyphicons-free/' + envIcon + '.png'
-                                        }
-                                        verticalAlignment: Image.AlignVCenter
-                                        fillMode: Image.Pad
-                                        height: parent.height
-                                    }
-                                    Text {
-                                        x: 35
-                                        text: modelData.server.desc
-                                        height: parent.height
-                                        verticalAlignment: Text.AlignVCenter
-                                    }
-                                    IconButton {
-                                        width: 30
-                                        x: parent.width - 50
-                                        iconX: 12
-                                        iconName: 'glyphicons-518-option-vertical'
-                                        iconSize: 20
-                                        exclusiveGroup: serverOptionsGroup
-                                        onClicked: {
-                                            if (lineSelectMenu.displayedServer !== modelData.server) {
-                                                var desktopSize = {width: Screen.desktopAvailableWidth, height: Screen.desktopAvailableHeight}
-                                                ServerMenu.showSelectMenu(modelData.server,
-                                                    parent, desktopSize, refreshSearch, lineSelectMenu, rootFlow)
-                                                lineSelectMenu.displayedServer = modelData.server
-                                            } else {
-                                                lineSelectMenu.visible = false
-                                                serverOptionsGroup.current = null
-                                                lineSelectMenu.displayedServer = null
-                                            }
-                                        }
-                                        height: parent.height
-                                        checkable: true
+                                ServerHeader {
+                                    server: modelData.server
+                                    rootFlowInParent: rootFlow
+                                    onShouldRefresh: {
+                                        refreshSearch()
                                     }
                                 }
                                 Repeater {
