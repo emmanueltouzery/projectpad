@@ -305,7 +305,12 @@ Window {
             }
         }
         Button {
-            visible: true
+            // the toast button causes problems
+            // when it's visible but the toast is
+            // hidden => it takes focus from other
+            // things, preventing clicks elsewhere
+            // where it's positioned.
+            visible: toast.opacity !== 0
             id: toastButton
             x: parent.width - width
         }
