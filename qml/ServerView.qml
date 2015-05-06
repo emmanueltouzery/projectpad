@@ -120,6 +120,18 @@ Rectangle {
                 ServerHeader {
                     server: pv.model
                     rootFlowInParent: flow
+                    onShouldRefresh: {
+                        var allServers = Utils.map(projectViewState.getServers(pv.model.projectId, pv.model.environment),
+                                             function(se) { return se.server })
+                        var updatedServer = Utils.findById(allServers, pv.model.id)
+                        if (updatedServer === null) {
+                            // the server was deleted! Go to the parent project.
+                            var projectModel = Utils.findById(projectListState.projects, model.projectId)
+                            loadView("ProjectView.qml", {"project": projectModel, "environment": pv.model.environment})
+                        } else {
+                            loadView("ServerView.qml", updatedServer)
+                        }
+                    }
                 }
 
                 Repeater {
