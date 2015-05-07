@@ -106,9 +106,8 @@ data UnlockResult = Ok
     | DbNotEncrypted
     deriving (Read, Show)
 
-setupPasswordAndUpgradeDb :: SqlBackend -> SignalKey (IO ())
-    -> ObjRef ProjectListState -> ObjRef AppState -> Text -> Text -> IO Text
-setupPasswordAndUpgradeDb sqlBackend changeKey state _ password newPassword = do
+setupPasswordAndUpgradeDb :: SqlBackend -> ObjRef AppState -> Text -> Text -> IO Text
+setupPasswordAndUpgradeDb sqlBackend _ password newPassword = do
     encrypted <- sanityCheckIsDbEncrypted
     T.pack . show <$> if not encrypted
         then return DbNotEncrypted
@@ -133,8 +132,7 @@ createContext sqlBackend = do
     rootClass <- newClass
         [
             defMethod' "isDbInitialized" $ const isDbInitialized,
-            defMethod "setupPasswordAndUpgradeDb" (setupPasswordAndUpgradeDb
-                sqlBackend projectsChangeSignal projectState),
+            defMethod "setupPasswordAndUpgradeDb" (setupPasswordAndUpgradeDb sqlBackend),
             defPropertyConst "projectListState"
                 $ return . projectListState . fromObjRef,
             defPropertyConst "projectViewState"

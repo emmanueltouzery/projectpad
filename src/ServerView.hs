@@ -39,9 +39,9 @@ addServerPoi sqlBackend stateRef
     addHelper sqlBackend stateRef
         $ ServerPointOfInterest pDesc path txt interestType
 
-updateServerPoi :: SqlBackend -> ObjRef ServerViewState -> ObjRef (Entity ServerPointOfInterest)
+updateServerPoi :: SqlBackend -> ObjRef (Entity ServerPointOfInterest)
     -> Text -> Text -> Text -> Text -> IO (ObjRef (Entity ServerPointOfInterest))
-updateServerPoi sqlBackend stateRef poiRef
+updateServerPoi sqlBackend poiRef
     pDesc path txt interestTypeT = do
     let interestType = read $ T.unpack interestTypeT
     updateHelper sqlBackend poiRef
@@ -65,10 +65,10 @@ addServerWebsite sqlBackend stateRef
     addHelper sqlBackend stateRef
         $ ServerWebsite pDesc url txt username password mDatabaseKey
 
-updateServerWebsite :: SqlBackend -> ObjRef ServerViewState -> ObjRef (Entity ServerWebsite)
+updateServerWebsite :: SqlBackend -> ObjRef (Entity ServerWebsite)
     -> Text -> Text -> Text -> Text -> Text
     -> Maybe Int -> IO (ObjRef (Entity ServerWebsite))
-updateServerWebsite sqlBackend stateRef srvWwwRef
+updateServerWebsite sqlBackend srvWwwRef
     pDesc url txt username password mDatabaseId = do
     let mDatabaseKey = fmap toSqlKey32 mDatabaseId
     updateHelper sqlBackend srvWwwRef
@@ -91,9 +91,9 @@ addServerDatabase sqlBackend stateRef pDesc name txt
     username password = addHelper sqlBackend stateRef
         $ ServerDatabase pDesc name txt username password
 
-updateServerDatabase :: SqlBackend -> ObjRef ServerViewState -> ObjRef (Entity ServerDatabase)
+updateServerDatabase :: SqlBackend -> ObjRef (Entity ServerDatabase)
     -> Text -> Text -> Text -> Text -> Text -> IO (ObjRef (Entity ServerDatabase))
-updateServerDatabase sqlBackend stateRef srvDbRef
+updateServerDatabase sqlBackend srvDbRef
     pDesc name txt username password = updateHelper sqlBackend srvDbRef
         [
             ServerDatabaseDesc P.=. pDesc, ServerDatabaseName P.=. name,
@@ -196,24 +196,24 @@ createServerViewState sqlBackend = do
         [
             defMethod "getPois" (getChildren sqlBackend readPois),
             defMethod "addServerPoi" (addServerPoi sqlBackend),
-            defMethod "updateServerPoi" (updateServerPoi sqlBackend),
+            defMethod' "updateServerPoi" (const $ updateServerPoi sqlBackend),
             defMethod' "deleteServerPois" (\_ ids -> deleteHelper sqlBackend
                                                      (convertKey <$> ids :: [Key ServerPointOfInterest])),
             defMethod "getServerWebsites" (getChildren sqlBackend readServerWebsites),
             defMethod "addServerWebsite" (addServerWebsite sqlBackend),
-            defMethod "updateServerWebsite" (updateServerWebsite sqlBackend),
+            defMethod' "updateServerWebsite" (const $ updateServerWebsite sqlBackend),
             defMethod' "deleteServerWebsites" (\_ ids -> deleteHelper sqlBackend
                                                          (convertKey <$> ids :: [Key ServerWebsite])),
             defMethod "getServerDatabases" (getChildren sqlBackend readServerDatabases),
             defMethod "addServerDatabase" (addServerDatabase sqlBackend),
-            defMethod "updateServerDatabase" (updateServerDatabase sqlBackend),
+            defMethod' "updateServerDatabase" (const $ updateServerDatabase sqlBackend),
             defMethod "canDeleteServerDatabase" (canDeleteServerDatabase sqlBackend),
             defMethod' "deleteServerDatabases" (\_ ids -> deleteHelper sqlBackend
                                                           (convertKey <$> ids :: [Key ServerDatabase])),
             defMethod "getAllDatabases" (getAllDatabases sqlBackend),
             defMethod "getServerExtraUserAccounts" (getChildren sqlBackend readServerExtraUserAccounts),
             defMethod "addServerExtraUserAccount" (addServerExtraUserAccount sqlBackend),
-            defMethod "updateServerExtraUserAccount" (updateServerExtraUserAccount sqlBackend),
+            defMethod' "updateServerExtraUserAccount" (updateServerExtraUserAccount sqlBackend),
             defMethod' "deleteServerExtraUserAccounts" (\_ ids -> deleteHelper sqlBackend
                                                                   (convertKey <$> ids :: [Key ServerExtraUserAccount])),
             defMethod "saveAuthKey" (\state path server -> serializeEither <$>
