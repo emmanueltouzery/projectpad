@@ -11,13 +11,6 @@ import qualified Database.Persist as P
 
 import Model (runSqlBackend)
 
--- I came up with this cache to avoid creating too many
--- QML objects backing a single DB object. But maybe it's
--- just complication for no reason. Especially since I now
--- sidestep the cache when using search...
-
-type EntityListCache a = MVar (Maybe [ObjRef (Entity a)])
-
 swapMVar_ :: MVar a -> a -> IO ()
 swapMVar_ a b = void (swapMVar a b)
 
@@ -27,10 +20,6 @@ class DynParentHolder a where
 getCurParentId :: DynParentHolder a => ObjRef a -> IO Int
 getCurParentId (fromObjRef -> state) = fromMaybe (error "No current parent ID!")
     <$> readMVar (dynParentId state)
-
-clearCache :: DynParentHolder a => ObjRef a -> IO ()
-clearCache (fromObjRef -> state) = do
-    swapMVar_ (dynParentId state) Nothing
 
 -- read children from the cache for a certain parent id.
 -- if the cache is for another parent id, reset the cache
@@ -45,18 +34,18 @@ getChildren sqlBackend readChildren _state parentId = do
     mapM newObjectDC =<< runSqlBackend sqlBackend (readChildren parentId)
 
 -- helper used when adding an entity to DB.
-addHelper :: (DynParentHolder a, DefaultClass (Entity b),
+addHelper :: (DynParentHolder a,
     ToBackendKey SqlBackend record, PersistEntity s, PersistEntityBackend s ~ SqlBackend) =>
-    SqlBackend -> ObjRef a -> (Int -> SqlPersistM [Entity b]) -> (Key record -> s) -> IO ()
-addHelper sqlBackend stateRef reader entityGetter = do
+    SqlBackend -> ObjRef a -> (Key record -> s) -> IO ()
+addHelper sqlBackend stateRef entityGetter = do
     pIdKey <- toSqlKey . fromIntegral <$> getCurParentId stateRef
     void $ runSqlBackend sqlBackend $ P.insert $ entityGetter pIdKey
 
-updateHelper :: (DynParentHolder a, DefaultClass (Entity b), PersistEntity b,
+updateHelper :: (DefaultClass (Entity b), PersistEntity b,
     PersistEntityBackend b ~ SqlBackend) =>
-    SqlBackend -> ObjRef a -> ObjRef (Entity b)
+    SqlBackend -> ObjRef (Entity b)
     -> [P.Update b] -> IO (ObjRef (Entity b))
-updateHelper sqlBackend stateRef entityRef updateValues = do
+updateHelper sqlBackend entityRef updateValues = do
     let idKey = entityKey $ fromObjRef entityRef
     runSqlBackend sqlBackend $ P.update idKey updateValues
     mEntity <- readEntityFromDb sqlBackend idKey
@@ -74,10 +63,7 @@ readEntityFromDb sqlBackend idKey = do
 convertKey :: (ToBackendKey SqlBackend a) => Int -> Key a
 convertKey = toSqlKey . fromIntegral
 
-deleteHelper :: (DynParentHolder a, DefaultClass (Entity b),
+deleteHelper :: (DefaultClass (Entity b),
         PersistEntity b, PersistEntityBackend b ~ SqlBackend) =>
-            (Int -> Key b) -> (Int -> SqlPersistM [Entity b])
-        -> SqlBackend -> ObjRef a -> [Int] -> IO ()
-deleteHelper keyConverter reader sqlBackend stateRef serverIds = do
-    let keys = fmap keyConverter serverIds
-    void $ mapM_ (runSqlBackend sqlBackend . P.delete) keys
+            SqlBackend -> [Key b] -> IO ()
+deleteHelper sqlBackend keys = void $ mapM_ (runSqlBackend sqlBackend . P.delete) keys

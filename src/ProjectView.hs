@@ -45,8 +45,7 @@ addServer sqlBackend stateRef sDesc ipAddr txt username password
     let srvAccessType = readT serverAccessTypeT
     let srvEnv = readT srvEnvironmentT
     authKeyInfo <- processAuthKeyInfo keyPath
-    addHelper sqlBackend stateRef readServers
-        $ Server sDesc ipAddr txt username password
+    addHelper sqlBackend stateRef $ Server sDesc ipAddr txt username password
             (fst <$> authKeyInfo) (snd <$> authKeyInfo)
             srvType srvAccessType srvEnv
 
@@ -58,7 +57,7 @@ updateServer sqlBackend stateRef serverRef sDesc ipAddr txt
     let srvType = read $ T.unpack serverTypeT
     let srvAccessType = read $ T.unpack serverAccessTypeT
     authKeyInfo <- processAuthKeyInfo keyPath
-    updateHelper sqlBackend stateRef serverRef
+    updateHelper sqlBackend serverRef
         [
             ServerDesc P.=. sDesc, ServerIp P.=. ipAddr,
             ServerText P.=. txt,
@@ -67,9 +66,6 @@ updateServer sqlBackend stateRef serverRef sDesc ipAddr txt
             ServerAuthKey P.=. fst <$> authKeyInfo,
             ServerAuthKeyFilename P.=. snd <$> authKeyInfo
         ]
-
-deleteServers :: SqlBackend -> ObjRef ProjectViewState -> [Int] -> IO ()
-deleteServers = deleteHelper convertKey readServers
 
 readPois :: Int -> SqlPersistM [Entity ProjectPointOfInterest]
 readPois projectId = select $ from $ \poi -> do
@@ -82,7 +78,7 @@ addProjectPoi :: SqlBackend -> ObjRef ProjectViewState
 addProjectPoi sqlBackend stateRef
     pDesc path txt interestTypeT = do
     let interestType = read $ T.unpack interestTypeT
-    addHelper sqlBackend stateRef readPois
+    addHelper sqlBackend stateRef
         $ ProjectPointOfInterest pDesc path txt interestType
 
 updateProjectPoi :: SqlBackend -> ObjRef ProjectViewState -> ObjRef (Entity ProjectPointOfInterest)
@@ -90,15 +86,12 @@ updateProjectPoi :: SqlBackend -> ObjRef ProjectViewState -> ObjRef (Entity Proj
 updateProjectPoi sqlBackend stateRef poiRef
     pDesc path txt interestTypeT = do
     let interestType = read $ T.unpack interestTypeT
-    updateHelper sqlBackend stateRef poiRef
+    updateHelper sqlBackend poiRef
         [
             ProjectPointOfInterestDesc P.=. pDesc, ProjectPointOfInterestPath P.=. path,
             ProjectPointOfInterestText P.=. txt,
             ProjectPointOfInterestInterestType P.=. interestType
         ]
-
-deleteProjectPois :: SqlBackend -> ObjRef ProjectViewState -> [Int] -> IO ()
-deleteProjectPois = deleteHelper convertKey readPois
 
 splitParams :: Text -> Either String [Text]
 splitParams = eitherResult . flip feed T.empty . parse splitParamsParser
@@ -210,11 +203,13 @@ createProjectViewState sqlBackend = do
             defMethod "getServers" (getServersExtraInfo sqlBackend),
             defMethod "addServer" (addServer sqlBackend),
             defMethod "updateServer" (updateServer sqlBackend),
-            defMethod "deleteServers" (deleteServers sqlBackend),
+            defMethod' "deleteServers" (\_ ids -> deleteHelper sqlBackend
+                                                  (convertKey <$> ids :: [Key Server])),
             defMethod "getPois" (getChildren sqlBackend readPois),
             defMethod "addProjectPoi" (addProjectPoi sqlBackend),
             defMethod "updateProjectPoi" (updateProjectPoi sqlBackend),
-            defMethod "deleteProjectPois" (deleteProjectPois sqlBackend),
+            defMethod' "deleteProjectPois" (\_ ids -> deleteHelper sqlBackend
+                                                      (convertKey <$> ids :: [Key ProjectPointOfInterest])),
             defMethod' "runPoiAction" runPoiAction,
             defMethod "saveAuthKey" (\state path server -> serializeEither <$>
                 saveAuthKey state path server),

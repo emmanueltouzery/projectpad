@@ -2,10 +2,8 @@
 module ProjectList where
 
 import Control.Applicative
-import Control.Concurrent.MVar
 import Graphics.QML
 import qualified Database.Persist as P
-import Data.Typeable
 import Database.Esqueleto
 import Data.Text (Text)
 import Data.List

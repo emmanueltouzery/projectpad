@@ -36,7 +36,7 @@ addServerPoi :: SqlBackend -> ObjRef ServerViewState
 addServerPoi sqlBackend stateRef
     pDesc path txt interestTypeT = do
     let interestType = read $ T.unpack interestTypeT
-    addHelper sqlBackend stateRef readPois
+    addHelper sqlBackend stateRef
         $ ServerPointOfInterest pDesc path txt interestType
 
 updateServerPoi :: SqlBackend -> ObjRef ServerViewState -> ObjRef (Entity ServerPointOfInterest)
@@ -44,15 +44,12 @@ updateServerPoi :: SqlBackend -> ObjRef ServerViewState -> ObjRef (Entity Server
 updateServerPoi sqlBackend stateRef poiRef
     pDesc path txt interestTypeT = do
     let interestType = read $ T.unpack interestTypeT
-    updateHelper sqlBackend stateRef poiRef
+    updateHelper sqlBackend poiRef
         [
             ServerPointOfInterestDesc P.=. pDesc, ServerPointOfInterestPath P.=. path,
             ServerPointOfInterestText P.=. txt,
             ServerPointOfInterestInterestType P.=. interestType
         ]
-
-deleteServerPois :: SqlBackend -> ObjRef ServerViewState -> [Int] -> IO ()
-deleteServerPois = deleteHelper convertKey readPois
 
 readServerWebsites :: Int -> SqlPersistM [Entity ServerWebsite]
 readServerWebsites serverId = select $ from $ \p -> do
@@ -65,7 +62,7 @@ addServerWebsite :: SqlBackend -> ObjRef ServerViewState
 addServerWebsite sqlBackend stateRef
     pDesc url txt username password mDatabaseId = do
     let mDatabaseKey = fmap toSqlKey32 mDatabaseId
-    addHelper sqlBackend stateRef readServerWebsites
+    addHelper sqlBackend stateRef
         $ ServerWebsite pDesc url txt username password mDatabaseKey
 
 updateServerWebsite :: SqlBackend -> ObjRef ServerViewState -> ObjRef (Entity ServerWebsite)
@@ -74,16 +71,13 @@ updateServerWebsite :: SqlBackend -> ObjRef ServerViewState -> ObjRef (Entity Se
 updateServerWebsite sqlBackend stateRef srvWwwRef
     pDesc url txt username password mDatabaseId = do
     let mDatabaseKey = fmap toSqlKey32 mDatabaseId
-    updateHelper sqlBackend stateRef srvWwwRef
+    updateHelper sqlBackend srvWwwRef
         [
             ServerWebsiteDesc P.=. pDesc, ServerWebsiteUrl P.=. url,
             ServerWebsiteText P.=. txt, ServerWebsiteUsername P.=. username,
             ServerWebsitePassword P.=. password,
             ServerWebsiteServerDatabaseId P.=. mDatabaseKey
         ]
-
-deleteServerWebsites :: SqlBackend -> ObjRef ServerViewState -> [Int] -> IO ()
-deleteServerWebsites = deleteHelper convertKey readServerWebsites
 
 readServerDatabases :: Int -> SqlPersistM [Entity ServerDatabase]
 readServerDatabases serverId = select $ from $ \p -> do
@@ -94,13 +88,13 @@ readServerDatabases serverId = select $ from $ \p -> do
 addServerDatabase :: SqlBackend -> ObjRef ServerViewState
     -> Text -> Text -> Text -> Text -> Text -> IO ()
 addServerDatabase sqlBackend stateRef pDesc name txt
-    username password = addHelper sqlBackend stateRef readServerDatabases
+    username password = addHelper sqlBackend stateRef
         $ ServerDatabase pDesc name txt username password
 
 updateServerDatabase :: SqlBackend -> ObjRef ServerViewState -> ObjRef (Entity ServerDatabase)
     -> Text -> Text -> Text -> Text -> Text -> IO (ObjRef (Entity ServerDatabase))
 updateServerDatabase sqlBackend stateRef srvDbRef
-    pDesc name txt username password = updateHelper sqlBackend stateRef srvDbRef
+    pDesc name txt username password = updateHelper sqlBackend srvDbRef
         [
             ServerDatabaseDesc P.=. pDesc, ServerDatabaseName P.=. name,
             ServerDatabaseText P.=. txt,
@@ -122,9 +116,6 @@ canDeleteServerDatabase sqlBackend _ (fromObjRef -> serverDb) = do
             let strElts = ["Can't delete ", name, ": it's used by servers ",  serverList]
             return $ Just $ T.concat strElts
 
-deleteServerDatabases :: SqlBackend -> ObjRef ServerViewState -> [Int] -> IO ()
-deleteServerDatabases = deleteHelper convertKey readServerDatabases
-
 getAllDatabases :: SqlBackend -> ObjRef ServerViewState -> IO [ObjRef (Entity ServerDatabase)]
 getAllDatabases sqlBackend _ = do
     dbs <- runSqlBackend sqlBackend (select $ from $ \p -> do
@@ -143,8 +134,7 @@ addServerExtraUserAccount :: SqlBackend -> ObjRef ServerViewState
 addServerExtraUserAccount sqlBackend stateRef
     pDesc username password keyPath = do
     authKeyInfo <- processAuthKeyInfo keyPath
-    addHelper sqlBackend stateRef readServerExtraUserAccounts
-        $ ServerExtraUserAccount username password pDesc
+    addHelper sqlBackend stateRef $ ServerExtraUserAccount username password pDesc
             (fst <$> authKeyInfo) (snd <$> authKeyInfo)
 
 updateServerExtraUserAccount :: SqlBackend -> ObjRef ServerViewState -> ObjRef (Entity ServerExtraUserAccount)
@@ -152,16 +142,13 @@ updateServerExtraUserAccount :: SqlBackend -> ObjRef ServerViewState -> ObjRef (
 updateServerExtraUserAccount sqlBackend stateRef acctRef
     pDesc username password keyPath = do
     authKeyInfo <- processAuthKeyInfo keyPath
-    updateHelper sqlBackend stateRef acctRef
+    updateHelper sqlBackend acctRef
         [
             ServerExtraUserAccountDesc P.=. pDesc, ServerExtraUserAccountUsername P.=. username,
             ServerExtraUserAccountPassword P.=. password,
             ServerExtraUserAccountAuthKey P.=. fst <$> authKeyInfo,
             ServerExtraUserAccountAuthKeyFilename P.=. snd <$> authKeyInfo
         ]
-
-deleteServerExtraUserAccounts :: SqlBackend -> ObjRef ServerViewState -> [Int] -> IO ()
-deleteServerExtraUserAccounts = deleteHelper convertKey readServerExtraUserAccounts
 
 -- alternative implementations: http://stackoverflow.com/a/28101291/516188
 -- almost identical function in ProjectView.hs...
@@ -210,21 +197,25 @@ createServerViewState sqlBackend = do
             defMethod "getPois" (getChildren sqlBackend readPois),
             defMethod "addServerPoi" (addServerPoi sqlBackend),
             defMethod "updateServerPoi" (updateServerPoi sqlBackend),
-            defMethod "deleteServerPois" (deleteServerPois sqlBackend),
+            defMethod' "deleteServerPois" (\_ ids -> deleteHelper sqlBackend
+                                                     (convertKey <$> ids :: [Key ServerPointOfInterest])),
             defMethod "getServerWebsites" (getChildren sqlBackend readServerWebsites),
             defMethod "addServerWebsite" (addServerWebsite sqlBackend),
             defMethod "updateServerWebsite" (updateServerWebsite sqlBackend),
-            defMethod "deleteServerWebsites" (deleteServerWebsites sqlBackend),
+            defMethod' "deleteServerWebsites" (\_ ids -> deleteHelper sqlBackend
+                                                         (convertKey <$> ids :: [Key ServerWebsite])),
             defMethod "getServerDatabases" (getChildren sqlBackend readServerDatabases),
             defMethod "addServerDatabase" (addServerDatabase sqlBackend),
             defMethod "updateServerDatabase" (updateServerDatabase sqlBackend),
             defMethod "canDeleteServerDatabase" (canDeleteServerDatabase sqlBackend),
-            defMethod "deleteServerDatabases" (deleteServerDatabases sqlBackend),
+            defMethod' "deleteServerDatabases" (\_ ids -> deleteHelper sqlBackend
+                                                          (convertKey <$> ids :: [Key ServerDatabase])),
             defMethod "getAllDatabases" (getAllDatabases sqlBackend),
             defMethod "getServerExtraUserAccounts" (getChildren sqlBackend readServerExtraUserAccounts),
             defMethod "addServerExtraUserAccount" (addServerExtraUserAccount sqlBackend),
             defMethod "updateServerExtraUserAccount" (updateServerExtraUserAccount sqlBackend),
-            defMethod "deleteServerExtraUserAccounts" (deleteServerExtraUserAccounts sqlBackend),
+            defMethod' "deleteServerExtraUserAccounts" (\_ ids -> deleteHelper sqlBackend
+                                                                  (convertKey <$> ids :: [Key ServerExtraUserAccount])),
             defMethod "saveAuthKey" (\state path server -> serializeEither <$>
                 saveExtraUserAuthKey state path server),
             defMethod' "executePoiAction" (\srvState server serverPoi -> serializeEither' <$>
