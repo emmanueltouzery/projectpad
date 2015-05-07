@@ -123,7 +123,7 @@ setupPasswordAndUpgradeDb sqlBackend changeKey state _ password newPassword = do
             -- it was the right password and the schema upgrade failed!
             case upgrade of
                 (Left (x :: SomeException)) -> print x >> return WrongPassword
-                Right _ -> reReadProjects sqlBackend changeKey state >> return Ok
+                Right _ -> return Ok
 
 doSearch :: SqlBackend -> AppState -> Text -> IO [ObjRef ProjectSearchMatch]
 doSearch sqlBackend state txt = do
