@@ -26,23 +26,11 @@ import Util
 
 data ProjectViewState = ProjectViewState
     {
-        curProjectId :: MVar (Maybe Int),
-        servers :: EntityListCache Server,
-        pois :: EntityListCache ProjectPointOfInterest
+        curProjectId :: MVar (Maybe Int)
     } deriving Typeable
 
 instance DynParentHolder ProjectViewState where
     dynParentId = curProjectId
-    clearAllChildrenCaches state = do
-        swapMVar_ (servers state) Nothing
-        swapMVar_ (pois state) Nothing
-
-instance CacheHolder Server ProjectViewState where
-    cacheChildren = servers
-
-instance CacheHolder ProjectPointOfInterest ProjectViewState where
-    cacheChildren = pois
-
 readServers :: Int -> SqlPersistM [Entity Server]
 readServers projectId = select $ from $ \s -> do
     where_ (s ^. ServerProjectId ==. val (toSqlKey32 projectId))
@@ -70,7 +58,7 @@ updateServer sqlBackend stateRef serverRef sDesc ipAddr txt
     let srvType = read $ T.unpack serverTypeT
     let srvAccessType = read $ T.unpack serverAccessTypeT
     authKeyInfo <- processAuthKeyInfo keyPath
-    updateHelper sqlBackend stateRef serverRef readServers servers
+    updateHelper sqlBackend stateRef serverRef
         [
             ServerDesc P.=. sDesc, ServerIp P.=. ipAddr,
             ServerText P.=. txt,
@@ -102,7 +90,7 @@ updateProjectPoi :: SqlBackend -> ObjRef ProjectViewState -> ObjRef (Entity Proj
 updateProjectPoi sqlBackend stateRef poiRef
     pDesc path txt interestTypeT = do
     let interestType = read $ T.unpack interestTypeT
-    updateHelper sqlBackend stateRef poiRef readPois pois
+    updateHelper sqlBackend stateRef poiRef
         [
             ProjectPointOfInterestDesc P.=. pDesc, ProjectPointOfInterestPath P.=. path,
             ProjectPointOfInterestText P.=. txt,
@@ -216,10 +204,7 @@ getServersExtraInfo sqlBackend projectViewState projectId environment = do
 
 createProjectViewState :: SqlBackend -> IO (ObjRef ProjectViewState)
 createProjectViewState sqlBackend = do
-    projectViewState <- ProjectViewState
-        <$> newMVar Nothing
-        <*> newMVar Nothing
-        <*> newMVar Nothing
+    projectViewState <- ProjectViewState <$> newMVar Nothing
     projectViewClass <- newClass
         [
             defMethod "getServers" (getServersExtraInfo sqlBackend),

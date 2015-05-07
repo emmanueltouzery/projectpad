@@ -20,33 +20,11 @@ import Util
 
 data ServerViewState = ServerViewState
     {
-        curServerId :: MVar (Maybe Int),
-        pois :: EntityListCache ServerPointOfInterest,
-        serverWebsites :: EntityListCache ServerWebsite,
-        serverDatabases :: EntityListCache ServerDatabase,
-        serverExtraUserAccounts :: EntityListCache ServerExtraUserAccount
+        curServerId :: MVar (Maybe Int)
     } deriving Typeable
 
 instance DynParentHolder ServerViewState where
     dynParentId = curServerId
-    clearAllChildrenCaches state = do
-        swapMVar_ (pois state) Nothing
-        swapMVar_ (serverWebsites state) Nothing
-        swapMVar_ (serverDatabases state) Nothing
-        swapMVar_ (serverExtraUserAccounts state) Nothing
-
-instance CacheHolder ServerPointOfInterest ServerViewState where
-    cacheChildren = pois
-
-instance CacheHolder ServerWebsite ServerViewState where
-    cacheChildren = serverWebsites
-
-instance CacheHolder ServerDatabase ServerViewState where
-    cacheChildren = serverDatabases
-
-instance CacheHolder ServerExtraUserAccount ServerViewState where
-    cacheChildren = serverExtraUserAccounts
-
 readPois :: Int -> SqlPersistM [Entity ServerPointOfInterest]
 readPois serverId = select $ from $ \p -> do
     where_ (p ^. ServerPointOfInterestServerId ==. val (toSqlKey32 serverId))
@@ -66,7 +44,7 @@ updateServerPoi :: SqlBackend -> ObjRef ServerViewState -> ObjRef (Entity Server
 updateServerPoi sqlBackend stateRef poiRef
     pDesc path txt interestTypeT = do
     let interestType = read $ T.unpack interestTypeT
-    updateHelper sqlBackend stateRef poiRef readPois pois
+    updateHelper sqlBackend stateRef poiRef
         [
             ServerPointOfInterestDesc P.=. pDesc, ServerPointOfInterestPath P.=. path,
             ServerPointOfInterestText P.=. txt,
@@ -96,7 +74,7 @@ updateServerWebsite :: SqlBackend -> ObjRef ServerViewState -> ObjRef (Entity Se
 updateServerWebsite sqlBackend stateRef srvWwwRef
     pDesc url txt username password mDatabaseId = do
     let mDatabaseKey = fmap toSqlKey32 mDatabaseId
-    updateHelper sqlBackend stateRef srvWwwRef readServerWebsites serverWebsites
+    updateHelper sqlBackend stateRef srvWwwRef
         [
             ServerWebsiteDesc P.=. pDesc, ServerWebsiteUrl P.=. url,
             ServerWebsiteText P.=. txt, ServerWebsiteUsername P.=. username,
@@ -122,8 +100,7 @@ addServerDatabase sqlBackend stateRef pDesc name txt
 updateServerDatabase :: SqlBackend -> ObjRef ServerViewState -> ObjRef (Entity ServerDatabase)
     -> Text -> Text -> Text -> Text -> Text -> IO (ObjRef (Entity ServerDatabase))
 updateServerDatabase sqlBackend stateRef srvDbRef
-    pDesc name txt username password = updateHelper sqlBackend stateRef
-        srvDbRef readServerDatabases serverDatabases
+    pDesc name txt username password = updateHelper sqlBackend stateRef srvDbRef
         [
             ServerDatabaseDesc P.=. pDesc, ServerDatabaseName P.=. name,
             ServerDatabaseText P.=. txt,
@@ -175,7 +152,7 @@ updateServerExtraUserAccount :: SqlBackend -> ObjRef ServerViewState -> ObjRef (
 updateServerExtraUserAccount sqlBackend stateRef acctRef
     pDesc username password keyPath = do
     authKeyInfo <- processAuthKeyInfo keyPath
-    updateHelper sqlBackend stateRef acctRef readServerExtraUserAccounts serverExtraUserAccounts
+    updateHelper sqlBackend stateRef acctRef
         [
             ServerExtraUserAccountDesc P.=. pDesc, ServerExtraUserAccountUsername P.=. username,
             ServerExtraUserAccountPassword P.=. password,
@@ -227,12 +204,7 @@ executePoiCommand srvState server serverPoi = do
 
 createServerViewState :: SqlBackend -> IO (ObjRef ServerViewState)
 createServerViewState sqlBackend = do
-    serverViewState <- ServerViewState
-        <$> newMVar Nothing
-        <*> newMVar Nothing
-        <*> newMVar Nothing
-        <*> newMVar Nothing
-        <*> newMVar Nothing
+    serverViewState <- ServerViewState <$> newMVar Nothing
     serverViewClass <- newClass
         [
             defMethod "getPois" (getChildren sqlBackend readPois),
