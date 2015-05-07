@@ -24,12 +24,12 @@ readProjects = select $ from $ \p -> do
 
 addProject :: SqlBackend -> SignalKey (IO ()) -> ObjRef ProjectListState
            -> Text -> Bool -> Bool -> Bool -> Bool -> IO ()
-addProject sqlBackend changeKey state txt hasDev hasUat hasStage hasProd =
+addProject sqlBackend changeKey state txt hasDev hasUat hasStage hasProd = do
     -- a project must have at least one environment. Refuse to update otherwise.
     when (hasDev || hasUat || hasStage || hasProd) $ void $
         runSqlBackend sqlBackend $ P.insert (Project txt ""
-            (text hasDev) (text hasUat)
-            (text hasStage) (text hasProd))
+            (text hasDev) (text hasUat) (text hasStage) (text hasProd))
+    fireSignal changeKey state
 
 updateProject :: SqlBackend -> SignalKey (IO ()) -> ObjRef ProjectListState
     -> ObjRef (Entity Project) -> Text -> Bool -> Bool
@@ -41,6 +41,7 @@ updateProject sqlBackend changeKey state
     runSqlBackend sqlBackend $ P.update idKey [ProjectName P.=. name,
         ProjectHasDev P.=. text hasDev, ProjectHasUat P.=. text hasUat,
         ProjectHasStage P.=. text hasStage, ProjectHasProd P.=. text hasProd]
+    fireSignal changeKey state
     newProjectList <- runSqlBackend sqlBackend readProjects
     let mUpdatedProjectEntity = find ((== idKey) . entityKey) newProjectList
     newObjectDC $ fromMaybe (error "Can't find project after update?") mUpdatedProjectEntity
@@ -49,6 +50,7 @@ deleteProjects :: SqlBackend -> SignalKey (IO ()) -> ObjRef ProjectListState -> 
 deleteProjects sqlBackend changeKey state projectIds = do
     let keys = fmap convertKey projectIds :: [Key Project]
     mapM_ (runSqlBackend sqlBackend . P.delete) keys
+    fireSignal changeKey state
 
 createProjectListState :: SqlBackend -> IO (ObjRef ProjectListState, SignalKey (IO ()))
 createProjectListState sqlBackend = do
