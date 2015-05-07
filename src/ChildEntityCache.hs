@@ -66,4 +66,4 @@ convertKey = toSqlKey . fromIntegral
 deleteHelper :: (DefaultClass (Entity b),
         PersistEntity b, PersistEntityBackend b ~ SqlBackend) =>
             SqlBackend -> [Key b] -> IO ()
-deleteHelper sqlBackend keys = void $ mapM_ (runSqlBackend sqlBackend . P.delete) keys
+deleteHelper sqlBackend = mapM_ (runSqlBackend sqlBackend . P.delete)
