@@ -103,7 +103,6 @@ runSshContents fname hostname username = T.concat ["#!/usr/bin/sh\n\
     \rm ", T.pack fname, "\n\
     \/usr/bin/setsid /usr/bin/ssh ", username, "@", hostname, "\n"]
 
--- http://stackoverflow.com/a/18522811/516188
 runSshContentsCommand :: FilePath -> Text -> Text -> Text -> Text
 runSshContentsCommand fname hostname username command = T.concat ["#!/usr/bin/sh\n\
     \rm ", T.pack fname, "\n\

@@ -149,8 +149,6 @@ updateServerExtraUserAccount sqlBackend acctRef
             ServerExtraUserAccountAuthKeyFilename P.=. snd <$> authKeyInfo
         ]
 
--- alternative implementations: http://stackoverflow.com/a/28101291/516188
--- almost identical function in ProjectView.hs...
 saveExtraUserAuthKey :: ObjRef ServerViewState
     -> Text -> ObjRef (Entity ServerExtraUserAccount) -> IO (Either Text Text)
 saveExtraUserAuthKey _ path (entityVal . fromObjRef -> userAcct) = saveAuthKeyBytes path $
