@@ -195,6 +195,12 @@ getServersExtraInfo sqlBackend projectViewState projectId environment = do
         objRefKey = entityKey . fromObjRef
         getServerCount s = fromMaybe 0 . M.lookup (objRefKey s)
 
+deleteServer :: Key Server -> SqlPersistM ()
+deleteServer = P.delete
+
+deleteProjectPoi :: Key ProjectPointOfInterest -> SqlPersistM ()
+deleteProjectPoi = P.delete
+
 createProjectViewState :: SqlBackend -> IO (ObjRef ProjectViewState)
 createProjectViewState sqlBackend = do
     projectViewState <- ProjectViewState <$> newMVar Nothing
@@ -203,13 +209,11 @@ createProjectViewState sqlBackend = do
             defMethod "getServers" (getServersExtraInfo sqlBackend),
             defMethod "addServer" (addServer sqlBackend),
             defMethod' "updateServer" (const $ updateServer sqlBackend),
-            defMethod' "deleteServers" (\_ ids -> deleteHelper sqlBackend
-                                                  (convertKey <$> ids :: [Key Server])),
+            defMethod' "deleteServers" (deleteHelper sqlBackend deleteServer),
             defMethod "getPois" (getChildren sqlBackend readPois),
             defMethod "addProjectPoi" (addProjectPoi sqlBackend),
             defMethod' "updateProjectPoi" (const $ updateProjectPoi sqlBackend),
-            defMethod' "deleteProjectPois" (\_ ids -> deleteHelper sqlBackend
-                                                      (convertKey <$> ids :: [Key ProjectPointOfInterest])),
+            defMethod' "deleteProjectPois" (deleteHelper sqlBackend deleteProjectPoi),
             defMethod' "runPoiAction" runPoiAction,
             defMethod "saveAuthKey" (\state path server -> serializeEither <$>
                 saveAuthKey state path server),

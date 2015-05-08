@@ -189,6 +189,18 @@ executePoiCommand srvState server serverPoi = do
         workDir (serverPointOfInterestText serverPoi)
         (fireSignal (Proxy :: Proxy SignalOutput) srvState . cmdProgressToJs)
 
+deleteServerPoi :: Key ServerPointOfInterest -> SqlPersistM ()
+deleteServerPoi = P.delete
+
+deleteServerWebsite :: Key ServerWebsite -> SqlPersistM ()
+deleteServerWebsite = P.delete
+
+deleteServerDatabase :: Key ServerDatabase -> SqlPersistM ()
+deleteServerDatabase = P.delete
+
+deleteServerExtraUserAccount :: Key ServerExtraUserAccount -> SqlPersistM ()
+deleteServerExtraUserAccount = P.delete
+
 createServerViewState :: SqlBackend -> IO (ObjRef ServerViewState)
 createServerViewState sqlBackend = do
     serverViewState <- ServerViewState <$> newMVar Nothing
@@ -197,25 +209,21 @@ createServerViewState sqlBackend = do
             defMethod "getPois" (getChildren sqlBackend readPois),
             defMethod "addServerPoi" (addServerPoi sqlBackend),
             defMethod' "updateServerPoi" (const $ updateServerPoi sqlBackend),
-            defMethod' "deleteServerPois" (\_ ids -> deleteHelper sqlBackend
-                                                     (convertKey <$> ids :: [Key ServerPointOfInterest])),
+            defMethod' "deleteServerPois" (deleteHelper sqlBackend deleteServerPoi),
             defMethod "getServerWebsites" (getChildren sqlBackend readServerWebsites),
             defMethod "addServerWebsite" (addServerWebsite sqlBackend),
             defMethod' "updateServerWebsite" (const $ updateServerWebsite sqlBackend),
-            defMethod' "deleteServerWebsites" (\_ ids -> deleteHelper sqlBackend
-                                                         (convertKey <$> ids :: [Key ServerWebsite])),
+            defMethod' "deleteServerWebsites" (deleteHelper sqlBackend deleteServerWebsite),
             defMethod "getServerDatabases" (getChildren sqlBackend readServerDatabases),
             defMethod "addServerDatabase" (addServerDatabase sqlBackend),
             defMethod' "updateServerDatabase" (const $ updateServerDatabase sqlBackend),
             defMethod "canDeleteServerDatabase" (canDeleteServerDatabase sqlBackend),
-            defMethod' "deleteServerDatabases" (\_ ids -> deleteHelper sqlBackend
-                                                          (convertKey <$> ids :: [Key ServerDatabase])),
+            defMethod' "deleteServerDatabases" (deleteHelper sqlBackend deleteServerDatabase),
             defMethod "getAllDatabases" (getAllDatabases sqlBackend),
             defMethod "getServerExtraUserAccounts" (getChildren sqlBackend readServerExtraUserAccounts),
             defMethod "addServerExtraUserAccount" (addServerExtraUserAccount sqlBackend),
             defMethod' "updateServerExtraUserAccount" (const $ updateServerExtraUserAccount sqlBackend),
-            defMethod' "deleteServerExtraUserAccounts" (\_ ids -> deleteHelper sqlBackend
-                                                                  (convertKey <$> ids :: [Key ServerExtraUserAccount])),
+            defMethod' "deleteServerExtraUserAccounts" (deleteHelper sqlBackend deleteServerExtraUserAccount),
             defMethod "saveAuthKey" (\state path server -> serializeEither <$>
                 saveExtraUserAuthKey state path server),
             defMethod' "executePoiAction" (\srvState server serverPoi -> serializeEither' <$>

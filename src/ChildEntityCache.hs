@@ -62,7 +62,6 @@ readEntityFromDb sqlBackend idKey = do
 convertKey :: (ToBackendKey SqlBackend a) => Int -> Key a
 convertKey = toSqlKey . fromIntegral
 
-deleteHelper :: (DefaultClass (Entity b),
-        PersistEntity b, PersistEntityBackend b ~ SqlBackend) =>
-            SqlBackend -> [Key b] -> IO ()
-deleteHelper sqlBackend = mapM_ (runSqlBackend sqlBackend . P.delete)
+deleteHelper :: ToBackendKey SqlBackend a =>
+                 SqlBackend -> (Key a -> SqlPersistM ()) -> t -> [Int] -> IO ()
+deleteHelper sqlBackend deleter _ = mapM_ (runSqlBackend sqlBackend . deleter . convertKey)
