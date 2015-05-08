@@ -62,6 +62,8 @@ readEntityFromDb sqlBackend idKey = do
 convertKey :: (ToBackendKey SqlBackend a) => Int -> Key a
 convertKey = toSqlKey . fromIntegral
 
+-- meant to be called from HSQML. the t parameter
+-- will hold the state of the object, but I don't care for it.
 deleteHelper :: ToBackendKey SqlBackend a =>
                  SqlBackend -> (Key a -> SqlPersistM ()) -> t -> [Int] -> IO ()
 deleteHelper sqlBackend deleter _ = mapM_ (runSqlBackend sqlBackend . deleter . convertKey)
