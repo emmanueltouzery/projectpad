@@ -123,12 +123,9 @@ setupPasswordAndUpgradeDb sqlBackend _ password newPassword = do
                 (Left (x :: SomeException)) -> print x >> return WrongPassword
                 Right _ -> return Ok
 
-doSearch :: SqlBackend -> AppState -> Text -> IO [ObjRef ProjectSearchMatch]
-doSearch sqlBackend state txt = searchText sqlBackend txt
-
 createContext :: SqlBackend -> IO (ObjRef AppState)
 createContext sqlBackend = do
-    (projectState, projectsChangeSignal) <- createProjectListState sqlBackend
+    projectState <- fst <$> createProjectListState sqlBackend
     rootClass <- newClass
         [
             defMethod' "isDbInitialized" $ const isDbInitialized,
@@ -139,7 +136,7 @@ createContext sqlBackend = do
                 $ return . projectViewState . fromObjRef,
             defPropertyConst "serverViewState"
                 $ return . serverViewState . fromObjRef,
-            defMethod' "search" (doSearch sqlBackend . fromObjRef),
+            defMethod' "search" (const $ searchText sqlBackend),
             defMethod' "openAssociatedFile" (\_ path ->
                 serializeEither' <$> openAssociatedFile path)
         ]

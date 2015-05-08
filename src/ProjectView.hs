@@ -49,10 +49,10 @@ addServer sqlBackend stateRef sDesc ipAddr txt username password
             (fst <$> authKeyInfo) (snd <$> authKeyInfo)
             srvType srvAccessType srvEnv
 
-updateServer :: SqlBackend -> ObjRef ProjectViewState -> ObjRef (Entity Server)
+updateServer :: SqlBackend -> ObjRef (Entity Server)
     -> Text -> IpAddress -> Text -> Text -> Text -> Text -> Text
     -> Text -> IO (ObjRef (Entity Server))
-updateServer sqlBackend stateRef serverRef sDesc ipAddr txt
+updateServer sqlBackend serverRef sDesc ipAddr txt
   username password keyPath serverTypeT serverAccessTypeT = do
     let srvType = read $ T.unpack serverTypeT
     let srvAccessType = read $ T.unpack serverAccessTypeT
@@ -81,9 +81,9 @@ addProjectPoi sqlBackend stateRef
     addHelper sqlBackend stateRef
         $ ProjectPointOfInterest pDesc path txt interestType
 
-updateProjectPoi :: SqlBackend -> ObjRef ProjectViewState -> ObjRef (Entity ProjectPointOfInterest)
+updateProjectPoi :: SqlBackend -> ObjRef (Entity ProjectPointOfInterest)
     -> Text -> Text -> Text -> Text -> IO (ObjRef (Entity ProjectPointOfInterest))
-updateProjectPoi sqlBackend stateRef poiRef
+updateProjectPoi sqlBackend poiRef
     pDesc path txt interestTypeT = do
     let interestType = read $ T.unpack interestTypeT
     updateHelper sqlBackend poiRef
@@ -202,12 +202,12 @@ createProjectViewState sqlBackend = do
         [
             defMethod "getServers" (getServersExtraInfo sqlBackend),
             defMethod "addServer" (addServer sqlBackend),
-            defMethod "updateServer" (updateServer sqlBackend),
+            defMethod' "updateServer" (const $ updateServer sqlBackend),
             defMethod' "deleteServers" (\_ ids -> deleteHelper sqlBackend
                                                   (convertKey <$> ids :: [Key Server])),
             defMethod "getPois" (getChildren sqlBackend readPois),
             defMethod "addProjectPoi" (addProjectPoi sqlBackend),
-            defMethod "updateProjectPoi" (updateProjectPoi sqlBackend),
+            defMethod' "updateProjectPoi" (const $ updateProjectPoi sqlBackend),
             defMethod' "deleteProjectPois" (\_ ids -> deleteHelper sqlBackend
                                                       (convertKey <$> ids :: [Key ProjectPointOfInterest])),
             defMethod' "runPoiAction" runPoiAction,

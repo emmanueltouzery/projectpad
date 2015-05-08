@@ -137,9 +137,9 @@ addServerExtraUserAccount sqlBackend stateRef
     addHelper sqlBackend stateRef $ ServerExtraUserAccount username password pDesc
             (fst <$> authKeyInfo) (snd <$> authKeyInfo)
 
-updateServerExtraUserAccount :: SqlBackend -> ObjRef ServerViewState -> ObjRef (Entity ServerExtraUserAccount)
+updateServerExtraUserAccount :: SqlBackend -> ObjRef (Entity ServerExtraUserAccount)
     -> Text -> Text -> Text -> Text -> IO (ObjRef (Entity ServerExtraUserAccount))
-updateServerExtraUserAccount sqlBackend stateRef acctRef
+updateServerExtraUserAccount sqlBackend acctRef
     pDesc username password keyPath = do
     authKeyInfo <- processAuthKeyInfo keyPath
     updateHelper sqlBackend acctRef
@@ -213,7 +213,7 @@ createServerViewState sqlBackend = do
             defMethod "getAllDatabases" (getAllDatabases sqlBackend),
             defMethod "getServerExtraUserAccounts" (getChildren sqlBackend readServerExtraUserAccounts),
             defMethod "addServerExtraUserAccount" (addServerExtraUserAccount sqlBackend),
-            defMethod' "updateServerExtraUserAccount" (updateServerExtraUserAccount sqlBackend),
+            defMethod' "updateServerExtraUserAccount" (const $ updateServerExtraUserAccount sqlBackend),
             defMethod' "deleteServerExtraUserAccounts" (\_ ids -> deleteHelper sqlBackend
                                                                   (convertKey <$> ids :: [Key ServerExtraUserAccount])),
             defMethod "saveAuthKey" (\state path server -> serializeEither <$>

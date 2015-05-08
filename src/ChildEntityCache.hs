@@ -8,6 +8,7 @@ import Graphics.QML
 import Data.Maybe as M
 import Control.Applicative
 import qualified Database.Persist as P
+import Data.Traversable (traverse)
 
 import Model (runSqlBackend)
 
@@ -56,9 +57,7 @@ readEntityFromDb :: (PersistEntity record, DefaultClass (Entity record),
     SqlBackend -> Key record -> IO (Maybe (ObjRef (Entity record)))
 readEntityFromDb sqlBackend idKey = do
     entity <- runSqlBackend sqlBackend (P.get idKey)
-    case entity of
-        Nothing -> return Nothing
-        Just e -> Just <$> newObjectDC (Entity idKey e)
+    traverse (newObjectDC . Entity idKey) entity
 
 convertKey :: (ToBackendKey SqlBackend a) => Int -> Key a
 convertKey = toSqlKey . fromIntegral
