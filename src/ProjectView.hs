@@ -23,6 +23,7 @@ import Model
 import ChildEntityHolder
 import System
 import Util
+import ServerView
 
 data ProjectViewState = ProjectViewState
     {
@@ -195,6 +196,15 @@ getServersExtraInfo sqlBackend projectViewState projectId environment = do
         objRefKey = entityKey . fromObjRef
         getServerCount s = fromMaybe 0 . M.lookup (objRefKey s)
 
+canDeleteServer :: SqlBackend -> Entity Server -> IO (Maybe Text)
+canDeleteServer sqlBackend server = do
+    dbs <- runSqlBackend sqlBackend
+           (readServerDatabases $ fromSqlKey32 server)
+    messages <- catMaybes <$> mapM (canDeleteServerDatabase sqlBackend) dbs
+    return $ case messages of
+     [] -> Nothing
+     l  -> Just (T.intercalate ",\n" l)
+
 deleteServer :: Key Server -> SqlPersistM ()
 deleteServer = P.delete
 
@@ -206,16 +216,17 @@ createProjectViewState sqlBackend = do
     projectViewState <- ProjectViewState <$> newMVar Nothing
     projectViewClass <- newClass
         [
-            defMethod "getServers" (getServersExtraInfo sqlBackend),
-            defMethod "addServer" (addServer sqlBackend),
+            defMethod  "getServers" (getServersExtraInfo sqlBackend),
+            defMethod  "addServer" (addServer sqlBackend),
             defMethod' "updateServer" (const $ updateServer sqlBackend),
+            defMethod' "canDeleteServer" (\_ srv -> canDeleteServer sqlBackend $ fromObjRef srv),
             defMethod' "deleteServers" (deleteHelper sqlBackend deleteServer),
-            defMethod "getPois" (getChildren sqlBackend readPois),
-            defMethod "addProjectPoi" (addProjectPoi sqlBackend),
+            defMethod  "getPois" (getChildren sqlBackend readPois),
+            defMethod  "addProjectPoi" (addProjectPoi sqlBackend),
             defMethod' "updateProjectPoi" (const $ updateProjectPoi sqlBackend),
             defMethod' "deleteProjectPois" (deleteHelper sqlBackend deleteProjectPoi),
             defMethod' "runPoiAction" runPoiAction,
-            defMethod "saveAuthKey" (\state path server -> serializeEither <$>
+            defMethod  "saveAuthKey" (\state path server -> serializeEither <$>
                 saveAuthKey state path server),
             defMethod' "runRdp" (\_ server width height -> serializeEither <$>
                 runServerRdp server width height),

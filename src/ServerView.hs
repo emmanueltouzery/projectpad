@@ -25,8 +25,8 @@ data ServerViewState = ServerViewState
 
 instance DynParentHolder ServerViewState where
     dynParentId = curServerId
-readPois :: Int -> SqlPersistM [Entity ServerPointOfInterest]
-readPois serverId = select $ from $ \p -> do
+readServerPois :: Int -> SqlPersistM [Entity ServerPointOfInterest]
+readServerPois serverId = select $ from $ \p -> do
     where_ (p ^. ServerPointOfInterestServerId ==. val (toSqlKey32 serverId))
     orderBy [asc (p ^. ServerPointOfInterestDesc)]
     return p
@@ -102,9 +102,8 @@ updateServerDatabase sqlBackend srvDbRef
             ServerDatabasePassword P.=. password
         ]
 
-canDeleteServerDatabase :: SqlBackend -> ObjRef ServerViewState
-    -> ObjRef (Entity ServerDatabase) -> IO (Maybe Text)
-canDeleteServerDatabase sqlBackend _ (fromObjRef -> serverDb) = do
+canDeleteServerDatabase :: SqlBackend -> Entity ServerDatabase -> IO (Maybe Text)
+canDeleteServerDatabase sqlBackend serverDb = do
     websites <- runSqlBackend sqlBackend (select $ from $ \w -> do
         where_ (w ^. ServerWebsiteServerDatabaseId ==. val (Just $ entityKey serverDb))
         return w)
@@ -206,25 +205,25 @@ createServerViewState sqlBackend = do
     serverViewState <- ServerViewState <$> newMVar Nothing
     serverViewClass <- newClass
         [
-            defMethod "getPois" (getChildren sqlBackend readPois),
-            defMethod "addServerPoi" (addServerPoi sqlBackend),
+            defMethod  "getPois" (getChildren sqlBackend readServerPois),
+            defMethod  "addServerPoi" (addServerPoi sqlBackend),
             defMethod' "updateServerPoi" (const $ updateServerPoi sqlBackend),
             defMethod' "deleteServerPois" (deleteHelper sqlBackend deleteServerPoi),
-            defMethod "getServerWebsites" (getChildren sqlBackend readServerWebsites),
-            defMethod "addServerWebsite" (addServerWebsite sqlBackend),
+            defMethod  "getServerWebsites" (getChildren sqlBackend readServerWebsites),
+            defMethod  "addServerWebsite" (addServerWebsite sqlBackend),
             defMethod' "updateServerWebsite" (const $ updateServerWebsite sqlBackend),
             defMethod' "deleteServerWebsites" (deleteHelper sqlBackend deleteServerWebsite),
-            defMethod "getServerDatabases" (getChildren sqlBackend readServerDatabases),
-            defMethod "addServerDatabase" (addServerDatabase sqlBackend),
+            defMethod  "getServerDatabases" (getChildren sqlBackend readServerDatabases),
+            defMethod  "addServerDatabase" (addServerDatabase sqlBackend),
             defMethod' "updateServerDatabase" (const $ updateServerDatabase sqlBackend),
-            defMethod "canDeleteServerDatabase" (canDeleteServerDatabase sqlBackend),
+            defMethod' "canDeleteServerDatabase" (\_ db -> canDeleteServerDatabase sqlBackend $ fromObjRef db),
             defMethod' "deleteServerDatabases" (deleteHelper sqlBackend deleteServerDatabase),
-            defMethod "getAllDatabases" (getAllDatabases sqlBackend),
-            defMethod "getServerExtraUserAccounts" (getChildren sqlBackend readServerExtraUserAccounts),
-            defMethod "addServerExtraUserAccount" (addServerExtraUserAccount sqlBackend),
+            defMethod  "getAllDatabases" (getAllDatabases sqlBackend),
+            defMethod  "getServerExtraUserAccounts" (getChildren sqlBackend readServerExtraUserAccounts),
+            defMethod  "addServerExtraUserAccount" (addServerExtraUserAccount sqlBackend),
             defMethod' "updateServerExtraUserAccount" (const $ updateServerExtraUserAccount sqlBackend),
             defMethod' "deleteServerExtraUserAccounts" (deleteHelper sqlBackend deleteServerExtraUserAccount),
-            defMethod "saveAuthKey" (\state path server -> serializeEither <$>
+            defMethod  "saveAuthKey" (\state path server -> serializeEither <$>
                 saveExtraUserAuthKey state path server),
             defMethod' "executePoiAction" (\srvState server serverPoi -> serializeEither' <$>
                 executePoiAction srvState server serverPoi),

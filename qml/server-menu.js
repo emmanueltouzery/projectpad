@@ -17,6 +17,11 @@ function showSelectMenu(server, parnt, desktopSize, refreshAction, menu, global)
         ["glyphicons-512-copy", function() { appContext.copyItem(server.password, true) }],
         ["glyphicons-193-circle-remove", function() {
             appContext.confirmDelete(function() {
+                var msg = projectViewState.canDeleteServer(server)
+                if (msg !== null) {
+                    appContext.errorMessage(msg)
+                    return
+                }
                 projectViewState.deleteServers([server.id])
                 // force refresh
                 refreshAction()

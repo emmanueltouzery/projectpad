@@ -10,7 +10,7 @@ import Control.Applicative
 import qualified Database.Persist as P
 import Data.Traversable (traverse)
 
-import Model (runSqlBackend)
+import Model (runSqlBackend, toSqlKey32)
 
 swapMVar_ :: MVar a -> a -> IO ()
 swapMVar_ a b = void (swapMVar a b)
@@ -59,11 +59,8 @@ readEntityFromDb sqlBackend idKey = do
     entity <- runSqlBackend sqlBackend (P.get idKey)
     traverse (newObjectDC . Entity idKey) entity
 
-convertKey :: (ToBackendKey SqlBackend a) => Int -> Key a
-convertKey = toSqlKey . fromIntegral
-
 -- meant to be called from HSQML. the t parameter
 -- will hold the state of the object, but I don't care for it.
 deleteHelper :: ToBackendKey SqlBackend a =>
                  SqlBackend -> (Key a -> SqlPersistM ()) -> t -> [Int] -> IO ()
-deleteHelper sqlBackend deleter _ = mapM_ (runSqlBackend sqlBackend . deleter . convertKey)
+deleteHelper sqlBackend deleter _ = mapM_ (runSqlBackend sqlBackend . deleter . toSqlKey32)
