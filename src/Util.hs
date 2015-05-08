@@ -5,6 +5,7 @@ import Data.Text (Text)
 import Control.Error
 import Graphics.QML
 import Data.Typeable
+import Data.Traversable
 import qualified Data.ByteString as BS
 import qualified Data.Text as T
 
@@ -33,8 +34,7 @@ instance SignalKeyClass SignalOutput where
     type SignalParams SignalOutput = [Text] -> IO ()
 
 processAuthKeyInfo :: Text -> IO (Maybe (BS.ByteString, Text))
-processAuthKeyInfo keyPath = case T.stripPrefix "file://" keyPath of
-    Nothing -> return Nothing
-    Just p -> do
-        contents <- BS.readFile (T.unpack p)
-        return $ Just (contents, last $ T.splitOn "/" p)
+processAuthKeyInfo keyPath = traverse getInfo $ T.stripPrefix "file://" keyPath
+    where getInfo p = do
+              contents <- BS.readFile (T.unpack p)
+              return (contents, last $ T.splitOn "/" p)
