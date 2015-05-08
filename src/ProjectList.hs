@@ -11,7 +11,7 @@ import Data.Maybe
 import Control.Monad
 
 import Model
-import ChildEntityCache
+import ChildEntityHolder
 
 type ProjectListState = ()
 

@@ -14,7 +14,7 @@ import qualified Database.Persist as P
 
 import Model
 import ModelBase
-import ChildEntityCache
+import ChildEntityHolder
 import System
 import Util
 

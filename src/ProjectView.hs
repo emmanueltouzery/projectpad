@@ -20,7 +20,7 @@ import Data.Attoparsec.Text hiding (count)
 
 import ModelBase
 import Model
-import ChildEntityCache
+import ChildEntityHolder
 import System
 import Util
 

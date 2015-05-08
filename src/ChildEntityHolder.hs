@@ -1,5 +1,5 @@
 {-# LANGUAGE MultiParamTypeClasses, FlexibleContexts, ViewPatterns, TypeFamilies #-}
-module ChildEntityCache where
+module ChildEntityHolder where
 
 import Control.Concurrent.MVar
 import Database.Esqueleto
