@@ -1,5 +1,6 @@
 import QtQuick 2.0
 import "poiactions.js" as PoiActions
+import "utils.js" as Utils
 
 ItemTile {
     property int modelId: model.id
@@ -32,7 +33,7 @@ ItemTile {
                 ["glyphicons-512-copy", function() { appContext.copyItem(model.path, false) }],
                 ["glyphicons-193-circle-remove", function() {
                     appContext.confirmDelete(function() {
-                        serverViewState.deleteServerPois([model.id])
+                        Utils.handleEither(serverViewState.deleteServerPois([model.id]))
                         refreshPois()
                     })
                 }]]

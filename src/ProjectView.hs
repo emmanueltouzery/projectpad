@@ -203,7 +203,7 @@ canDeleteServer sqlBackend server = do
     messages <- catMaybes <$> mapM (canDeleteServerDatabase sqlBackend) dbs
     return $ case messages of
      [] -> Nothing
-     l  -> Just (T.intercalate ",\n" l)
+     l  -> Just (T.intercalate ", " l)
 
 deleteServer :: Key Server -> SqlPersistM ()
 deleteServer = P.delete

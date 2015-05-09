@@ -1,4 +1,5 @@
 import QtQuick 2.0
+import "utils.js" as Utils
 
 ItemTile {
     property int modelId: model.id
@@ -29,8 +30,8 @@ ItemTile {
                 ["glyphicons-512-copy", function() { appContext.copyItem(model.password, true) }],
                 ["glyphicons-193-circle-remove", function() {
                     appContext.confirmDelete(function() {
-                        serverViewState.deleteServerExtraUserAccounts([model.id])
-                    refreshUsers()
+                        Utils.handleEither(serverViewState.deleteServerExtraUserAccounts([model.id]))
+                        refreshUsers()
                     })
                 }]]
             if (model.authKeyFilename !== "...") {

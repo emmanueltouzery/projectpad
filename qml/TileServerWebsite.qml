@@ -1,4 +1,5 @@
 import QtQuick 2.0
+import "utils.js" as Utils
 
 ItemTile {
     property int modelId: model.id
@@ -31,8 +32,8 @@ ItemTile {
                 ["glyphicons-512-copy", function() { appContext.copyItem(model.password, true) }],
                 ["glyphicons-193-circle-remove", function() {
                     appContext.confirmDelete(function() {
-                        serverViewState.deleteServerWebsites([model.id])
-                    refreshWwws()
+                        Utils.handleEither(serverViewState.deleteServerWebsites([model.id]))
+                        refreshWwws()
                     })
                 }]]
             selectMenu.show(parent, global)

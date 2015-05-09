@@ -8,6 +8,7 @@ import Data.Typeable
 import Data.Traversable
 import qualified Data.ByteString as BS
 import qualified Data.Text as T
+import Control.Exception
 
 serializeEither :: Either Text Text -> [Text]
 serializeEither (Left x) = ["error", x]
@@ -38,3 +39,6 @@ processAuthKeyInfo keyPath = traverse getInfo $ T.stripPrefix "file://" keyPath
     where getInfo p = do
               contents <- BS.readFile (T.unpack p)
               return (contents, last $ T.splitOn "/" p)
+
+textEx :: SomeException -> Text
+textEx = T.pack . show

@@ -11,6 +11,7 @@ import Data.Maybe
 import Control.Monad
 
 import Model
+import ChildEntityHolder
 
 type ProjectListState = ()
 
@@ -43,11 +44,14 @@ updateProject sqlBackend changeKey state
     let mUpdatedProjectEntity = find ((== idKey) . entityKey) newProjectList
     newObjectDC $ fromMaybe (error "Can't find project after update?") mUpdatedProjectEntity
 
-deleteProjects :: SqlBackend -> SignalKey (IO ()) -> ObjRef ProjectListState -> [Int] -> IO ()
+deleteProject :: Key Project -> SqlPersistM ()
+deleteProject = P.delete
+
+deleteProjects :: SqlBackend -> SignalKey (IO ()) -> ObjRef ProjectListState -> [Int] -> IO [Text]
 deleteProjects sqlBackend changeKey state projectIds = do
-    let keys = fmap toSqlKey32 projectIds :: [Key Project]
-    mapM_ (runSqlBackend sqlBackend . P.delete) keys
+    r <- deleteHelper sqlBackend deleteProject state projectIds
     fireSignal changeKey state
+    return r
 
 createProjectListState :: SqlBackend -> IO (ObjRef ProjectListState, SignalKey (IO ()))
 createProjectListState sqlBackend = do

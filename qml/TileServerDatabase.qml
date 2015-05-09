@@ -1,4 +1,5 @@
 import QtQuick 2.0
+import "utils.js" as Utils
 
 ItemTile {
     id: tileServerDatabase
@@ -37,7 +38,7 @@ ItemTile {
                             appContext.errorMessage(msg)
                             return
                         }
-                        serverViewState.deleteServerDatabases([model.id])
+                        Utils.handleEither(serverViewState.deleteServerDatabases([model.id]))
                     refreshDbs()
                     })
                 }]]

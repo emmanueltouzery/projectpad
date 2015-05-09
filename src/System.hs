@@ -21,9 +21,6 @@ import qualified Data.ByteString as BS
 
 import Util
 
-textEx :: SomeException -> Text
-textEx = T.pack . show
-
 runRdp :: Text -> Text -> Text -> Int -> Int -> IO (Either Text Text)
 runRdp serverIp serverUsername serverPassword width height = do
     homeDir <- T.pack <$> getHomeDirectory

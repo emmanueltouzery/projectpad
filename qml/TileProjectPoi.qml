@@ -1,5 +1,6 @@
 import QtQuick 2.0
 import "poiactions.js" as PoiActions
+import "utils.js" as Utils
 
 ItemTile {
     itemDesc: modelData.desc
@@ -33,7 +34,7 @@ ItemTile {
                 ["glyphicons-151-edit", function() {editPoi(modelData)}],
                 ["glyphicons-193-circle-remove", function() {
                     appContext.confirmDelete(function() {
-                        projectViewState.deleteProjectPois([modelData.id])
+                        Utils.handleEither(projectViewState.deleteProjectPois([modelData.id]))
                         // force refresh
                 refreshProjectPois()
                     })

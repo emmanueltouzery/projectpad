@@ -1,4 +1,5 @@
 import QtQuick 2.0
+import "utils.js" as Utils
 
 ItemTile {
 
@@ -46,7 +47,7 @@ ItemTile {
             }],
             ["glyphicons-193-circle-remove", function() {
                 appContext.confirmDelete(function() {
-                    projectListState.deleteProjects([projectModel.id])
+                    Utils.handleEither(projectListState.deleteProjects([projectModel.id]))
                 })
             }]
         ]);

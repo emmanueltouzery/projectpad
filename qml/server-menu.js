@@ -1,3 +1,5 @@
+.import "utils.js" as Utils
+
 function editServer(curServer, refreshAction) {
     popup.setContents("Edit server", serverEditComponent,
         function (serverEdit) {
@@ -22,7 +24,7 @@ function showSelectMenu(server, parnt, desktopSize, refreshAction, menu, global)
                     appContext.errorMessage(msg)
                     return
                 }
-                projectViewState.deleteServers([server.id])
+                Utils.handleEither(projectViewState.deleteServers([server.id]))
                 // force refresh
                 refreshAction()
             })
