@@ -200,7 +200,9 @@ canDeleteServer :: SqlBackend -> Entity Server -> IO (Maybe Text)
 canDeleteServer sqlBackend server = do
     dbs <- runSqlBackend sqlBackend
            (readServerDatabases $ fromSqlKey32 server)
-    messages <- catMaybes <$> mapM (canDeleteServerDatabase sqlBackend) dbs
+    -- allow to delete databases even if websites refer to them, so long
+    -- as they refer to them from that same server (so they'll be deleted too).
+    messages <- catMaybes <$> mapM (canDeleteServerDatabase sqlBackend (/= entityKey server)) dbs
     return $ case messages of
      [] -> Nothing
      l  -> Just (T.intercalate ", " l)

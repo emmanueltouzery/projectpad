@@ -102,15 +102,16 @@ updateServerDatabase sqlBackend srvDbRef
             ServerDatabasePassword P.=. password
         ]
 
-canDeleteServerDatabase :: SqlBackend -> Entity ServerDatabase -> IO (Maybe Text)
-canDeleteServerDatabase sqlBackend serverDb = do
-    websites <- runSqlBackend sqlBackend (select $ from $ \w -> do
+canDeleteServerDatabase :: SqlBackend -> (Key Server -> Bool) -> Entity ServerDatabase -> IO (Maybe Text)
+canDeleteServerDatabase sqlBackend serverFilter serverDb = do
+    websites <- fmap entityVal <$> runSqlBackend sqlBackend
+        (select $ from $ \w -> do
         where_ (w ^. ServerWebsiteServerDatabaseId ==. val (Just $ entityKey serverDb))
         return w)
-    if null websites
+    if not (any (serverFilter . serverWebsiteServerId) websites)
         then return Nothing
         else do
-            let serverList = T.intercalate ", " $ fmap (serverWebsiteDesc . entityVal) websites
+            let serverList = T.intercalate ", " $ serverWebsiteDesc <$> websites
             let name = serverDatabaseName $ entityVal serverDb
             let strElts = ["Can't delete ", name, ": it's used by servers ",  serverList]
             return $ Just $ T.concat strElts
@@ -214,7 +215,8 @@ createServerViewState sqlBackend = do
             defMethod  "getServerDatabases" (getChildren sqlBackend readServerDatabases),
             defMethod  "addServerDatabase" (addServerDatabase sqlBackend),
             defMethod' "updateServerDatabase" (const $ updateServerDatabase sqlBackend),
-            defMethod' "canDeleteServerDatabase" (\_ db -> canDeleteServerDatabase sqlBackend $ fromObjRef db),
+            defMethod' "canDeleteServerDatabase" (\_ db ->
+                canDeleteServerDatabase sqlBackend (const True) $ fromObjRef db),
             defMethod' "deleteServerDatabases" (deleteHelper sqlBackend deleteServerDatabase),
             defMethod  "getAllDatabases" (getAllDatabases sqlBackend),
             defMethod  "getServerExtraUserAccounts" (getChildren sqlBackend readServerExtraUserAccounts),
