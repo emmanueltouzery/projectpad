@@ -283,17 +283,17 @@ Window {
         z: 2
         anchors.horizontalCenter: parent.horizontalCenter
         width: 450
-        height: toastButton.height
+        height: Math.max(toastButton.height, errorText.height)
         property string msgText: ""
         radius: 4
         Text {
             id: errorText
             text: parent.msgText
-            height: parent.height
+            //height: parent.height // <-- if I put this, it gets broken for multiline/wrapped toasts
             x: 15
-            width: toastButton.left - x
+            width: toastButton.x - x
             verticalAlignment: Text.AlignVCenter
-            wrapMode: Text.WordWrap
+            wrapMode: Text.Wrap
         }
         MouseArea {
             enabled: toast.opacity != 0.0
