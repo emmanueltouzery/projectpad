@@ -55,6 +55,7 @@ Rectangle {
                             model: modelData.pois
                             TileProjectPoi {
                                 global: rootFlow
+                                project: modelData.project
                             }
                         }
                         Repeater {
@@ -79,6 +80,7 @@ Rectangle {
                                     model: modelData.extraUsers
                                     TileExtraUserAccount {
                                         model: modelData.child
+                                        server: modelData
                                         global: rootFlow
                                     }
                                 }
@@ -86,6 +88,7 @@ Rectangle {
                                     model: modelData.websites
                                     TileServerWebsite {
                                         model: modelData.child
+                                        server: modelData
                                         global: rootFlow
                                     }
                                 }
@@ -93,6 +96,7 @@ Rectangle {
                                     model: modelData.databases
                                     TileServerDatabase {
                                         model: modelData.child
+                                        server: modelData
                                         global: rootFlow
                                     }
                                 }

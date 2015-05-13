@@ -31,8 +31,7 @@ getCurParentId (fromObjRef -> state) = fromMaybe (error "No current parent ID!")
 -- for the new parent id, and refill it before returning the value.
 getChildren :: (DynParentHolder a, DefaultClass (Entity b)) =>
     SqlBackend -> (Int -> SqlPersistM [Entity b]) -> ObjRef a -> Int -> IO [ObjRef (Entity b)]
-getChildren sqlBackend readChildren _state parentId = do
-    let state = fromObjRef _state
+getChildren sqlBackend readChildren (fromObjRef -> state) parentId = do
     pId <- readMVar (dynParentId state)
     when (pId /= Just parentId) $
         swapMVar_ (dynParentId state) (Just parentId)

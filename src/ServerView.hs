@@ -11,6 +11,8 @@ import Data.Typeable
 import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Database.Persist as P
+import Data.List
+import Data.Maybe
 
 import Model
 import ModelBase
@@ -25,6 +27,7 @@ data ServerViewState = ServerViewState
 
 instance DynParentHolder ServerViewState where
     dynParentId = curServerId
+
 readServerPois :: Int -> SqlPersistM [Entity ServerPointOfInterest]
 readServerPois serverId = select $ from $ \p -> do
     where_ (p ^. ServerPointOfInterestServerId ==. val (toSqlKey32 serverId))
@@ -32,23 +35,23 @@ readServerPois serverId = select $ from $ \p -> do
     return p
 
 addServerPoi :: SqlBackend -> ObjRef ServerViewState
-    -> Text -> Text -> Text -> Text -> IO ()
-addServerPoi sqlBackend stateRef
-    pDesc path txt interestTypeT = do
+    -> Text -> Text -> Text -> Text -> Maybe Text -> IO ()
+addServerPoi sqlBackend stateRef pDesc path txt interestTypeT grpName = do
     let interestType = read $ T.unpack interestTypeT
     addHelper sqlBackend stateRef
-        $ ServerPointOfInterest pDesc path txt interestType
+        $ ServerPointOfInterest pDesc path txt interestType grpName
 
 updateServerPoi :: SqlBackend -> ObjRef (Entity ServerPointOfInterest)
-    -> Text -> Text -> Text -> Text -> IO (ObjRef (Entity ServerPointOfInterest))
+    -> Text -> Text -> Text -> Text -> Maybe Text -> IO (ObjRef (Entity ServerPointOfInterest))
 updateServerPoi sqlBackend poiRef
-    pDesc path txt interestTypeT = do
+    pDesc path txt interestTypeT grpName = do
     let interestType = read $ T.unpack interestTypeT
     updateHelper sqlBackend poiRef
         [
             ServerPointOfInterestDesc P.=. pDesc, ServerPointOfInterestPath P.=. path,
             ServerPointOfInterestText P.=. txt,
-            ServerPointOfInterestInterestType P.=. interestType
+            ServerPointOfInterestInterestType P.=. interestType,
+            ServerPointOfInterestGroupName P.=. grpName
         ]
 
 readServerWebsites :: Int -> SqlPersistM [Entity ServerWebsite]
@@ -58,25 +61,27 @@ readServerWebsites serverId = select $ from $ \p -> do
     return p
 
 addServerWebsite :: SqlBackend -> ObjRef ServerViewState
-    -> Text -> Text -> Text -> Text -> Text -> Maybe Int -> IO ()
+    -> Text -> Text -> Text -> Text -> Text -> Maybe Int -> Maybe Text -> IO ()
 addServerWebsite sqlBackend stateRef
-    pDesc url txt username password mDatabaseId = do
-    let mDatabaseKey = fmap toSqlKey32 mDatabaseId
+    pDesc url txt username password mDatabaseId grpName = do
+    let mDatabaseKey = toSqlKey32 <$> mDatabaseId
     addHelper sqlBackend stateRef
-        $ ServerWebsite pDesc url txt username password mDatabaseKey
+        $ ServerWebsite pDesc url txt username password mDatabaseKey grpName
 
 updateServerWebsite :: SqlBackend -> ObjRef (Entity ServerWebsite)
     -> Text -> Text -> Text -> Text -> Text
-    -> Maybe Int -> IO (ObjRef (Entity ServerWebsite))
+    -> Maybe Int -> Maybe Text -> IO (ObjRef (Entity ServerWebsite))
 updateServerWebsite sqlBackend srvWwwRef
-    pDesc url txt username password mDatabaseId = do
-    let mDatabaseKey = fmap toSqlKey32 mDatabaseId
+    pDesc url txt username password mDatabaseId grpName = do
+    putStrLn $ "hs >> " ++ show grpName
+    let mDatabaseKey = toSqlKey32 <$> mDatabaseId
     updateHelper sqlBackend srvWwwRef
         [
             ServerWebsiteDesc P.=. pDesc, ServerWebsiteUrl P.=. url,
             ServerWebsiteText P.=. txt, ServerWebsiteUsername P.=. username,
             ServerWebsitePassword P.=. password,
-            ServerWebsiteServerDatabaseId P.=. mDatabaseKey
+            ServerWebsiteServerDatabaseId P.=. mDatabaseKey,
+            ServerWebsiteGroupName P.=. grpName
         ]
 
 readServerDatabases :: Int -> SqlPersistM [Entity ServerDatabase]
@@ -86,20 +91,21 @@ readServerDatabases serverId = select $ from $ \p -> do
     return p
 
 addServerDatabase :: SqlBackend -> ObjRef ServerViewState
-    -> Text -> Text -> Text -> Text -> Text -> IO ()
+    -> Text -> Text -> Text -> Text -> Text -> Maybe Text -> IO ()
 addServerDatabase sqlBackend stateRef pDesc name txt
-    username password = addHelper sqlBackend stateRef
-        $ ServerDatabase pDesc name txt username password
+    username password grpName = addHelper sqlBackend stateRef
+        $ ServerDatabase pDesc name txt username password grpName
 
 updateServerDatabase :: SqlBackend -> ObjRef (Entity ServerDatabase)
-    -> Text -> Text -> Text -> Text -> Text -> IO (ObjRef (Entity ServerDatabase))
+    -> Text -> Text -> Text -> Text -> Text -> Maybe Text -> IO (ObjRef (Entity ServerDatabase))
 updateServerDatabase sqlBackend srvDbRef
-    pDesc name txt username password = updateHelper sqlBackend srvDbRef
+    pDesc name txt username password grpName = updateHelper sqlBackend srvDbRef
         [
             ServerDatabaseDesc P.=. pDesc, ServerDatabaseName P.=. name,
             ServerDatabaseText P.=. txt,
             ServerDatabaseUsername P.=. username,
-            ServerDatabasePassword P.=. password
+            ServerDatabasePassword P.=. password,
+            ServerDatabaseGroupName P.=. grpName
         ]
 
 canDeleteServerDatabase :: SqlBackend -> (Key Server -> Bool) -> Entity ServerDatabase -> IO (Maybe Text)
@@ -130,24 +136,25 @@ readServerExtraUserAccounts serverId = select $ from $ \p -> do
     return p
 
 addServerExtraUserAccount :: SqlBackend -> ObjRef ServerViewState
-    -> Text -> Text -> Text -> Text -> IO ()
+    -> Text -> Text -> Text -> Text -> Maybe Text -> IO ()
 addServerExtraUserAccount sqlBackend stateRef
-    pDesc username password keyPath = do
+    pDesc username password keyPath grpName = do
     authKeyInfo <- processAuthKeyInfo keyPath
     addHelper sqlBackend stateRef $ ServerExtraUserAccount username password pDesc
-            (fst <$> authKeyInfo) (snd <$> authKeyInfo)
+            (fst <$> authKeyInfo) (snd <$> authKeyInfo) grpName
 
 updateServerExtraUserAccount :: SqlBackend -> ObjRef (Entity ServerExtraUserAccount)
-    -> Text -> Text -> Text -> Text -> IO (ObjRef (Entity ServerExtraUserAccount))
+    -> Text -> Text -> Text -> Text -> Maybe Text -> IO (ObjRef (Entity ServerExtraUserAccount))
 updateServerExtraUserAccount sqlBackend acctRef
-    pDesc username password keyPath = do
+    pDesc username password keyPath grpName = do
     authKeyInfo <- processAuthKeyInfo keyPath
     updateHelper sqlBackend acctRef
         [
             ServerExtraUserAccountDesc P.=. pDesc, ServerExtraUserAccountUsername P.=. username,
             ServerExtraUserAccountPassword P.=. password,
             ServerExtraUserAccountAuthKey P.=. fst <$> authKeyInfo,
-            ServerExtraUserAccountAuthKeyFilename P.=. snd <$> authKeyInfo
+            ServerExtraUserAccountAuthKeyFilename P.=. snd <$> authKeyInfo,
+            ServerExtraUserAccountGroupName P.=. grpName
         ]
 
 saveExtraUserAuthKey :: ObjRef ServerViewState
@@ -199,6 +206,19 @@ deleteServerDatabase = P.delete
 deleteServerExtraUserAccount :: Key ServerExtraUserAccount -> SqlPersistM ()
 deleteServerExtraUserAccount = P.delete
 
+getServerGroupNames :: SqlBackend -> Int -> IO [Text]
+getServerGroupNames sqlBackend serverId = do
+    putStrLn $ "getServerGroupNames, serverId >> " ++ show serverId
+    poiGroupNames <- readEF serverPointOfInterestGroupName readServerPois
+    wwwGroupNames <- readEF serverWebsiteGroupName readServerWebsites
+    dbGroupNames <- readEF serverDatabaseGroupName readServerDatabases
+    extraAccountGroupNames <- readEF serverExtraUserAccountGroupName readServerExtraUserAccounts
+    return $ nub $ sort $ catMaybes $
+        poiGroupNames ++ wwwGroupNames ++ dbGroupNames ++ extraAccountGroupNames
+    where
+      readEF :: (a -> b) -> (Int -> SqlPersistM [Entity a]) -> IO [b]
+      readEF f r = fmap (f . entityVal) <$> runSqlBackend sqlBackend (r serverId)
+
 createServerViewState :: SqlBackend -> IO (ObjRef ServerViewState)
 createServerViewState sqlBackend = do
     serverViewState <- ServerViewState <$> newMVar Nothing
@@ -223,6 +243,7 @@ createServerViewState sqlBackend = do
             defMethod  "addServerExtraUserAccount" (addServerExtraUserAccount sqlBackend),
             defMethod' "updateServerExtraUserAccount" (const $ updateServerExtraUserAccount sqlBackend),
             defMethod' "deleteServerExtraUserAccounts" (deleteHelper sqlBackend deleteServerExtraUserAccount),
+            defMethod' "getServerGroupNames" (\_ srvId -> getServerGroupNames sqlBackend srvId),
             defMethod  "saveAuthKey" (\state path server -> serializeEither <$>
                 saveExtraUserAuthKey state path server),
             defMethod' "executePoiAction" (\srvState server serverPoi -> serializeEither' <$>

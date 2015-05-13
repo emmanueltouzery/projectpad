@@ -25,6 +25,7 @@ ServerPointOfInterest
     path Text
     text Text
     interestType InterestType
+    groupName Text Maybe
     serverId ServerId
     deriving Show Typeable
 ProjectPointOfInterest
@@ -54,6 +55,7 @@ ServerWebsite
     username Text
     password Password
     serverDatabaseId ServerDatabaseId Maybe
+    groupName Text Maybe
     serverId ServerId
     deriving Show Typeable
 ServerDatabase
@@ -62,6 +64,7 @@ ServerDatabase
     text Text
     username Text
     password Password
+    groupName Text Maybe
     serverId ServerId
     deriving Show Typeable
 ServerExtraUserAccount
@@ -70,6 +73,7 @@ ServerExtraUserAccount
     desc Text
     authKey ByteString Maybe
     authKeyFilename Text Maybe
+    groupName Text Maybe
     serverId ServerId
     deriving Show Typeable
 Project
@@ -155,7 +159,8 @@ instance DefaultClass (Entity ServerPointOfInterest) where
             ("desc", serverPointOfInterestDesc),
             ("path", serverPointOfInterestPath),
             ("text", serverPointOfInterestText),
-            ("interestType", text . serverPointOfInterestInterestType)
+            ("interestType", text . serverPointOfInterestInterestType),
+            ("groupName", fromMaybe "" . serverPointOfInterestGroupName)
         ]
         []
 
@@ -166,7 +171,8 @@ instance DefaultClass (Entity ServerWebsite) where
             ("url", serverWebsiteUrl),
             ("text", serverWebsiteText),
             ("username", serverWebsiteUsername),
-            ("password", serverWebsitePassword)
+            ("password", serverWebsitePassword),
+            ("groupName", fromMaybe "" . serverWebsiteGroupName)
         ]
         [
             ("serverDatabaseId", getKeyM serverWebsiteServerDatabaseId)
@@ -179,7 +185,8 @@ instance DefaultClass (Entity ServerDatabase) where
             ("name", serverDatabaseName),
             ("text", serverDatabaseText),
             ("username", serverDatabaseUsername),
-            ("password", serverDatabasePassword)
+            ("password", serverDatabasePassword),
+            ("groupName", fromMaybe "" . serverDatabaseGroupName)
         ]
         []
 
@@ -189,7 +196,8 @@ instance DefaultClass (Entity ServerExtraUserAccount) where
             ("username", serverExtraUserAccountUsername),
             ("password", serverExtraUserAccountPassword),
             ("desc", serverExtraUserAccountDesc),
-            ("authKeyFilename", fromMaybe "..." . serverExtraUserAccountAuthKeyFilename)
+            ("authKeyFilename", fromMaybe "..." . serverExtraUserAccountAuthKeyFilename),
+            ("groupName", fromMaybe "" . serverExtraUserAccountGroupName)
         ]
         []
 

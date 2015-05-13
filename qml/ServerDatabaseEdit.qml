@@ -15,8 +15,16 @@ Rectangle {
             "text": "", "username": "", "password": ""}
     }
 
-    function activate(_model) {
+    function activate(server, _model) {
         srvDatabaseEdit.model = _model
+
+        var groups = serverViewState.getServerGroupNames(server.id)
+        group.model.clear()
+        groups.forEach(function(grp) {
+            group.model.append({"text": grp})
+        })
+        group.currentIndex = groups.indexOf(_model.groupName)
+
         description.selectAll()
         description.forceActiveFocus()
     }
@@ -25,10 +33,11 @@ Rectangle {
         if (model.id) {
             srvDatabaseEdit.model = serverViewState.updateServerDatabase(
                 model, description.text, name.text, txt.text,
-                username.text, password.text)
+                username.text, password.text, group.editText)
         } else {
-            serverViewState.addServerDatabase(description.text, name.text,
-                txt.text, username.text, password.text)
+            serverViewState.addServerDatabase(
+                description.text, name.text,
+                txt.text, username.text, password.text, group.editText)
         }
     }
 
@@ -55,6 +64,17 @@ Rectangle {
             id: name
             Layout.fillWidth: true
             text: srvDatabaseEdit.model.name
+        }
+
+        Text {
+            text: "Group:"
+        }
+        ComboBox {
+            id: group
+            Layout.fillWidth: true
+            textRole: "text"
+            model: ListModel {}
+            editable: true
         }
 
         Text {

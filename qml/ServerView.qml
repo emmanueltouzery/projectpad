@@ -33,6 +33,7 @@ Rectangle {
     function refreshWwws() {
         wwwsrepeater.model = serverViewState.getServerWebsites(pv.model.id)
     }
+
     function refreshDbs() {
         dbsrepeater.model = serverViewState.getServerDatabases(pv.model.id)
     }
@@ -46,7 +47,7 @@ Rectangle {
             case "addpoi":
                 popup.setContents("Add point of interest", editPoiComponent,
                         function (poiEdit) {
-                            poiEdit.activate(poiEdit.getDefaultModel())
+                            poiEdit.activate(pv.model, poiEdit.getDefaultModel())
                         },
                         function (poiEdit) {
                             poiEdit.onServerOk();
@@ -56,7 +57,7 @@ Rectangle {
             case "addwww":
                 popup.setContents("Add website", editSrvWwwComponent,
                         function (wwwEdit) {
-                            wwwEdit.activate(wwwEdit.getDefaultModel())
+                            wwwEdit.activate(pv.model, wwwEdit.getDefaultModel())
                         },
                         function (wwwEdit) {
                             wwwEdit.onOk();
@@ -66,7 +67,7 @@ Rectangle {
             case "adddb":
                 popup.setContents("Add database", editDatabaseComponent,
                         function (dbEdit) {
-                            dbEdit.activate(dbEdit.getDefaultModel())
+                            dbEdit.activate(pv.model, dbEdit.getDefaultModel())
                         },
                         function (dbEdit) {
                             dbEdit.onOk();
@@ -76,7 +77,7 @@ Rectangle {
             case "addaccount":
                 popup.setContents("Add extra user account", editExtraUserAccountComponent,
                         function (editUser) {
-                            editUser.activate(editUser.getDefaultModel())
+                            editUser.activate(pv.model, editUser.getDefaultModel())
                         },
                         function (editUser) {
                             editUser.onOk();
@@ -140,6 +141,7 @@ Rectangle {
 
                     TileExtraUserAccount {
                         model: modelData
+                        server: pv.model
                     }
                 }
 
@@ -149,6 +151,7 @@ Rectangle {
 
                     TileServerWebsite {
                         model: modelData
+                        server: pv.model
                     }
                 }
 
@@ -158,6 +161,7 @@ Rectangle {
 
                     TileServerDatabase {
                         model: modelData
+                        server: pv.model
                     }
                 }
 
@@ -181,6 +185,7 @@ Rectangle {
                 id: editPoiComponent
                 PoiEdit {
                     id: poiEdit
+                    isServerPoi: true
                 }
             }
             Component {

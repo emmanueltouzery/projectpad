@@ -17,7 +17,7 @@ ItemTile {
     function editPoi(curPoi) {
         popup.setContents("Edit point of interest", editPoiComponent,
                 function (poiEdit) {
-                    poiEdit.activate(curPoi)
+                    poiEdit.activate(server, curPoi)
                 },
                 function (poiEdit) {
                     poiEdit.onServerOk()
@@ -71,6 +71,7 @@ ItemTile {
         id: editPoiComponent
         PoiEdit {
             id: poiEdit
+            isServerPoi: true
         }
     }
 }

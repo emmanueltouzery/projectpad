@@ -6,7 +6,8 @@ import "utils.js" as Utils
 Rectangle {
     id: poiEdit
     color: "light grey"
-    property int preferredHeight: 200
+    property int preferredHeight: isServerPoi ? 190 : 160
+    property bool isServerPoi
 
     property variant model: getDefaultModel()
 
@@ -24,11 +25,20 @@ Rectangle {
         }
     }
 
-    function activate(_model) {
+    function activate(parent, _model) {
         poiEdit.model = _model
         interestType.currentIndex = Math.max(0, Utils.listModelGetValueIndex(interestType.model, _model.interestType))
         poiDescription.selectAll()
         poiDescription.forceActiveFocus()
+
+        if (isServerPoi) {
+            var groups = serverViewState.getServerGroupNames(parent.id)
+            group.model.clear()
+            groups.forEach(function(grp) {
+                group.model.append({"text": grp})
+            })
+            group.currentIndex = groups.indexOf(_model.groupName)
+        }
     }
 
     function onOk() {
@@ -38,7 +48,8 @@ Rectangle {
                 text.text,
                 interestTypeItems.get(interestType.currentIndex).value)
         } else {
-            projectViewState.addProjectPoi(poiDescription.text, path.text,
+            projectViewState.addProjectPoi(
+                poiDescription.text, path.text,
                 text.text, interestTypeItems.get(interestType.currentIndex).value)
         }
     }
@@ -46,12 +57,14 @@ Rectangle {
     function onServerOk() {
         if (model.id) {
             poiEdit.model = serverViewState.updateServerPoi(
-                model, poiDescription.text, path.text,
-                text.text,
-                interestTypeItems.get(interestType.currentIndex).value)
+                model, poiDescription.text, path.text, text.text,
+                interestTypeItems.get(interestType.currentIndex).value,
+                group.editText)
         } else {
-            serverViewState.addServerPoi(poiDescription.text, path.text,
-                text.text, interestTypeItems.get(interestType.currentIndex).value)
+            serverViewState.addServerPoi(
+                poiDescription.text, path.text,
+                text.text, interestTypeItems.get(interestType.currentIndex).value,
+                group.editText)
         }
     }
 
@@ -87,6 +100,19 @@ Rectangle {
             id: text
             Layout.fillWidth: true
             text: poiEdit.model.text
+        }
+
+        Text {
+            text: "Group:"
+            visible: isServerPoi
+        }
+        ComboBox {
+            id: group
+            Layout.fillWidth: true
+            textRole: "text"
+            model: ListModel {}
+            editable: true
+            visible: isServerPoi
         }
 
         Text {

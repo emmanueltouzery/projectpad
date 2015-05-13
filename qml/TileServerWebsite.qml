@@ -2,6 +2,7 @@ import QtQuick 2.0
 import "utils.js" as Utils
 
 ItemTile {
+    id: tileServerWebsite
     property int modelId: model.id
     property bool selected: false
     color: "light slate gray"
@@ -9,13 +10,14 @@ ItemTile {
     border.color: "green"
     itemDesc: model.desc
     property variant model
+    property variant server
     icon: "glyphicons-372-global"
     property variant global: undefined
 
     function editSrvWww(curPoi) {
         popup.setContents("Edit website", editSrvWwwComponent,
                 function (wwwEdit) {
-                    wwwEdit.activate(curPoi)
+                    wwwEdit.activate(server, curPoi)
                 },
                 function (wwwEdit) {
                     wwwEdit.onOk()

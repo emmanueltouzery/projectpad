@@ -4,6 +4,7 @@ import "utils.js" as Utils
 ItemTile {
     property int modelId: model.id
     property variant model
+    property variant server
     property bool selected: false
     color: "dark gray"
     border.width: selected ? 4 : 0
@@ -15,7 +16,7 @@ ItemTile {
     function editExtraUserAccount(curUserAcct) {
         popup.setContents("Edit extra user account", editExtraUserAccountComponent,
                 function (userEdit) {
-                    userEdit.activate(curUserAcct)
+                    userEdit.activate(server, curUserAcct)
                 },
                 function (userEdit) {
                     userEdit.onOk()

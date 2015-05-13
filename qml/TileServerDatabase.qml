@@ -6,6 +6,7 @@ ItemTile {
     property int modelId: model.id
     property bool selected: false
     property variant model
+    property variant server
     width: 180; height: 180
     color: "gray"
     border.width: selected ? 4 : 0
@@ -17,7 +18,7 @@ ItemTile {
     function editDb(curDb) {
         popup.setContents("Edit database", editDatabaseComponent,
                 function (dbEdit) {
-                    dbEdit.activate(curDb)
+                    dbEdit.activate(server, curDb)
                 },
                 function (dbEdit) {
                     dbEdit.onOk()

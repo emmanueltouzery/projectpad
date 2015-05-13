@@ -43,7 +43,7 @@ Rectangle {
             case "addpoi":
                 popup.setContents("Add point of interest", poiEditComponent,
                         function (poiEdit) {
-                            poiEdit.activate(poiEdit.getDefaultModel())
+                            poiEdit.activate(model, poiEdit.getDefaultModel())
                         },
                         function (poiEdit) {
                             poiEdit.onOk();
@@ -78,6 +78,7 @@ Rectangle {
                     model: projectViewState.getPois(pv.model.project.id)
 
                     TileProjectPoi {
+                        project: pv.model.project
                     }
                 }
             }
@@ -104,6 +105,7 @@ Rectangle {
                 id: poiEditComponent
                 PoiEdit {
                     id: poiEdit
+                    isServerPoi: false
                 }
             }
 

@@ -6,7 +6,7 @@ import "utils.js" as Utils
 Rectangle {
     id: srvWebsiteEdit
     color: "light grey"
-    property int preferredHeight: 230
+    property int preferredHeight: 260
 
     property variant model: getDefaultModel()
 
@@ -15,18 +15,24 @@ Rectangle {
             "username": "", "password": "", "serverDatabaseId": -1}
     }
 
-    function activate(_model) {
+    function activate(server, _model) {
         srvWebsiteEdit.model = _model
         description.selectAll()
         description.forceActiveFocus()
 
+        var groups = serverViewState.getServerGroupNames(server.id)
+        group.model.clear()
+        groups.forEach(function(grp) {
+            group.model.append({"text": grp})
+        })
+        group.currentIndex = groups.indexOf(_model.groupName)
+
         var dbs = serverViewState.getAllDatabases()
         database.model.clear()
-            database.model.append({"text": "No database", "value": -1})
-        for (var i=0;i<dbs.length;i++) {
-            var db = dbs[i]
+        database.model.append({"text": "No database", "value": -1})
+        dbs.forEach(function(db) {
             database.model.append({"text": db.desc, "value": db.id})
-        }
+        })
         var actualIndex = Utils.listModelGetValueIndex(database.model, _model.serverDatabaseId)
         database.currentIndex = Math.max(actualIndex, 0) // want "No db" if nothing.
     }
@@ -36,13 +42,15 @@ Rectangle {
         if (dbId === -1) {
             dbId = null
         }
+        console.log(group.editText)
         if (model.id) {
             srvWebsiteEdit.model = serverViewState.updateServerWebsite(
                 model, description.text, url.text, txt.text,
-                username.text, password.text, dbId)
+                username.text, password.text, dbId, group.editText)
         } else {
-            serverViewState.addServerWebsite(description.text, url.text,
-                    txt.text, username.text, password.text, dbId)
+            serverViewState.addServerWebsite(
+                description.text, url.text, txt.text,
+                username.text, password.text, dbId, group.editText)
         }
     }
 
@@ -78,6 +86,17 @@ Rectangle {
             id: txt
             Layout.fillWidth: true
             text: srvWebsiteEdit.model.text
+        }
+
+        Text {
+            text: "Group:"
+        }
+        ComboBox {
+            id: group
+            Layout.fillWidth: true
+            textRole: "text"
+            model: ListModel {}
+            editable: true
         }
 
         Text {

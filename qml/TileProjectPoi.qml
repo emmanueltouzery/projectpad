@@ -11,11 +11,12 @@ ItemTile {
     border.width: selected ? 4 : 0
     border.color: "green"
     property variant global: undefined
+    property variant project
 
     function editPoi(curPoi) {
         popup.setContents("Edit point of interest", poiEditComponent,
             function (poiEdit) {
-                poiEdit.activate(curPoi)
+                poiEdit.activate(project, curPoi)
             },
             function (poiEdit) {
                 poiEdit.onOk()
@@ -46,6 +47,7 @@ ItemTile {
         id: poiEditComponent
         PoiEdit {
             id: poiEdit
+            isServerPoi: false
         }
     }
 }
