@@ -122,7 +122,7 @@ Rectangle {
                     server: pv.model
                     rootFlowInParent: flow
                     onShouldRefresh: {
-                        var allServers = Utils.map(projectViewState.getServers(pv.model.projectId, pv.model.environment),
+                        var allServers = projectViewState.getServers(pv.model.projectId, pv.model.environment).map(
                                              function(se) { return se.server })
                         var updatedServer = Utils.findById(allServers, pv.model.id)
                         if (updatedServer === null) {

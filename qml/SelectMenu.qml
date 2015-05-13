@@ -25,7 +25,7 @@ Canvas {
     }
 
     function getAllImages() {
-        return Utils.map(options, function(opt) {
+        return options.map(function(opt) {
             return getImagePath(opt[0])
         })
     }
@@ -35,7 +35,7 @@ Canvas {
     }
 
     function allImagesLoaded() {
-        return Utils.all(getAllImages(), function(imgPath) {
+        return getAllImages().every(function(imgPath) {
             return isImageLoaded(imgPath)
         })
     }

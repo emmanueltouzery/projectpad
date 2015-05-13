@@ -208,7 +208,6 @@ deleteServerExtraUserAccount = P.delete
 
 getServerGroupNames :: SqlBackend -> Int -> IO [Text]
 getServerGroupNames sqlBackend serverId = do
-    putStrLn $ "getServerGroupNames, serverId >> " ++ show serverId
     poiGroupNames <- readEF serverPointOfInterestGroupName readServerPois
     wwwGroupNames <- readEF serverWebsiteGroupName readServerWebsites
     dbGroupNames <- readEF serverDatabaseGroupName readServerDatabases

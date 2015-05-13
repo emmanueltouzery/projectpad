@@ -24,30 +24,3 @@ function listModelGetValueIndex(listModel, value) {
     }
     return -1
 }
-
-function filter(list, predicate) {
-    var result = []
-    for (var i=0;i<list.length;i++) {
-        if (predicate(list[i])) {
-            result.push(list[i])
-        }
-    }
-    return result
-}
-
-function all(list, predicate) {
-    for (var i=0;i<list.length;i++) {
-        if (!predicate(list[i])) {
-            return false
-        }
-    }
-    return true
-}
-
-function map(list, transform) {
-    var result = []
-    for (var i=0;i<list.length;i++) {
-        result.push(transform(list[i]))
-    }
-    return result
-}

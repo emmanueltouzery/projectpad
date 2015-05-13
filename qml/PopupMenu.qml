@@ -62,7 +62,7 @@ Column {
                                 // apparently when I set the menuItems as the model, the items
                                 // get copied and mangled and the functions are lost
                                 // => find back the original item in the original list.
-                                var item = Utils.filter(menuItems, function(item) { return item[0] === modelData[0]})[0];
+                                var item = menuItems.filter(function(item) { return item[0] === modelData[0]})[0];
                                 item[1]()
                             }
                         }
