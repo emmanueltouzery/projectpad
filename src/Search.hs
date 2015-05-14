@@ -22,23 +22,23 @@ import Model
 data ServerChildInfo a = ServerChildInfo
     {
         sciServer :: ObjRef (Entity Server),
-        sciChild :: ObjRef (Entity a)
+        sciChild  :: ObjRef (Entity a)
     } deriving Typeable
 
 instance Typeable a => DefaultClass (ServerChildInfo a) where
     classMembers =
         [
             prop "server" sciServer,
-            prop "child" sciChild
+            prop "child"  sciChild
         ]
 
 data ServerSearchMatch = ServerSearchMatch
     {
-        smServer :: ObjRef (Entity Server),
-        smServerWebsites :: [ObjRef (ServerChildInfo ServerWebsite)],
+        smServer           :: ObjRef (Entity Server),
+        smServerWebsites   :: [ObjRef (ServerChildInfo ServerWebsite)],
         smServerExtraUsers :: [ObjRef (ServerChildInfo ServerExtraUserAccount)],
-        smServerPois :: [ObjRef (ServerChildInfo ServerPointOfInterest)],
-        smServerDatabases :: [ObjRef (ServerChildInfo ServerDatabase)]
+        smServerPois       :: [ObjRef (ServerChildInfo ServerPointOfInterest)],
+        smServerDatabases  :: [ObjRef (ServerChildInfo ServerDatabase)]
     } deriving Typeable
 
 prop :: (Marshal tr, Typeable b, MarshalMode tr ICanReturnTo () ~ Yes) =>
@@ -57,8 +57,8 @@ instance DefaultClass ServerSearchMatch where
 
 data ProjectSearchMatch = ProjectSearchMatch
     {
-        smProject :: ObjRef (Entity Project),
-        smProjectPois :: [ObjRef (Entity ProjectPointOfInterest)],
+        smProject        :: ObjRef (Entity Project),
+        smProjectPois    :: [ObjRef (Entity ProjectPointOfInterest)],
         smProjectServers :: [ObjRef ServerSearchMatch]
     } deriving Typeable
 
@@ -176,13 +176,13 @@ joinGetParentKeys (Join parentKeyGetter entities) = Set.fromList $ parentKeyGett
 
 searchText :: SqlBackend -> Text -> IO [ObjRef ProjectSearchMatch]
 searchText sqlBackend txt = do
-    projects <- runQ filterProjects
-    projectPoisJoin <- Join projectPointOfInterestProjectId <$> runQ filterProjectPois
-    servers <- runQ filterServers
-    serverWebsitesJoin <- Join serverWebsiteServerId <$> runQ filterServerWebsites
+    projectPoisJoin      <- Join projectPointOfInterestProjectId <$> runQ filterProjectPois
+    serverWebsitesJoin   <- Join serverWebsiteServerId <$> runQ filterServerWebsites
     serverExtraUsersJoin <- Join serverExtraUserAccountServerId <$> runQ filterServerExtraUsers
-    serverPoisJoin <- Join serverPointOfInterestServerId <$> runQ filterServerPois
-    serverDatabasesJoin <- Join serverDatabaseServerId <$> runQ filterServerDatabases
+    serverPoisJoin       <- Join serverPointOfInterestServerId <$> runQ filterServerPois
+    serverDatabasesJoin  <- Join serverDatabaseServerId <$> runQ filterServerDatabases
+    servers  <- runQ filterServers
+    projects <- runQ filterProjects
 
     -- start by the leaves of the tree, and go up,
     -- to catch all the cases.
