@@ -3,7 +3,6 @@
 module ServerView where
 
 import Control.Applicative
-import Control.Concurrent.MVar
 import Graphics.QML
 import Graphics.QML.Objects.ParamNames
 import Database.Esqueleto
@@ -22,13 +21,7 @@ import ChildEntityHolder
 import System
 import Util
 
-data ServerViewState = ServerViewState
-    {
-        curServerId :: MVar (Maybe Int)
-    } deriving Typeable
-
-instance DynParentHolder ServerViewState where
-    dynParentId = curServerId
+type ServerViewState = ()
 
 readServerPois :: Int -> SqlPersistM [Entity ServerPointOfInterest]
 readServerPois serverId = select $ from $ \p -> do
@@ -235,6 +228,7 @@ data ServerDisplaySection = ServerDisplaySection
         srvSectionExtraUsers :: [ObjRef (Entity ServerExtraUserAccount)]
     } deriving Typeable
 
+readM :: (a -> b) -> ObjRef a -> IO b
 readM f = return . f . fromObjRef
 
 instance DefaultClass ServerDisplaySection where
@@ -269,7 +263,6 @@ getServerDisplaySections sqlBackend serverId = do
 
 createServerViewState :: SqlBackend -> IO (ObjRef ServerViewState)
 createServerViewState sqlBackend = do
-    serverViewState <- ServerViewState <$> newMVar Nothing
     let defStatic str cb = defMethod' str (const cb)
     let pfApply f = (return . f <=<)
     let serializeEitherM' = pfApply serializeEither'
@@ -300,4 +293,4 @@ createServerViewState sqlBackend = do
             defSignalNamedParams "gotOutput" (Proxy :: Proxy SignalOutput) $
                 fstName "output"
         ]
-    newObject serverViewClass serverViewState
+    newObject serverViewClass ()
