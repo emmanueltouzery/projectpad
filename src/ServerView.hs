@@ -14,6 +14,7 @@ import qualified Database.Persist as P
 import Data.List
 import Data.Maybe
 import Data.Ord
+import Control.Monad
 
 import Model
 import ModelBase
@@ -130,8 +131,8 @@ canDeleteServerDatabase sqlBackend serverFilter serverDb = do
             let strElts = ["Can't delete ", name, ": it's used by servers ",  serverList]
             return $ Just $ T.concat strElts
 
-getAllDatabases :: SqlBackend -> ObjRef ServerViewState -> IO [ObjRef (Entity ServerDatabase)]
-getAllDatabases sqlBackend _ = do
+getAllDatabases :: SqlBackend -> IO [ObjRef (Entity ServerDatabase)]
+getAllDatabases sqlBackend = do
     dbs <- runSqlBackend sqlBackend (select $ from $ \p -> do
         orderBy [asc (p ^. ServerDatabaseDesc)]
         return p)
@@ -165,9 +166,8 @@ updateServerExtraUserAccount sqlBackend acctRef
             ServerExtraUserAccountGroupName P.=. grpName
         ]
 
-saveExtraUserAuthKey :: ObjRef ServerViewState
-    -> Text -> ObjRef (Entity ServerExtraUserAccount) -> IO (Either Text Text)
-saveExtraUserAuthKey _ path (entityVal . fromObjRef -> userAcct) = saveAuthKeyBytes path $
+saveExtraUserAuthKey :: Text -> ObjRef (Entity ServerExtraUserAccount) -> IO (Either Text Text)
+saveExtraUserAuthKey path (entityVal . fromObjRef -> userAcct) = saveAuthKeyBytes path $
     serverExtraUserAccountAuthKey userAcct
 
 executePoiAction :: ObjRef ServerViewState -> ObjRef (Entity Server)
@@ -180,9 +180,9 @@ executePoiAction srvState (entityVal . fromObjRef -> server)
         PoiConfigFile   -> executePoiLogFile server serverPoi "vim "
         _               -> return $ Right ()
 
-executePoiSecondaryAction :: ObjRef ServerViewState -> ObjRef (Entity Server)
+executePoiSecondaryAction :: ObjRef (Entity Server)
     -> ObjRef (Entity ServerPointOfInterest) -> IO (Either Text ())
-executePoiSecondaryAction _ (entityVal . fromObjRef -> server)
+executePoiSecondaryAction (entityVal . fromObjRef -> server)
         (entityVal . fromObjRef -> serverPoi) =
     case serverPointOfInterestInterestType serverPoi of
         PoiLogFile -> executePoiLogFile server serverPoi "less "
@@ -271,6 +271,9 @@ createServerViewState :: SqlBackend -> IO (ObjRef ServerViewState)
 createServerViewState sqlBackend = do
     serverViewState <- ServerViewState <$> newMVar Nothing
     let defStatic str cb = defMethod' str (const cb)
+    let pfApply f = (return . f <=<)
+    let serializeEitherM' = pfApply serializeEither'
+    let serializeEitherM = pfApply serializeEither
     serverViewClass <- newClass
         [
             defStatic "getServerDisplaySections" (getServerDisplaySections sqlBackend),
@@ -285,17 +288,15 @@ createServerViewState sqlBackend = do
             defMethod' "canDeleteServerDatabase" (\_ db ->
                 canDeleteServerDatabase sqlBackend (const True) $ fromObjRef db),
             defMethod' "deleteServerDatabases" (deleteHelper sqlBackend deleteServerDatabase),
-            defMethod  "getAllDatabases" (getAllDatabases sqlBackend),
+            defStatic  "getAllDatabases" (getAllDatabases sqlBackend),
             defStatic  "addServerExtraUserAccount" (addServerExtraUserAccount sqlBackend),
             defMethod' "updateServerExtraUserAccount" (const $ updateServerExtraUserAccount sqlBackend),
             defMethod' "deleteServerExtraUserAccounts" (deleteHelper sqlBackend deleteServerExtraUserAccount),
             defMethod' "getServerGroupNames" (\_ srvId -> getServerGroupNames sqlBackend srvId),
-            defMethod  "saveAuthKey" (\state path server -> serializeEither <$>
-                saveExtraUserAuthKey state path server),
+            defStatic  "saveAuthKey" (serializeEitherM . saveExtraUserAuthKey),
             defMethod' "executePoiAction" (\srvState server serverPoi -> serializeEither' <$>
                 executePoiAction srvState server serverPoi),
-            defMethod' "executePoiSecondaryAction" (\srvState server serverPoi -> serializeEither' <$>
-                executePoiSecondaryAction srvState server serverPoi),
+            defStatic "executePoiSecondaryAction" (serializeEitherM' . executePoiSecondaryAction),
             defSignalNamedParams "gotOutput" (Proxy :: Proxy SignalOutput) $
                 fstName "output"
         ]
