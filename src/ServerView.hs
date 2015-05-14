@@ -13,7 +13,6 @@ import qualified Database.Persist as P
 import Data.List
 import Data.Maybe
 import Data.Ord
-import Control.Monad
 
 import Model
 import ModelBase
@@ -263,9 +262,6 @@ getServerDisplaySections sqlBackend serverId = do
 
 createServerViewState :: SqlBackend -> IO (ObjRef ServerViewState)
 createServerViewState sqlBackend = do
-    let pfApply f = (return . f <=<)
-    let serializeEitherM' = pfApply serializeEither'
-    let serializeEitherM = pfApply serializeEither
     serverViewClass <- newClass
         [
             defStatic "getServerDisplaySections" (getServerDisplaySections sqlBackend),
@@ -277,14 +273,13 @@ createServerViewState sqlBackend = do
             defMethod' "deleteServerWebsites" (deleteHelper sqlBackend deleteServerWebsite),
             defStatic  "addServerDatabase" (addServerDatabase sqlBackend),
             defMethod' "updateServerDatabase" (const $ updateServerDatabase sqlBackend),
-            defMethod' "canDeleteServerDatabase" (\_ db ->
-                canDeleteServerDatabase sqlBackend (const True) $ fromObjRef db),
+            defStatic  "canDeleteServerDatabase" (canDeleteServerDatabase sqlBackend (const True) . fromObjRef),
             defMethod' "deleteServerDatabases" (deleteHelper sqlBackend deleteServerDatabase),
             defStatic  "getAllDatabases" (getAllDatabases sqlBackend),
             defStatic  "addServerExtraUserAccount" (addServerExtraUserAccount sqlBackend),
             defMethod' "updateServerExtraUserAccount" (const $ updateServerExtraUserAccount sqlBackend),
             defMethod' "deleteServerExtraUserAccounts" (deleteHelper sqlBackend deleteServerExtraUserAccount),
-            defMethod' "getServerGroupNames" (\_ srvId -> getServerGroupNames sqlBackend srvId),
+            defStatic  "getServerGroupNames" (getServerGroupNames sqlBackend),
             defStatic  "saveAuthKey" (serializeEitherM . saveExtraUserAuthKey),
             defMethod' "executePoiAction" (\srvState server serverPoi -> serializeEither' <$>
                 executePoiAction srvState server serverPoi),

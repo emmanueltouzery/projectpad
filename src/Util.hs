@@ -9,6 +9,7 @@ import Data.Traversable
 import qualified Data.ByteString as BS
 import qualified Data.Text as T
 import Control.Exception
+import Control.Monad
 
 serializeEither :: Either Text Text -> [Text]
 serializeEither (Left x) = ["error", x]
@@ -45,3 +46,12 @@ textEx = T.pack . show
 
 defStatic :: (MethodSuffix ms, Typeable obj) => String -> ms -> Member obj
 defStatic str cb = defMethod' str (const cb)
+
+pfApply :: (b -> c) -> (a -> IO b) -> a -> IO c
+pfApply f = (return . f <=<)
+
+serializeEitherM' :: (a -> IO (Either Text ())) -> a -> IO [Text]
+serializeEitherM' = pfApply serializeEither'
+
+serializeEitherM :: (a -> IO (Either Text Text)) -> a -> IO [Text]
+serializeEitherM = pfApply serializeEither

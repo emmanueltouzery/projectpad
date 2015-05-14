@@ -122,9 +122,8 @@ runPoiAction prjViewState (entityVal . fromObjRef -> poi)
             x@_ -> Just x
         txt = projectPointOfInterestText poi
 
-saveAuthKey :: ObjRef ProjectViewState
-    -> Text -> ObjRef (Entity Server) -> IO (Either Text Text)
-saveAuthKey _ path (entityVal . fromObjRef -> server) =
+saveAuthKey :: Text -> ObjRef (Entity Server) -> IO (Either Text Text)
+saveAuthKey path (entityVal . fromObjRef -> server) =
     saveAuthKeyBytes path (serverAuthKey server)
 
 runServerRdp :: ObjRef (Entity Server) -> Int -> Int -> IO (Either Text Text)
@@ -222,18 +221,17 @@ createProjectViewState sqlBackend = do
             defMethod  "getServers" (getServersExtraInfo sqlBackend),
             defStatic  "addServer" (addServer sqlBackend),
             defMethod' "updateServer" (const $ updateServer sqlBackend),
-            defMethod' "canDeleteServer" (\_ srv -> canDeleteServer sqlBackend $ fromObjRef srv),
+            defStatic  "canDeleteServer" (canDeleteServer sqlBackend . fromObjRef),
             defMethod' "deleteServers" (deleteHelper sqlBackend deleteServer),
             defMethod  "getPois" (getChildren sqlBackend readPois),
             defStatic  "addProjectPoi" (addProjectPoi sqlBackend),
             defMethod' "updateProjectPoi" (const $ updateProjectPoi sqlBackend),
             defMethod' "deleteProjectPois" (deleteHelper sqlBackend deleteProjectPoi),
             defMethod' "runPoiAction" runPoiAction,
-            defMethod  "saveAuthKey" (\state path server -> serializeEither <$>
-                saveAuthKey state path server),
-            defMethod' "runRdp" (\_ server width height -> serializeEither <$>
+            defStatic  "saveAuthKey" (serializeEitherM . saveAuthKey),
+            defStatic  "runRdp" (\server width height -> serializeEither <$>
                 runServerRdp server width height),
-            defMethod' "openSshSession" (\_ server -> serializeEither <$>
+            defStatic  "openSshSession" (\server -> serializeEither <$>
                 openServerSshSession server),
             defSignalNamedParams "gotOutput" (Proxy :: Proxy SignalOutput) $
                 fstName "output"
