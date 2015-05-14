@@ -41,14 +41,14 @@ Rectangle {
         }
     }
 
-    function onOk() {
+    function onOk(project) {
         if (model.id) {
             poiEdit.model = projectViewState.updateProjectPoi(
                 model, poiDescription.text, path.text,
                 text.text,
                 interestTypeItems.get(interestType.currentIndex).value)
         } else {
-            projectViewState.addProjectPoi(
+            projectViewState.addProjectPoi(project.id,
                 poiDescription.text, path.text,
                 text.text, interestTypeItems.get(interestType.currentIndex).value)
         }

@@ -38,16 +38,9 @@ getChildren sqlBackend readChildren (fromObjRef -> state) parentId = do
     mapM newObjectDC =<< runSqlBackend sqlBackend (readChildren parentId)
 
 -- helper used when adding an entity to DB.
-addHelper :: (DynParentHolder a,
-    ToBackendKey SqlBackend record, PersistEntity s, PersistEntityBackend s ~ SqlBackend) =>
-    SqlBackend -> ObjRef a -> (Key record -> s) -> IO ()
-addHelper sqlBackend stateRef entityGetter = do
-    pIdKey <- toSqlKey . fromIntegral <$> getCurParentId stateRef
-    void $ runSqlBackend sqlBackend $ P.insert $ entityGetter pIdKey
-
-addHelper' :: (ToBackendKey SqlBackend record, PersistEntity s, PersistEntityBackend s ~ SqlBackend) =>
+addHelper :: (ToBackendKey SqlBackend record, PersistEntity s, PersistEntityBackend s ~ SqlBackend) =>
     SqlBackend -> Int -> (Key record -> s) -> IO ()
-addHelper' sqlBackend parentId entityGetter = do
+addHelper sqlBackend parentId entityGetter = do
     let pIdKey = toSqlKey $ fromIntegral parentId
     void $ runSqlBackend sqlBackend $ P.insert $ entityGetter pIdKey
 

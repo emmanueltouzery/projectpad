@@ -47,7 +47,7 @@ addServer sqlBackend projectId sDesc ipAddr txt username password
     let srvAccessType = readT serverAccessTypeT
     let srvEnv = readT srvEnvironmentT
     authKeyInfo <- processAuthKeyInfo keyPath
-    addHelper' sqlBackend projectId $ Server sDesc ipAddr txt username password
+    addHelper sqlBackend projectId $ Server sDesc ipAddr txt username password
             (fst <$> authKeyInfo) (snd <$> authKeyInfo)
             srvType srvAccessType srvEnv
 
@@ -75,12 +75,12 @@ readPois projectId = select $ from $ \poi -> do
     orderBy [asc (poi ^. ProjectPointOfInterestDesc)]
     return poi
 
-addProjectPoi :: SqlBackend -> ObjRef ProjectViewState
+addProjectPoi :: SqlBackend -> Int
     -> Text -> Text -> Text -> Text -> IO ()
-addProjectPoi sqlBackend stateRef
+addProjectPoi sqlBackend projectId
     pDesc path txt interestTypeT = do
     let interestType = read $ T.unpack interestTypeT
-    addHelper sqlBackend stateRef
+    addHelper sqlBackend projectId
         $ ProjectPointOfInterest pDesc path txt interestType
 
 updateProjectPoi :: SqlBackend -> ObjRef (Entity ProjectPointOfInterest)
@@ -225,7 +225,7 @@ createProjectViewState sqlBackend = do
             defMethod' "canDeleteServer" (\_ srv -> canDeleteServer sqlBackend $ fromObjRef srv),
             defMethod' "deleteServers" (deleteHelper sqlBackend deleteServer),
             defMethod  "getPois" (getChildren sqlBackend readPois),
-            defMethod  "addProjectPoi" (addProjectPoi sqlBackend),
+            defStatic  "addProjectPoi" (addProjectPoi sqlBackend),
             defMethod' "updateProjectPoi" (const $ updateProjectPoi sqlBackend),
             defMethod' "deleteProjectPois" (deleteHelper sqlBackend deleteProjectPoi),
             defMethod' "runPoiAction" runPoiAction,

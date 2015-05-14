@@ -46,7 +46,7 @@ Rectangle {
                             poiEdit.activate(model, poiEdit.getDefaultModel())
                         },
                         function (poiEdit) {
-                            poiEdit.onOk();
+                            poiEdit.onOk(pv.model.project);
                             // force refresh
                             refreshProjectPois()
                         })

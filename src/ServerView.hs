@@ -41,7 +41,7 @@ addServerPoi :: SqlBackend -> Int
     -> Text -> Text -> Text -> Text -> Maybe Text -> IO ()
 addServerPoi sqlBackend serverId pDesc path txt interestTypeT (groupOrNothing -> grpName) = do
     let interestType = read $ T.unpack interestTypeT
-    addHelper' sqlBackend serverId
+    addHelper sqlBackend serverId
         $ ServerPointOfInterest pDesc path txt interestType grpName
 
 updateServerPoi :: SqlBackend -> ObjRef (Entity ServerPointOfInterest)
@@ -68,7 +68,7 @@ addServerWebsite :: SqlBackend -> Int
 addServerWebsite sqlBackend serverId
     pDesc url txt username password mDatabaseId (groupOrNothing -> grpName) = do
     let mDatabaseKey = toSqlKey32 <$> mDatabaseId
-    addHelper' sqlBackend serverId
+    addHelper sqlBackend serverId
         $ ServerWebsite pDesc url txt username password mDatabaseKey grpName
 
 updateServerWebsite :: SqlBackend -> ObjRef (Entity ServerWebsite)
@@ -95,7 +95,7 @@ readServerDatabases serverId = select $ from $ \p -> do
 addServerDatabase :: SqlBackend -> Int
     -> Text -> Text -> Text -> Text -> Text -> Maybe Text -> IO ()
 addServerDatabase sqlBackend serverId pDesc name txt
-    username password (groupOrNothing -> grpName) = addHelper' sqlBackend serverId
+    username password (groupOrNothing -> grpName) = addHelper sqlBackend serverId
         $ ServerDatabase pDesc name txt username password grpName
 
 updateServerDatabase :: SqlBackend -> ObjRef (Entity ServerDatabase)
@@ -142,7 +142,7 @@ addServerExtraUserAccount :: SqlBackend -> Int
 addServerExtraUserAccount sqlBackend serverId
     pDesc username password keyPath (groupOrNothing -> grpName) = do
     authKeyInfo <- processAuthKeyInfo keyPath
-    addHelper' sqlBackend serverId $ ServerExtraUserAccount username password pDesc
+    addHelper sqlBackend serverId $ ServerExtraUserAccount username password pDesc
             (fst <$> authKeyInfo) (snd <$> authKeyInfo) grpName
 
 updateServerExtraUserAccount :: SqlBackend -> ObjRef (Entity ServerExtraUserAccount)
