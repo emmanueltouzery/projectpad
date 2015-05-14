@@ -53,7 +53,7 @@ addServerPoi sqlBackend serverId pDesc path txt interestTypeT (groupOrNothing ->
 updateServerPoi :: SqlBackend -> ObjRef (Entity ServerPointOfInterest)
     -> Text -> Text -> Text -> Text -> Maybe Text -> IO (ObjRef (Entity ServerPointOfInterest))
 updateServerPoi sqlBackend poiRef
-    pDesc path txt interestTypeT grpName = do
+    pDesc path txt interestTypeT (groupOrNothing -> grpName) = do
     let interestType = read $ T.unpack interestTypeT
     updateHelper sqlBackend poiRef
         [
@@ -107,7 +107,7 @@ addServerDatabase sqlBackend serverId pDesc name txt
 updateServerDatabase :: SqlBackend -> ObjRef (Entity ServerDatabase)
     -> Text -> Text -> Text -> Text -> Text -> Maybe Text -> IO (ObjRef (Entity ServerDatabase))
 updateServerDatabase sqlBackend srvDbRef
-    pDesc name txt username password grpName = updateHelper sqlBackend srvDbRef
+    pDesc name txt username password (groupOrNothing -> grpName) = updateHelper sqlBackend srvDbRef
         [
             ServerDatabaseDesc P.=. pDesc, ServerDatabaseName P.=. name,
             ServerDatabaseText P.=. txt,
@@ -154,7 +154,7 @@ addServerExtraUserAccount sqlBackend serverId
 updateServerExtraUserAccount :: SqlBackend -> ObjRef (Entity ServerExtraUserAccount)
     -> Text -> Text -> Text -> Text -> Maybe Text -> IO (ObjRef (Entity ServerExtraUserAccount))
 updateServerExtraUserAccount sqlBackend acctRef
-    pDesc username password keyPath grpName = do
+    pDesc username password keyPath (groupOrNothing -> grpName) = do
     authKeyInfo <- processAuthKeyInfo keyPath
     updateHelper sqlBackend acctRef
         [
