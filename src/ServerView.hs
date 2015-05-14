@@ -34,9 +34,17 @@ readServerPois serverId = select $ from $ \p -> do
     orderBy [asc (p ^. ServerPointOfInterestDesc)]
     return p
 
+-- I have decided in the schema to have null for "no group".
+-- In that sense, "" makes no sense, because it would also
+-- mean "no group"... So make sure we never send "" to the DB.
+-- I also have a constraint there, length>0.
+groupOrNothing :: Maybe Text -> Maybe Text
+groupOrNothing (Just "") = Nothing
+groupOrNothing x@_ = x
+
 addServerPoi :: SqlBackend -> ObjRef ServerViewState
     -> Text -> Text -> Text -> Text -> Maybe Text -> IO ()
-addServerPoi sqlBackend stateRef pDesc path txt interestTypeT grpName = do
+addServerPoi sqlBackend stateRef pDesc path txt interestTypeT (groupOrNothing -> grpName) = do
     let interestType = read $ T.unpack interestTypeT
     addHelper sqlBackend stateRef
         $ ServerPointOfInterest pDesc path txt interestType grpName
@@ -44,7 +52,7 @@ addServerPoi sqlBackend stateRef pDesc path txt interestTypeT grpName = do
 updateServerPoi :: SqlBackend -> ObjRef (Entity ServerPointOfInterest)
     -> Text -> Text -> Text -> Text -> Maybe Text -> IO (ObjRef (Entity ServerPointOfInterest))
 updateServerPoi sqlBackend poiRef
-    pDesc path txt interestTypeT grpName = do
+    pDesc path txt interestTypeT (groupOrNothing -> grpName) = do
     let interestType = read $ T.unpack interestTypeT
     updateHelper sqlBackend poiRef
         [
@@ -63,7 +71,7 @@ readServerWebsites serverId = select $ from $ \p -> do
 addServerWebsite :: SqlBackend -> ObjRef ServerViewState
     -> Text -> Text -> Text -> Text -> Text -> Maybe Int -> Maybe Text -> IO ()
 addServerWebsite sqlBackend stateRef
-    pDesc url txt username password mDatabaseId grpName = do
+    pDesc url txt username password mDatabaseId (groupOrNothing -> grpName) = do
     let mDatabaseKey = toSqlKey32 <$> mDatabaseId
     addHelper sqlBackend stateRef
         $ ServerWebsite pDesc url txt username password mDatabaseKey grpName
@@ -72,7 +80,7 @@ updateServerWebsite :: SqlBackend -> ObjRef (Entity ServerWebsite)
     -> Text -> Text -> Text -> Text -> Text
     -> Maybe Int -> Maybe Text -> IO (ObjRef (Entity ServerWebsite))
 updateServerWebsite sqlBackend srvWwwRef
-    pDesc url txt username password mDatabaseId grpName = do
+    pDesc url txt username password mDatabaseId (groupOrNothing -> grpName) = do
     putStrLn $ "hs >> " ++ show grpName
     let mDatabaseKey = toSqlKey32 <$> mDatabaseId
     updateHelper sqlBackend srvWwwRef
@@ -93,13 +101,13 @@ readServerDatabases serverId = select $ from $ \p -> do
 addServerDatabase :: SqlBackend -> ObjRef ServerViewState
     -> Text -> Text -> Text -> Text -> Text -> Maybe Text -> IO ()
 addServerDatabase sqlBackend stateRef pDesc name txt
-    username password grpName = addHelper sqlBackend stateRef
+    username password (groupOrNothing -> grpName) = addHelper sqlBackend stateRef
         $ ServerDatabase pDesc name txt username password grpName
 
 updateServerDatabase :: SqlBackend -> ObjRef (Entity ServerDatabase)
     -> Text -> Text -> Text -> Text -> Text -> Maybe Text -> IO (ObjRef (Entity ServerDatabase))
 updateServerDatabase sqlBackend srvDbRef
-    pDesc name txt username password grpName = updateHelper sqlBackend srvDbRef
+    pDesc name txt username password (groupOrNothing -> grpName) = updateHelper sqlBackend srvDbRef
         [
             ServerDatabaseDesc P.=. pDesc, ServerDatabaseName P.=. name,
             ServerDatabaseText P.=. txt,
@@ -138,7 +146,7 @@ readServerExtraUserAccounts serverId = select $ from $ \p -> do
 addServerExtraUserAccount :: SqlBackend -> ObjRef ServerViewState
     -> Text -> Text -> Text -> Text -> Maybe Text -> IO ()
 addServerExtraUserAccount sqlBackend stateRef
-    pDesc username password keyPath grpName = do
+    pDesc username password keyPath (groupOrNothing -> grpName) = do
     authKeyInfo <- processAuthKeyInfo keyPath
     addHelper sqlBackend stateRef $ ServerExtraUserAccount username password pDesc
             (fst <$> authKeyInfo) (snd <$> authKeyInfo) grpName
@@ -146,7 +154,7 @@ addServerExtraUserAccount sqlBackend stateRef
 updateServerExtraUserAccount :: SqlBackend -> ObjRef (Entity ServerExtraUserAccount)
     -> Text -> Text -> Text -> Text -> Maybe Text -> IO (ObjRef (Entity ServerExtraUserAccount))
 updateServerExtraUserAccount sqlBackend acctRef
-    pDesc username password keyPath grpName = do
+    pDesc username password keyPath (groupOrNothing -> grpName) = do
     authKeyInfo <- processAuthKeyInfo keyPath
     updateHelper sqlBackend acctRef
         [
