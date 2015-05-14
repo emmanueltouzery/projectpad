@@ -25,13 +25,7 @@ import System
 import Util
 import ServerView
 
-data ProjectViewState = ProjectViewState
-    {
-        curProjectId :: MVar (Maybe Int)
-    } deriving Typeable
-
-instance DynParentHolder ProjectViewState where
-    dynParentId = curProjectId
+type ProjectViewState = ()
 
 readServers :: Int -> SqlPersistM [Entity Server]
 readServers projectId = select $ from $ \s -> do
@@ -216,7 +210,6 @@ deleteProjectPoi = P.delete
 
 createProjectViewState :: SqlBackend -> IO (ObjRef ProjectViewState)
 createProjectViewState sqlBackend = do
-    projectViewState <- ProjectViewState <$> newMVar Nothing
     projectViewClass <- newClass
         [
             defStatic  "getServers" (getServersExtraInfo sqlBackend),
@@ -224,7 +217,7 @@ createProjectViewState sqlBackend = do
             defMethod' "updateServer" (const $ updateServer sqlBackend),
             defStatic  "canDeleteServer" (canDeleteServer sqlBackend . fromObjRef),
             defMethod' "deleteServers" (deleteHelper sqlBackend deleteServer),
-            defMethod  "getPois" (getChildren sqlBackend readPois),
+            defStatic  "getPois" (\projectId -> mapM newObjectDC =<< runSqlBackend sqlBackend (readPois projectId)),
             defStatic  "addProjectPoi" (addProjectPoi sqlBackend),
             defMethod' "updateProjectPoi" (const $ updateProjectPoi sqlBackend),
             defMethod' "deleteProjectPois" (deleteHelper sqlBackend deleteProjectPoi),
@@ -237,4 +230,4 @@ createProjectViewState sqlBackend = do
             defSignalNamedParams "gotOutput" (Proxy :: Proxy SignalOutput) $
                 fstName "output"
         ]
-    newObject projectViewClass projectViewState
+    newObject projectViewClass ()
