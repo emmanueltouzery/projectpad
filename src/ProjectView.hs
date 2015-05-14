@@ -32,21 +32,22 @@ data ProjectViewState = ProjectViewState
 
 instance DynParentHolder ProjectViewState where
     dynParentId = curProjectId
+
 readServers :: Int -> SqlPersistM [Entity Server]
 readServers projectId = select $ from $ \s -> do
     where_ (s ^. ServerProjectId ==. val (toSqlKey32 projectId))
     orderBy [asc (s ^. ServerDesc)]
     return s
 
-addServer :: SqlBackend -> ObjRef ProjectViewState
+addServer :: SqlBackend -> Int
     -> Text -> IpAddress -> Text -> Text -> Text -> Text -> Text -> Text -> Text -> IO ()
-addServer sqlBackend stateRef sDesc ipAddr txt username password
+addServer sqlBackend projectId sDesc ipAddr txt username password
         keyPath serverTypeT serverAccessTypeT srvEnvironmentT = do
     let srvType = readT serverTypeT
     let srvAccessType = readT serverAccessTypeT
     let srvEnv = readT srvEnvironmentT
     authKeyInfo <- processAuthKeyInfo keyPath
-    addHelper sqlBackend stateRef $ Server sDesc ipAddr txt username password
+    addHelper' sqlBackend projectId $ Server sDesc ipAddr txt username password
             (fst <$> authKeyInfo) (snd <$> authKeyInfo)
             srvType srvAccessType srvEnv
 
@@ -219,7 +220,7 @@ createProjectViewState sqlBackend = do
     projectViewClass <- newClass
         [
             defMethod  "getServers" (getServersExtraInfo sqlBackend),
-            defMethod  "addServer" (addServer sqlBackend),
+            defStatic  "addServer" (addServer sqlBackend),
             defMethod' "updateServer" (const $ updateServer sqlBackend),
             defMethod' "canDeleteServer" (\_ srv -> canDeleteServer sqlBackend $ fromObjRef srv),
             defMethod' "deleteServers" (deleteHelper sqlBackend deleteServer),

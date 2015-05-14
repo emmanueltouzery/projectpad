@@ -42,3 +42,6 @@ processAuthKeyInfo keyPath = traverse getInfo $ T.stripPrefix "file://" keyPath
 
 textEx :: SomeException -> Text
 textEx = T.pack . show
+
+defStatic :: (MethodSuffix ms, Typeable obj) => String -> ms -> Member obj
+defStatic str cb = defMethod' str (const cb)

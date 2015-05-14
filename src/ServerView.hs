@@ -263,7 +263,6 @@ getServerDisplaySections sqlBackend serverId = do
 
 createServerViewState :: SqlBackend -> IO (ObjRef ServerViewState)
 createServerViewState sqlBackend = do
-    let defStatic str cb = defMethod' str (const cb)
     let pfApply f = (return . f <=<)
     let serializeEitherM' = pfApply serializeEither'
     let serializeEitherM = pfApply serializeEither

@@ -31,7 +31,7 @@ Rectangle {
         serverDescription.forceActiveFocus()
     }
 
-    function onOk() {
+    function onOk(project) {
         if (model.id) {
             serverEdit.model = projectViewState.updateServer(
                 model, serverDescription.text, ipAddress.text,
@@ -40,7 +40,7 @@ Rectangle {
                 serverTypeItems.get(serverType.currentIndex).value,
                 serverAccessTypeItems.get(serverAccessType.currentIndex).value);
         } else {
-            projectViewState.addServer(serverDescription.text, ipAddress.text,
+            projectViewState.addServer(project.id, serverDescription.text, ipAddress.text,
                 txt.text,
                 username.text, password.text, serverEdit.keyFilepath,
                 serverTypeItems.get(serverType.currentIndex).value,

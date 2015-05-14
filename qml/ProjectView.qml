@@ -35,7 +35,7 @@ Rectangle {
                             serverEdit.activate(serverEdit.getDefaultModel(), model.environment)
                         },
                         function (serverEdit) {
-                            serverEdit.onOk()
+                            serverEdit.onOk(pv.model.project)
                             // force refresh
                             itemsrepeater.model = projectViewState.getServers(pv.model.project.id, model.environment)
                         })
