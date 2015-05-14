@@ -13,6 +13,7 @@ import qualified Data.Text as T
 import qualified Database.Persist as P
 import Data.List
 import Data.Maybe
+import Data.Ord
 
 import Model
 import ModelBase
@@ -34,11 +35,19 @@ readServerPois serverId = select $ from $ \p -> do
     orderBy [asc (p ^. ServerPointOfInterestDesc)]
     return p
 
-addServerPoi :: SqlBackend -> ObjRef ServerViewState
+-- I have decided in the schema to have null for "no group".
+-- In that sense, "" makes no sense, because it would also
+-- mean "no group"... So make sure we never send "" to the DB.
+-- I also have a constraint there, length>0.
+groupOrNothing :: Maybe Text -> Maybe Text
+groupOrNothing (Just "") = Nothing
+groupOrNothing x@_ = x
+
+addServerPoi :: SqlBackend -> Int
     -> Text -> Text -> Text -> Text -> Maybe Text -> IO ()
-addServerPoi sqlBackend stateRef pDesc path txt interestTypeT grpName = do
+addServerPoi sqlBackend serverId pDesc path txt interestTypeT (groupOrNothing -> grpName) = do
     let interestType = read $ T.unpack interestTypeT
-    addHelper sqlBackend stateRef
+    addHelper' sqlBackend serverId
         $ ServerPointOfInterest pDesc path txt interestType grpName
 
 updateServerPoi :: SqlBackend -> ObjRef (Entity ServerPointOfInterest)
@@ -60,12 +69,12 @@ readServerWebsites serverId = select $ from $ \p -> do
     orderBy [asc (p ^. ServerWebsiteDesc)]
     return p
 
-addServerWebsite :: SqlBackend -> ObjRef ServerViewState
+addServerWebsite :: SqlBackend -> Int
     -> Text -> Text -> Text -> Text -> Text -> Maybe Int -> Maybe Text -> IO ()
-addServerWebsite sqlBackend stateRef
-    pDesc url txt username password mDatabaseId grpName = do
+addServerWebsite sqlBackend serverId
+    pDesc url txt username password mDatabaseId (groupOrNothing -> grpName) = do
     let mDatabaseKey = toSqlKey32 <$> mDatabaseId
-    addHelper sqlBackend stateRef
+    addHelper' sqlBackend serverId
         $ ServerWebsite pDesc url txt username password mDatabaseKey grpName
 
 updateServerWebsite :: SqlBackend -> ObjRef (Entity ServerWebsite)
@@ -73,7 +82,6 @@ updateServerWebsite :: SqlBackend -> ObjRef (Entity ServerWebsite)
     -> Maybe Int -> Maybe Text -> IO (ObjRef (Entity ServerWebsite))
 updateServerWebsite sqlBackend srvWwwRef
     pDesc url txt username password mDatabaseId grpName = do
-    putStrLn $ "hs >> " ++ show grpName
     let mDatabaseKey = toSqlKey32 <$> mDatabaseId
     updateHelper sqlBackend srvWwwRef
         [
@@ -90,10 +98,10 @@ readServerDatabases serverId = select $ from $ \p -> do
     orderBy [asc (p ^. ServerDatabaseDesc)]
     return p
 
-addServerDatabase :: SqlBackend -> ObjRef ServerViewState
+addServerDatabase :: SqlBackend -> Int
     -> Text -> Text -> Text -> Text -> Text -> Maybe Text -> IO ()
-addServerDatabase sqlBackend stateRef pDesc name txt
-    username password grpName = addHelper sqlBackend stateRef
+addServerDatabase sqlBackend serverId pDesc name txt
+    username password (groupOrNothing -> grpName) = addHelper' sqlBackend serverId
         $ ServerDatabase pDesc name txt username password grpName
 
 updateServerDatabase :: SqlBackend -> ObjRef (Entity ServerDatabase)
@@ -135,12 +143,12 @@ readServerExtraUserAccounts serverId = select $ from $ \p -> do
     orderBy [asc (p ^. ServerExtraUserAccountDesc)]
     return p
 
-addServerExtraUserAccount :: SqlBackend -> ObjRef ServerViewState
+addServerExtraUserAccount :: SqlBackend -> Int
     -> Text -> Text -> Text -> Text -> Maybe Text -> IO ()
-addServerExtraUserAccount sqlBackend stateRef
-    pDesc username password keyPath grpName = do
+addServerExtraUserAccount sqlBackend serverId
+    pDesc username password keyPath (groupOrNothing -> grpName) = do
     authKeyInfo <- processAuthKeyInfo keyPath
-    addHelper sqlBackend stateRef $ ServerExtraUserAccount username password pDesc
+    addHelper' sqlBackend serverId $ ServerExtraUserAccount username password pDesc
             (fst <$> authKeyInfo) (snd <$> authKeyInfo) grpName
 
 updateServerExtraUserAccount :: SqlBackend -> ObjRef (Entity ServerExtraUserAccount)
@@ -168,9 +176,9 @@ executePoiAction srvState (entityVal . fromObjRef -> server)
         (entityVal . fromObjRef -> serverPoi) =
     case serverPointOfInterestInterestType serverPoi of
         PoiCommandToRun -> executePoiCommand srvState server serverPoi
-        PoiLogFile -> executePoiLogFile server serverPoi "tail -f "
-        PoiConfigFile -> executePoiLogFile server serverPoi "vim "
-        _ -> return $ Right ()
+        PoiLogFile      -> executePoiLogFile server serverPoi "tail -f "
+        PoiConfigFile   -> executePoiLogFile server serverPoi "vim "
+        _               -> return $ Right ()
 
 executePoiSecondaryAction :: ObjRef ServerViewState -> ObjRef (Entity Server)
     -> ObjRef (Entity ServerPointOfInterest) -> IO (Either Text ())
@@ -188,7 +196,7 @@ executePoiCommand :: ObjRef ServerViewState -> Server -> ServerPointOfInterest -
 executePoiCommand srvState server serverPoi = do
     let workDir = case serverPointOfInterestPath serverPoi of
           "" -> Nothing
-          x -> Just x
+          x  -> Just x
     Right <$> runProgramOverSshAsync (serverIp server)
         (serverUsername server) (serverPassword server)
         workDir (serverPointOfInterestText serverPoi)
@@ -210,36 +218,75 @@ getServerGroupNames :: SqlBackend -> Int -> IO [Text]
 getServerGroupNames sqlBackend serverId = do
     poiGroupNames <- readEF serverPointOfInterestGroupName readServerPois
     wwwGroupNames <- readEF serverWebsiteGroupName readServerWebsites
-    dbGroupNames <- readEF serverDatabaseGroupName readServerDatabases
+    dbGroupNames  <- readEF serverDatabaseGroupName readServerDatabases
     extraAccountGroupNames <- readEF serverExtraUserAccountGroupName readServerExtraUserAccounts
-    return $ nub $ sort $ catMaybes $
+    return $ nub $ sortBy (comparing T.toCaseFold) $ catMaybes $
         poiGroupNames ++ wwwGroupNames ++ dbGroupNames ++ extraAccountGroupNames
     where
       readEF :: (a -> b) -> (Int -> SqlPersistM [Entity a]) -> IO [b]
       readEF f r = fmap (f . entityVal) <$> runSqlBackend sqlBackend (r serverId)
 
+data ServerDisplaySection = ServerDisplaySection
+    {
+        srvSectionGrpName    :: Maybe Text,
+        srvSectionPois       :: [ObjRef (Entity ServerPointOfInterest)],
+        srvSectionWebsites   :: [ObjRef (Entity ServerWebsite)],
+        srvSectionDatabases  :: [ObjRef (Entity ServerDatabase)],
+        srvSectionExtraUsers :: [ObjRef (Entity ServerExtraUserAccount)]
+    } deriving Typeable
+
+readM f = return . f . fromObjRef
+
+instance DefaultClass ServerDisplaySection where
+    classMembers =
+        [
+            defPropertyConst "groupName"  (readM srvSectionGrpName),
+            defPropertyConst "pois"       (readM srvSectionPois),
+            defPropertyConst "websites"   (readM srvSectionWebsites),
+            defPropertyConst "databases"  (readM srvSectionDatabases),
+            defPropertyConst "extraUsers" (readM srvSectionExtraUsers)
+        ]
+
+getServerDisplaySections :: SqlBackend -> Int -> IO [ObjRef ServerDisplaySection]
+getServerDisplaySections sqlBackend serverId = do
+    groupNames <- getServerGroupNames sqlBackend serverId
+    pois       <- runServerQ readServerPois
+    websites   <- runServerQ readServerWebsites
+    databases  <- runServerQ readServerDatabases
+    extraUsers <- runServerQ readServerExtraUserAccounts
+    let sectionForGroup grp = ServerDisplaySection {
+            srvSectionGrpName    = grp,
+            srvSectionPois       = filterForGroup grp serverPointOfInterestGroupName pois,
+            srvSectionWebsites   = filterForGroup grp serverWebsiteGroupName websites,
+            srvSectionDatabases  = filterForGroup grp serverDatabaseGroupName databases,
+            srvSectionExtraUsers = filterForGroup grp serverExtraUserAccountGroupName extraUsers
+        }
+    mapM newObjectDC $ sectionForGroup Nothing : (sectionForGroup . Just <$> groupNames)
+    where
+      runServerQ :: DefaultClass a => (Int -> SqlPersistM [a]) -> IO [ObjRef a]
+      runServerQ f = mapM newObjectDC =<< runSqlBackend sqlBackend (f serverId)
+      filterForGroup grp grpNameField = filter ((==grp) . grpNameField . entityVal . fromObjRef)
+
 createServerViewState :: SqlBackend -> IO (ObjRef ServerViewState)
 createServerViewState sqlBackend = do
     serverViewState <- ServerViewState <$> newMVar Nothing
+    let defStatic str cb = defMethod' str (const cb)
     serverViewClass <- newClass
         [
-            defMethod  "getPois" (getChildren sqlBackend readServerPois),
-            defMethod  "addServerPoi" (addServerPoi sqlBackend),
+            defStatic "getServerDisplaySections" (getServerDisplaySections sqlBackend),
+            defStatic  "addServerPoi" (addServerPoi sqlBackend),
             defMethod' "updateServerPoi" (const $ updateServerPoi sqlBackend),
             defMethod' "deleteServerPois" (deleteHelper sqlBackend deleteServerPoi),
-            defMethod  "getServerWebsites" (getChildren sqlBackend readServerWebsites),
-            defMethod  "addServerWebsite" (addServerWebsite sqlBackend),
+            defStatic  "addServerWebsite" (addServerWebsite sqlBackend),
             defMethod' "updateServerWebsite" (const $ updateServerWebsite sqlBackend),
             defMethod' "deleteServerWebsites" (deleteHelper sqlBackend deleteServerWebsite),
-            defMethod  "getServerDatabases" (getChildren sqlBackend readServerDatabases),
-            defMethod  "addServerDatabase" (addServerDatabase sqlBackend),
+            defStatic  "addServerDatabase" (addServerDatabase sqlBackend),
             defMethod' "updateServerDatabase" (const $ updateServerDatabase sqlBackend),
             defMethod' "canDeleteServerDatabase" (\_ db ->
                 canDeleteServerDatabase sqlBackend (const True) $ fromObjRef db),
             defMethod' "deleteServerDatabases" (deleteHelper sqlBackend deleteServerDatabase),
             defMethod  "getAllDatabases" (getAllDatabases sqlBackend),
-            defMethod  "getServerExtraUserAccounts" (getChildren sqlBackend readServerExtraUserAccounts),
-            defMethod  "addServerExtraUserAccount" (addServerExtraUserAccount sqlBackend),
+            defStatic  "addServerExtraUserAccount" (addServerExtraUserAccount sqlBackend),
             defMethod' "updateServerExtraUserAccount" (const $ updateServerExtraUserAccount sqlBackend),
             defMethod' "deleteServerExtraUserAccounts" (deleteHelper sqlBackend deleteServerExtraUserAccount),
             defMethod' "getServerGroupNames" (\_ srvId -> getServerGroupNames sqlBackend srvId),

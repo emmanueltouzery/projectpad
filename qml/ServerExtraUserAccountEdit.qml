@@ -32,13 +32,13 @@ Rectangle {
         group.currentIndex = groups.indexOf(_model.groupName)
     }
 
-    function onOk() {
+    function onOk(server) {
         if (model.id) {
             extraUserEdit.model = serverViewState.updateServerExtraUserAccount(
                 model, userAccountDescription.text,
                 username.text, password.text, extraUserEdit.keyFilepath, group.editText);
         } else {
-            serverViewState.addServerExtraUserAccount(
+            serverViewState.addServerExtraUserAccount(server.id,
                 userAccountDescription.text, username.text, password.text,
                 extraUserEdit.keyFilepath, group.editText)
         }

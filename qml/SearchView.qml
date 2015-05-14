@@ -16,10 +16,7 @@ Rectangle {
     function refreshSearch() {
         loadView("SearchView.qml", {matches: search(searchView.model.query), query: searchView.model.query })
     }
-    function refreshPois() { refreshSearch() }
-    function refreshWwws() { refreshSearch() }
-    function refreshDbs() { refreshSearch() }
-    function refreshUsers() { refreshSearch() }
+    function refreshServerView() { refreshSearch() }
     function refreshProjectPois() { refreshSearch() }
 
     ScrollView {

@@ -21,9 +21,9 @@ ItemTile {
                     dbEdit.activate(server, curDb)
                 },
                 function (dbEdit) {
-                    dbEdit.onOk()
+                    dbEdit.onOk(server)
                     // force refresh
-                    refreshDbs()
+                    refreshServerView()
                 })
     }
 
@@ -40,7 +40,7 @@ ItemTile {
                             return
                         }
                         Utils.handleEither(serverViewState.deleteServerDatabases([model.id]))
-                    refreshDbs()
+                    refreshServerView()
                     })
                 }]]
             selectMenu.show(parent, tileServerDatabase.global)

@@ -54,14 +54,14 @@ Rectangle {
         }
     }
 
-    function onServerOk() {
+    function onServerOk(server) {
         if (model.id) {
             poiEdit.model = serverViewState.updateServerPoi(
                 model, poiDescription.text, path.text, text.text,
                 interestTypeItems.get(interestType.currentIndex).value,
                 group.editText)
         } else {
-            serverViewState.addServerPoi(
+            serverViewState.addServerPoi(server.id,
                 poiDescription.text, path.text,
                 text.text, interestTypeItems.get(interestType.currentIndex).value,
                 group.editText)

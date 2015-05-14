@@ -29,13 +29,13 @@ Rectangle {
         description.forceActiveFocus()
     }
 
-    function onOk() {
+    function onOk(server) {
         if (model.id) {
             srvDatabaseEdit.model = serverViewState.updateServerDatabase(
                 model, description.text, name.text, txt.text,
                 username.text, password.text, group.editText)
         } else {
-            serverViewState.addServerDatabase(
+            serverViewState.addServerDatabase(server.id,
                 description.text, name.text,
                 txt.text, username.text, password.text, group.editText)
         }

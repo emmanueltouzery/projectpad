@@ -19,9 +19,9 @@ ItemTile {
                     userEdit.activate(server, curUserAcct)
                 },
                 function (userEdit) {
-                    userEdit.onOk()
+                    userEdit.onOk(server)
                     // force refresh
-                    refreshUsers()
+                    refreshServerView()
                 })
     }
     MouseArea {
@@ -32,7 +32,7 @@ ItemTile {
                 ["glyphicons-193-circle-remove", function() {
                     appContext.confirmDelete(function() {
                         Utils.handleEither(serverViewState.deleteServerExtraUserAccounts([model.id]))
-                        refreshUsers()
+                        refreshServerView()
                     })
                 }]]
             if (model.authKeyFilename !== "...") {

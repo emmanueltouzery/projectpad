@@ -26,20 +26,8 @@ Rectangle {
             title: model.desc}
     }
 
-    function refreshPois() {
-        poisrepeater.model = serverViewState.getPois(pv.model.id)
-    }
-
-    function refreshWwws() {
-        wwwsrepeater.model = serverViewState.getServerWebsites(pv.model.id)
-    }
-
-    function refreshDbs() {
-        dbsrepeater.model = serverViewState.getServerDatabases(pv.model.id)
-    }
-
-    function refreshUsers() {
-        useraccountsrepeater.model = serverViewState.getServerExtraUserAccounts(pv.model.id)
+    function refreshServerView() {
+        serverSectionRepeater.model = serverViewState.getServerDisplaySections(pv.model.id)
     }
 
     function actionTriggered(name) {
@@ -50,8 +38,8 @@ Rectangle {
                             poiEdit.activate(pv.model, poiEdit.getDefaultModel())
                         },
                         function (poiEdit) {
-                            poiEdit.onServerOk();
-                            refreshPois()
+                            poiEdit.onServerOk(pv.model);
+                            refreshServerView()
                         }, {noOpacity: true})
                 break;
             case "addwww":
@@ -60,8 +48,8 @@ Rectangle {
                             wwwEdit.activate(pv.model, wwwEdit.getDefaultModel())
                         },
                         function (wwwEdit) {
-                            wwwEdit.onOk();
-                            refreshWwws()
+                            wwwEdit.onOk(pv.model)
+                            refreshServerView()
                         }, {noOpacity: true})
                 break;
             case "adddb":
@@ -70,8 +58,8 @@ Rectangle {
                             dbEdit.activate(pv.model, dbEdit.getDefaultModel())
                         },
                         function (dbEdit) {
-                            dbEdit.onOk();
-                            refreshDbs()
+                            dbEdit.onOk(pv.model);
+                            refreshServerView()
                         }, {noOpacity: true})
                 break;
             case "addaccount":
@@ -80,8 +68,8 @@ Rectangle {
                             editUser.activate(pv.model, editUser.getDefaultModel())
                         },
                         function (editUser) {
-                            editUser.onOk();
-                            refreshUsers()
+                            editUser.onOk(pv.model);
+                            refreshServerView()
                         }, {noOpacity: true})
                 break;
             case "add":
@@ -136,42 +124,64 @@ Rectangle {
                 }
 
                 Repeater {
-                    id: useraccountsrepeater
-                    model: serverViewState.getServerExtraUserAccounts(pv.model.id)
+                    id: serverSectionRepeater
+                    width: parent.width
+                    model: serverViewState.getServerDisplaySections(pv.model.id)
 
-                    TileExtraUserAccount {
-                        model: modelData
-                        server: pv.model
-                    }
-                }
+                    Flow {
+                        width: serverSectionRepeater.width
+                        anchors.margins: 4
+                        spacing: 10
 
-                Repeater {
-                    id: wwwsrepeater
-                    model: serverViewState.getServerWebsites(pv.model.id)
+                        Text {
+                            width: parent.width
+                            text: modelData.groupName || ""
+                            visible: modelData.groupName !== null
+                        }
 
-                    TileServerWebsite {
-                        model: modelData
-                        server: pv.model
-                    }
-                }
+                        Repeater {
+                            id: useraccountsrepeater
+                            model: modelData.extraUsers
 
-                Repeater {
-                    id: dbsrepeater
-                    model: serverViewState.getServerDatabases(pv.model.id)
+                            TileExtraUserAccount {
+                                model: modelData
+                                server: pv.model
+                                global: parent.parent
+                            }
+                        }
 
-                    TileServerDatabase {
-                        model: modelData
-                        server: pv.model
-                    }
-                }
+                        Repeater {
+                            id: wwwsrepeater
+                            model: modelData.websites
 
-                Repeater {
-                    id: poisrepeater
-                    model: serverViewState.getPois(pv.model.id)
+                            TileServerWebsite {
+                                model: modelData
+                                server: pv.model
+                                global: parent.parent
+                            }
+                        }
 
-                    TileServerPoi {
-                        server: pv.model
-                        model: modelData
+                        Repeater {
+                            id: dbsrepeater
+                            model: modelData.databases
+
+                            TileServerDatabase {
+                                model: modelData
+                                server: pv.model
+                                global: parent.parent
+                            }
+                        }
+
+                        Repeater {
+                            id: poisrepeater
+                            model: modelData.pois
+
+                            TileServerPoi {
+                                server: pv.model
+                                model: modelData
+                                global: parent.parent
+                            }
+                        }
                     }
                 }
             }

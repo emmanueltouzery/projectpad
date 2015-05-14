@@ -45,6 +45,12 @@ addHelper sqlBackend stateRef entityGetter = do
     pIdKey <- toSqlKey . fromIntegral <$> getCurParentId stateRef
     void $ runSqlBackend sqlBackend $ P.insert $ entityGetter pIdKey
 
+addHelper' :: (ToBackendKey SqlBackend record, PersistEntity s, PersistEntityBackend s ~ SqlBackend) =>
+    SqlBackend -> Int -> (Key record -> s) -> IO ()
+addHelper' sqlBackend parentId entityGetter = do
+    let pIdKey = toSqlKey $ fromIntegral parentId
+    void $ runSqlBackend sqlBackend $ P.insert $ entityGetter pIdKey
+
 updateHelper :: (DefaultClass (Entity b), PersistEntity b,
     PersistEntityBackend b ~ SqlBackend) =>
     SqlBackend -> ObjRef (Entity b)

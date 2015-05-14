@@ -37,18 +37,17 @@ Rectangle {
         database.currentIndex = Math.max(actualIndex, 0) // want "No db" if nothing.
     }
 
-    function onOk() {
+    function onOk(server) {
         var dbId = database.model.get(database.currentIndex).value
         if (dbId === -1) {
             dbId = null
         }
-        console.log(group.editText)
         if (model.id) {
             srvWebsiteEdit.model = serverViewState.updateServerWebsite(
                 model, description.text, url.text, txt.text,
                 username.text, password.text, dbId, group.editText)
         } else {
-            serverViewState.addServerWebsite(
+            serverViewState.addServerWebsite(server.id,
                 description.text, url.text, txt.text,
                 username.text, password.text, dbId, group.editText)
         }
