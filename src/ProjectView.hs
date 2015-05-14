@@ -3,7 +3,6 @@
 module ProjectView where
 
 import Control.Applicative
-import Control.Concurrent.MVar
 import Graphics.QML
 import Graphics.QML.Objects.ParamNames
 import Database.Esqueleto
@@ -37,9 +36,9 @@ addServer :: SqlBackend -> Int
     -> Text -> IpAddress -> Text -> Text -> Text -> Text -> Text -> Text -> Text -> IO ()
 addServer sqlBackend projectId sDesc ipAddr txt username password
         keyPath serverTypeT serverAccessTypeT srvEnvironmentT = do
-    let srvType = readT serverTypeT
+    let srvType       = readT serverTypeT
     let srvAccessType = readT serverAccessTypeT
-    let srvEnv = readT srvEnvironmentT
+    let srvEnv        = readT srvEnvironmentT
     authKeyInfo <- processAuthKeyInfo keyPath
     addHelper sqlBackend projectId $ Server sDesc ipAddr txt username password
             (fst <$> authKeyInfo) (snd <$> authKeyInfo)
@@ -50,7 +49,7 @@ updateServer :: SqlBackend -> ObjRef (Entity Server)
     -> Text -> IO (ObjRef (Entity Server))
 updateServer sqlBackend serverRef sDesc ipAddr txt
   username password keyPath serverTypeT serverAccessTypeT = do
-    let srvType = read $ T.unpack serverTypeT
+    let srvType       = read $ T.unpack serverTypeT
     let srvAccessType = read $ T.unpack serverAccessTypeT
     authKeyInfo <- processAuthKeyInfo keyPath
     updateHelper sqlBackend serverRef
@@ -130,10 +129,10 @@ openServerSshSession (entityVal . fromObjRef -> server) = fmapR (const "") <$>
 
 data ServerExtraInfo = ServerExtraInfo
     {
-        srvExtraInfoServer :: ObjRef (Entity Server),
-        srvExtraInfoPoiCount :: Int,
-        srvExtraInfoWwwCount :: Int,
-        srvExtraInfoDbCount :: Int,
+        srvExtraInfoServer    :: ObjRef (Entity Server),
+        srvExtraInfoPoiCount  :: Int,
+        srvExtraInfoWwwCount  :: Int,
+        srvExtraInfoDbCount   :: Int,
         srvExtraInfoUserCount :: Int
     } deriving Typeable
 
@@ -142,11 +141,11 @@ data ServerExtraInfo = ServerExtraInfo
 instance DefaultClass ServerExtraInfo where
     classMembers =
         [
-            defPropertyConst "server" (return . srvExtraInfoServer . fromObjRef),
-            defPropertyConst "poiCount" (return . srvExtraInfoPoiCount . fromObjRef),
-            defPropertyConst "wwwCount" (return . srvExtraInfoWwwCount . fromObjRef),
-            defPropertyConst "dbCount" (return . srvExtraInfoDbCount . fromObjRef),
-            defPropertyConst "userCount" (return . srvExtraInfoUserCount . fromObjRef)
+            defPropertyConst "server"    (readM srvExtraInfoServer),
+            defPropertyConst "poiCount"  (readM srvExtraInfoPoiCount),
+            defPropertyConst "wwwCount"  (readM srvExtraInfoWwwCount),
+            defPropertyConst "dbCount"   (readM srvExtraInfoDbCount),
+            defPropertyConst "userCount" (readM srvExtraInfoUserCount)
         ]
 
 readServersExtraInfo :: (PersistEntity val,
@@ -202,6 +201,10 @@ canDeleteServer sqlBackend server = do
      [] -> Nothing
      l  -> Just (T.intercalate ", " l)
 
+getProjectPois :: SqlBackend -> Int -> IO [ObjRef (Entity ProjectPointOfInterest)]
+getProjectPois sqlBackend projectId = mapM newObjectDC =<<
+    runSqlBackend sqlBackend (readPois projectId)
+
 deleteServer :: Key Server -> SqlPersistM ()
 deleteServer = P.delete
 
@@ -212,22 +215,22 @@ createProjectViewState :: SqlBackend -> IO (ObjRef ProjectViewState)
 createProjectViewState sqlBackend = do
     projectViewClass <- newClass
         [
-            defStatic  "getServers" (getServersExtraInfo sqlBackend),
-            defStatic  "addServer" (addServer sqlBackend),
-            defMethod' "updateServer" (const $ updateServer sqlBackend),
-            defStatic  "canDeleteServer" (canDeleteServer sqlBackend . fromObjRef),
-            defMethod' "deleteServers" (deleteHelper sqlBackend deleteServer),
-            defStatic  "getPois" (\projectId -> mapM newObjectDC =<< runSqlBackend sqlBackend (readPois projectId)),
-            defStatic  "addProjectPoi" (addProjectPoi sqlBackend),
-            defMethod' "updateProjectPoi" (const $ updateProjectPoi sqlBackend),
+            defStatic  "getServers"        (getServersExtraInfo sqlBackend),
+            defStatic  "addServer"         (addServer sqlBackend),
+            defStatic  "updateServer"      (updateServer sqlBackend),
+            defStatic  "canDeleteServer"   (canDeleteServer sqlBackend . fromObjRef),
+            defMethod' "deleteServers"     (deleteHelper sqlBackend deleteServer),
+            defStatic  "getPois"           (getProjectPois sqlBackend),
+            defStatic  "addProjectPoi"     (addProjectPoi sqlBackend),
+            defStatic  "updateProjectPoi"  (updateProjectPoi sqlBackend),
             defMethod' "deleteProjectPois" (deleteHelper sqlBackend deleteProjectPoi),
-            defMethod' "runPoiAction" runPoiAction,
-            defStatic  "saveAuthKey" (serializeEitherM . saveAuthKey),
-            defStatic  "runRdp" (\server width height -> serializeEither <$>
-                runServerRdp server width height),
-            defStatic  "openSshSession" (\server -> serializeEither <$>
-                openServerSshSession server),
+            defMethod' "runPoiAction"      runPoiAction,
+            defStatic  "saveAuthKey"       (serializeEitherM . saveAuthKey),
+            defStatic  "runRdp"            (\server width height -> serializeEither <$>
+                                               runServerRdp server width height),
+            defStatic  "openSshSession"    (\server -> serializeEither <$>
+                                               openServerSshSession server),
             defSignalNamedParams "gotOutput" (Proxy :: Proxy SignalOutput) $
-                fstName "output"
+                                                 fstName "output"
         ]
     newObject projectViewClass ()

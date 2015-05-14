@@ -55,3 +55,6 @@ serializeEitherM' = pfApply serializeEither'
 
 serializeEitherM :: (a -> IO (Either Text Text)) -> a -> IO [Text]
 serializeEitherM = pfApply serializeEither
+
+readM :: (a -> b) -> ObjRef a -> IO b
+readM f = return . f . fromObjRef

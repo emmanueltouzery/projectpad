@@ -227,9 +227,6 @@ data ServerDisplaySection = ServerDisplaySection
         srvSectionExtraUsers :: [ObjRef (Entity ServerExtraUserAccount)]
     } deriving Typeable
 
-readM :: (a -> b) -> ObjRef a -> IO b
-readM f = return . f . fromObjRef
-
 instance DefaultClass ServerDisplaySection where
     classMembers =
         [
@@ -264,27 +261,26 @@ createServerViewState :: SqlBackend -> IO (ObjRef ServerViewState)
 createServerViewState sqlBackend = do
     serverViewClass <- newClass
         [
-            defStatic "getServerDisplaySections" (getServerDisplaySections sqlBackend),
-            defStatic  "addServerPoi" (addServerPoi sqlBackend),
-            defMethod' "updateServerPoi" (const $ updateServerPoi sqlBackend),
-            defMethod' "deleteServerPois" (deleteHelper sqlBackend deleteServerPoi),
-            defStatic  "addServerWebsite" (addServerWebsite sqlBackend),
-            defMethod' "updateServerWebsite" (const $ updateServerWebsite sqlBackend),
-            defMethod' "deleteServerWebsites" (deleteHelper sqlBackend deleteServerWebsite),
-            defStatic  "addServerDatabase" (addServerDatabase sqlBackend),
-            defMethod' "updateServerDatabase" (const $ updateServerDatabase sqlBackend),
-            defStatic  "canDeleteServerDatabase" (canDeleteServerDatabase sqlBackend (const True) . fromObjRef),
-            defMethod' "deleteServerDatabases" (deleteHelper sqlBackend deleteServerDatabase),
-            defStatic  "getAllDatabases" (getAllDatabases sqlBackend),
+            defStatic  "getServerDisplaySections" (getServerDisplaySections sqlBackend),
+            defStatic  "addServerPoi"             (addServerPoi sqlBackend),
+            defStatic  "updateServerPoi"          (updateServerPoi sqlBackend),
+            defMethod' "deleteServerPois"         (deleteHelper sqlBackend deleteServerPoi),
+            defStatic  "addServerWebsite"         (addServerWebsite sqlBackend),
+            defStatic  "updateServerWebsite"      (updateServerWebsite sqlBackend),
+            defMethod' "deleteServerWebsites"     (deleteHelper sqlBackend deleteServerWebsite),
+            defStatic  "addServerDatabase"        (addServerDatabase sqlBackend),
+            defStatic  "updateServerDatabase"     (updateServerDatabase sqlBackend),
+            defStatic  "canDeleteServerDatabase"  (canDeleteServerDatabase sqlBackend (const True) . fromObjRef),
+            defMethod' "deleteServerDatabases"    (deleteHelper sqlBackend deleteServerDatabase),
+            defStatic  "getAllDatabases"          (getAllDatabases sqlBackend),
             defStatic  "addServerExtraUserAccount" (addServerExtraUserAccount sqlBackend),
-            defMethod' "updateServerExtraUserAccount" (const $ updateServerExtraUserAccount sqlBackend),
+            defStatic  "updateServerExtraUserAccount" (updateServerExtraUserAccount sqlBackend),
             defMethod' "deleteServerExtraUserAccounts" (deleteHelper sqlBackend deleteServerExtraUserAccount),
-            defStatic  "getServerGroupNames" (getServerGroupNames sqlBackend),
-            defStatic  "saveAuthKey" (serializeEitherM . saveExtraUserAuthKey),
-            defMethod' "executePoiAction" (\srvState server serverPoi -> serializeEither' <$>
-                executePoiAction srvState server serverPoi),
+            defStatic  "getServerGroupNames"      (getServerGroupNames sqlBackend),
+            defStatic  "saveAuthKey"              (serializeEitherM . saveExtraUserAuthKey),
+            defMethod' "executePoiAction"         (\srvState server serverPoi -> serializeEither' <$>
+                                                      executePoiAction srvState server serverPoi),
             defStatic "executePoiSecondaryAction" (serializeEitherM' . executePoiSecondaryAction),
-            defSignalNamedParams "gotOutput" (Proxy :: Proxy SignalOutput) $
-                fstName "output"
+            defSignalNamedParams "gotOutput"      (Proxy :: Proxy SignalOutput) $ fstName "output"
         ]
     newObject serverViewClass ()

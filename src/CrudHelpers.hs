@@ -1,7 +1,6 @@
 {-# LANGUAGE MultiParamTypeClasses, FlexibleContexts, TypeFamilies #-}
 module CrudHelpers where
 
-import Control.Concurrent.MVar
 import Database.Esqueleto
 import Control.Monad
 import Graphics.QML
