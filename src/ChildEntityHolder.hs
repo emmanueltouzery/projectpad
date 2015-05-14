@@ -1,4 +1,4 @@
-{-# LANGUAGE MultiParamTypeClasses, FlexibleContexts, ViewPatterns, TypeFamilies #-}
+{-# LANGUAGE MultiParamTypeClasses, FlexibleContexts, TypeFamilies #-}
 module ChildEntityHolder where
 
 import Control.Concurrent.MVar
@@ -15,27 +15,6 @@ import Control.Error
 
 import Model (runSqlBackend, toSqlKey32)
 import Util
-
-swapMVar_ :: MVar a -> a -> IO ()
-swapMVar_ a b = void (swapMVar a b)
-
-class DynParentHolder a where
-    dynParentId :: a -> MVar (Maybe Int)
-
-getCurParentId :: DynParentHolder a => ObjRef a -> IO Int
-getCurParentId (fromObjRef -> state) = fromMaybe (error "No current parent ID!")
-    <$> readMVar (dynParentId state)
-
--- read children from the cache for a certain parent id.
--- if the cache is for another parent id, reset the cache
--- for the new parent id, and refill it before returning the value.
-getChildren :: (DynParentHolder a, DefaultClass (Entity b)) =>
-    SqlBackend -> (Int -> SqlPersistM [Entity b]) -> ObjRef a -> Int -> IO [ObjRef (Entity b)]
-getChildren sqlBackend readChildren (fromObjRef -> state) parentId = do
-    pId <- readMVar (dynParentId state)
-    when (pId /= Just parentId) $
-        swapMVar_ (dynParentId state) (Just parentId)
-    mapM newObjectDC =<< runSqlBackend sqlBackend (readChildren parentId)
 
 -- helper used when adding an entity to DB.
 addHelper :: (ToBackendKey SqlBackend record, PersistEntity s, PersistEntityBackend s ~ SqlBackend) =>
