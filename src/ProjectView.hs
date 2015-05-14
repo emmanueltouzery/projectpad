@@ -171,12 +171,12 @@ getInfosVal sqlBackend serversById tableId serverFk = do
         tableId serverFk $ M.keys serversById
     return $ M.fromList $ fmap (unValue *** unValue) poiInfosVal
 
-getServersExtraInfo :: SqlBackend -> ObjRef ProjectViewState -> Int -> Text -> IO [ObjRef ServerExtraInfo]
-getServersExtraInfo sqlBackend projectViewState projectId environment = do
+getServersExtraInfo :: SqlBackend -> Int -> Text -> IO [ObjRef ServerExtraInfo]
+getServersExtraInfo sqlBackend projectId environment = do
     let environmentType = readT environment
-    prjServers <- getChildren sqlBackend readServers projectViewState projectId
-    let envServers = filter ((==environmentType) . serverEnvironment . entityVal . fromObjRef) prjServers
-    let serversById = M.fromList $ fmap (\s -> (objRefKey s, s)) envServers
+    prjServers <- runSqlBackend sqlBackend $ readServers projectId
+    let envServers = filter ((==environmentType) . serverEnvironment . entityVal) prjServers
+    let serversById = M.fromList $ fmap (\s -> (entityKey s, s)) envServers
 
     poiInfos <- getInfosVal sqlBackend serversById
         ServerPointOfInterestId ServerPointOfInterestServerId
@@ -187,14 +187,15 @@ getServersExtraInfo sqlBackend projectViewState projectId environment = do
     userInfos <- getInfosVal sqlBackend serversById
         ServerExtraUserAccountId ServerExtraUserAccountServerId
 
-    mapM (\s -> newObjectDC $ ServerExtraInfo s
-        (getServerCount s poiInfos)
-        (getServerCount s wwwInfos)
-        (getServerCount s dbInfos)
-        (getServerCount s userInfos)) envServers
+    mapM (\s -> do
+               s' <- newObjectDC s
+               newObjectDC $ ServerExtraInfo s'
+                   (getServerCount s poiInfos)
+                   (getServerCount s wwwInfos)
+                   (getServerCount s dbInfos)
+                   (getServerCount s userInfos)) envServers
     where
-        objRefKey = entityKey . fromObjRef
-        getServerCount s = fromMaybe 0 . M.lookup (objRefKey s)
+        getServerCount s = fromMaybe 0 . M.lookup (entityKey s)
 
 canDeleteServer :: SqlBackend -> Entity Server -> IO (Maybe Text)
 canDeleteServer sqlBackend server = do
@@ -218,7 +219,7 @@ createProjectViewState sqlBackend = do
     projectViewState <- ProjectViewState <$> newMVar Nothing
     projectViewClass <- newClass
         [
-            defMethod  "getServers" (getServersExtraInfo sqlBackend),
+            defStatic  "getServers" (getServersExtraInfo sqlBackend),
             defStatic  "addServer" (addServer sqlBackend),
             defMethod' "updateServer" (const $ updateServer sqlBackend),
             defStatic  "canDeleteServer" (canDeleteServer sqlBackend . fromObjRef),
