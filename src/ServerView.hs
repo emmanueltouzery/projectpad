@@ -16,7 +16,7 @@ import Data.Ord
 
 import Model
 import ModelBase
-import ChildEntityHolder
+import CrudHelpers
 import System
 import Util
 

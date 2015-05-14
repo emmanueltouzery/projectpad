@@ -20,7 +20,7 @@ import Data.Attoparsec.Text hiding (count)
 
 import ModelBase
 import Model
-import ChildEntityHolder
+import CrudHelpers
 import System
 import Util
 import ServerView

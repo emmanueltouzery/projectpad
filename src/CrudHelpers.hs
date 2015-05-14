@@ -1,5 +1,5 @@
 {-# LANGUAGE MultiParamTypeClasses, FlexibleContexts, TypeFamilies #-}
-module ChildEntityHolder where
+module CrudHelpers where
 
 import Control.Concurrent.MVar
 import Database.Esqueleto
