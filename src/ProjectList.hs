@@ -59,7 +59,7 @@ createProjectListState sqlBackend = do
     rootClass <- newClass
         [
             defPropertySigRO' "projects" changeKey
-                $ const $ mapM newObjectDC =<< runSqlBackend sqlBackend readProjects,
+                $ const $ sqlToQml sqlBackend readProjects,
             defMethod "addProject" (addProject sqlBackend changeKey),
             defMethod "updateProject" (updateProject sqlBackend changeKey),
             defMethod "deleteProjects" (deleteProjects sqlBackend changeKey)

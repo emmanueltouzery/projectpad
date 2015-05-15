@@ -202,8 +202,7 @@ canDeleteServer sqlBackend server = do
      l  -> Just (T.intercalate ", " l)
 
 getProjectPois :: SqlBackend -> Int -> IO [ObjRef (Entity ProjectPointOfInterest)]
-getProjectPois sqlBackend projectId = mapM newObjectDC =<<
-    runSqlBackend sqlBackend (readPois projectId)
+getProjectPois sqlBackend projectId = sqlToQml sqlBackend (readPois projectId)
 
 deleteServer :: Key Server -> SqlPersistM ()
 deleteServer = P.delete

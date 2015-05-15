@@ -216,3 +216,6 @@ deriving instance Typeable Key
 
 runSqlBackend :: SqlBackend -> SqlPersistM a -> IO a
 runSqlBackend = flip runSqlPersistM
+
+sqlToQml :: DefaultClass a => SqlBackend -> SqlPersistM [a] -> IO [ObjRef a]
+sqlToQml sqlBackend f = mapM newObjectDC =<< runSqlBackend sqlBackend f
