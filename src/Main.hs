@@ -17,6 +17,7 @@ import Data.Typeable
 import Database.Sqlite
 import Data.ByteString (ByteString)
 import qualified Data.ByteString as BS
+import qualified Data.ByteString.Char8 as BS8
 import Data.Text (Text)
 import qualified Data.Text as T
 import System.IO
@@ -25,6 +26,9 @@ import Control.Exception
 import System.FilePath.Posix
 import Control.Monad
 import System.Log.FastLogger
+import System.Environment
+import Data.List
+import Data.Char
 
 import Paths_projectpad
 
@@ -46,14 +50,12 @@ projectPadFolder = ".projectpad"
 sqLiteDiscrimitator :: ByteString
 sqLiteDiscrimitator = "SQLite format 3"
 
-logQueriesToStdout :: Bool
-logQueriesToStdout = False
-
 main :: IO ()
 main = do
+    logQueriesToStdout <- elem "--printQueries" <$> getArgs
     appDir <- getAppDir
     createDirectoryIfMissing True appDir
-    sqlBackend <- getSqlBackend (appDir </> dbFileName)
+    sqlBackend <- getSqlBackend logQueriesToStdout (appDir </> dbFileName)
     displayApp sqlBackend
 
 getAppDir :: IO String
@@ -64,14 +66,25 @@ getDbPath = do
     appDir <- getAppDir
     return (appDir </> dbFileName)
 
-getSqlBackend :: String -> IO SqlBackend
-getSqlBackend (T.pack -> t) = do
+getSqlBackend :: Bool -> String -> IO SqlBackend
+getSqlBackend logQueriesToStdout (T.pack -> t) = do
     conn <- open t
     prepare conn "PRAGMA foreign_keys = ON;" >>= step
     let logger _ _ _ = if logQueriesToStdout
-        then print . fromLogStr
+        then putStrLn . getLogQuery
         else const $ return ()
     wrapConnection conn logger
+
+-- hiding the PRAGMA calls because of the first PRAGMA
+-- call which contains the password to the database...
+-- don't want to print that one in the logs.
+getLogQuery :: LogStr -> String
+getLogQuery logStr = if "PRAGMA" `isPrefixOf` normalizedQuery
+                     then "<PRAGMA call>"
+                     else origQuery
+    where
+      origQuery = BS8.unpack (fromLogStr logStr)
+      normalizedQuery = toUpper <$> dropWhile (`elem` "\" \t") origQuery
 
 data AppState = AppState
     {
