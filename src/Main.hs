@@ -24,6 +24,7 @@ import System.Directory
 import Control.Exception
 import System.FilePath.Posix
 import Control.Monad
+import System.Log.FastLogger
 
 import Paths_projectpad
 
@@ -45,6 +46,9 @@ projectPadFolder = ".projectpad"
 sqLiteDiscrimitator :: ByteString
 sqLiteDiscrimitator = "SQLite format 3"
 
+logQueriesToStdout :: Bool
+logQueriesToStdout = False
+
 main :: IO ()
 main = do
     appDir <- getAppDir
@@ -64,11 +68,9 @@ getSqlBackend :: String -> IO SqlBackend
 getSqlBackend (T.pack -> t) = do
     conn <- open t
     prepare conn "PRAGMA foreign_keys = ON;" >>= step
-    -- to log the SQL queries as they're sent to the DB,
-    -- add: import System.Log.FastLogger
-    -- and use this callback:
-    -- print . fromLogStr
-    let logger _ _ _ = const $ return ()
+    let logger _ _ _ = if logQueriesToStdout
+        then print . fromLogStr
+        else const $ return ()
     wrapConnection conn logger
 
 data AppState = AppState
