@@ -74,7 +74,7 @@ updateServerWebsite :: SqlBackend -> ObjRef (Entity ServerWebsite)
     -> Text -> Text -> Text -> Text -> Text
     -> Maybe Int -> Maybe Text -> IO (ObjRef (Entity ServerWebsite))
 updateServerWebsite sqlBackend srvWwwRef
-    pDesc url txt username password mDatabaseId grpName = do
+    pDesc url txt username password mDatabaseId (groupOrNothing -> grpName) = do
     let mDatabaseKey = toSqlKey32 <$> mDatabaseId
     updateHelper sqlBackend srvWwwRef
         [
