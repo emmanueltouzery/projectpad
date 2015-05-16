@@ -291,6 +291,17 @@ Window {
             text: parent.msgText
             //height: parent.height // <-- if I put this, it gets broken for multiline/wrapped toasts
             x: 15
+            y: {
+                // is the text is smaller in height than the toast button?
+                var offset = toastButton.height - errorText.height
+                if (offset > 0) {
+                    // YES => center the text vertically with the button's center.
+                    return offset/2
+                } else {
+                    // NO => position the text from the top of the toast.
+                    return 0
+                }
+            }
             width: toastButton.x - x
             verticalAlignment: Text.AlignVCenter
             wrapMode: Text.Wrap
