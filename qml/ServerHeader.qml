@@ -5,6 +5,7 @@ import "server-menu.js" as ServerMenu
 Rectangle {
     property variant server
     property variant rootFlowInParent
+    property variant iconType: 'environment'
     color: "dark gray"
     height: 40
     width: parent.width
@@ -12,22 +13,26 @@ Rectangle {
     Image {
         x: 5
         source: {
-            var envIcon;
-            switch (server.environment) {
-            case "EnvDevelopment":
-                envIcon = 'glyphicons-361-bug';
-                break;
-            case "EnvUat":
-                envIcon = 'glyphicons-534-lab';
-                break;
-            case "EnvStage":
-                envIcon = 'glyphicons-140-adjust-alt';
-                break;
-            case "EnvProd":
-                envIcon = 'glyphicons-333-certificate';
-                break;
+            if (iconType === 'environment') {
+                var iconName;
+                switch (server.environment) {
+                case "EnvDevelopment":
+                    iconName = 'glyphicons-361-bug';
+                    break;
+                case "EnvUat":
+                    iconName = 'glyphicons-534-lab';
+                    break;
+                case "EnvStage":
+                    iconName = 'glyphicons-140-adjust-alt';
+                    break;
+                case "EnvProd":
+                    iconName = 'glyphicons-333-certificate';
+                    break;
+                }
+            } else {
+                iconName = ServerMenu.getServerIcon(server)
             }
-            return '../glyphicons-free/' + envIcon + '.png'
+            return '../glyphicons-free/' + iconName + '.png'
         }
         verticalAlignment: Image.AlignVCenter
         fillMode: Image.Pad

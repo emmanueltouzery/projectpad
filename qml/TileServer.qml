@@ -9,13 +9,7 @@ ItemTile {
     border.width: selected ? 4 : 0
     border.color: "green"
     itemDesc: modelData.server.desc
-    icon: {
-        if (modelData.server.accessType === "SrvAccessRdp") {
-            return "../pics/windows_logo"
-        } else {
-            return "glyphicons-464-server"
-        }
-    }
+    icon: ServerMenu.getServerIcon(modelData.server)
 
     Flow {
         x: 5

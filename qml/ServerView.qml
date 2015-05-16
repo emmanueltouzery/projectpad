@@ -109,6 +109,7 @@ Rectangle {
                 ServerHeader {
                     server: pv.model
                     rootFlowInParent: flow
+                    iconType: 'server'
                     onShouldRefresh: {
                         var allServers = projectViewState.getServers(pv.model.projectId, pv.model.environment).map(
                                              function(se) { return se.server })

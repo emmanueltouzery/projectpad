@@ -1,5 +1,13 @@
 .import "utils.js" as Utils
 
+function getServerIcon(server) {
+        if (server.accessType === "SrvAccessRdp") {
+            return "../pics/windows_logo"
+        } else {
+            return "glyphicons-464-server"
+        }
+}
+
 function editServer(curServer, refreshAction) {
     popup.setContents("Edit server", serverEditComponent,
         function (serverEdit) {
