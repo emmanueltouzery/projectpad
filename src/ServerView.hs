@@ -159,8 +159,8 @@ updateServerExtraUserAccount sqlBackend acctRef
         ]
 
 saveExtraUserAuthKey :: Text -> ObjRef (Entity ServerExtraUserAccount) -> IO (Either Text Text)
-saveExtraUserAuthKey path (entityVal . fromObjRef -> userAcct) = saveAuthKeyBytes path $
-    serverExtraUserAccountAuthKey userAcct
+saveExtraUserAuthKey path (entityVal . fromObjRef -> userAcct) =
+    saveAuthKeyBytes path (serverExtraUserAccountAuthKey userAcct)
 
 executePoiAction :: ObjRef ServerViewState -> ObjRef (Entity Server)
     -> ObjRef (Entity ServerPointOfInterest) -> IO (Either Text ())
@@ -277,10 +277,9 @@ createServerViewState sqlBackend = do
             defStatic  "updateServerExtraUserAccount" (updateServerExtraUserAccount sqlBackend),
             defMethod' "deleteServerExtraUserAccounts" (deleteHelper sqlBackend deleteServerExtraUserAccount),
             defStatic  "getServerGroupNames"      (getServerGroupNames sqlBackend),
-            defStatic  "saveAuthKey"              (serializeEitherM . saveExtraUserAuthKey),
-            defMethod' "executePoiAction"         (\srvState server serverPoi -> serializeEither' <$>
-                                                      executePoiAction srvState server serverPoi),
-            defStatic "executePoiSecondaryAction" (serializeEitherM' . executePoiSecondaryAction),
+            defStatic  "saveAuthKey"              (liftQmlResult2 saveExtraUserAuthKey),
+            defMethod' "executePoiAction"         (liftQmlResult3 executePoiAction),
+            defStatic "executePoiSecondaryAction" (liftQmlResult2 executePoiSecondaryAction),
             defSignalNamedParams "gotOutput"      (Proxy :: Proxy SignalOutput) $ fstName "output"
         ]
     newObject serverViewClass ()

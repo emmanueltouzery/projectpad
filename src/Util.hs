@@ -1,4 +1,4 @@
-{-# LANGUAGE OverloadedStrings, DeriveDataTypeable, TypeFamilies #-}
+{-# LANGUAGE OverloadedStrings, DeriveDataTypeable, TypeFamilies, FlexibleInstances #-}
 module Util where
 
 import Data.Text (Text)
@@ -9,7 +9,7 @@ import Data.Traversable
 import qualified Data.ByteString as BS
 import qualified Data.Text as T
 import Control.Exception
-import Control.Monad
+import Control.Applicative
 
 serializeEither :: Either Text Text -> [Text]
 serializeEither (Left x) = ["error", x]
@@ -47,14 +47,27 @@ textEx = T.pack . show
 defStatic :: (MethodSuffix ms, Typeable obj) => String -> ms -> Member obj
 defStatic str cb = defMethod' str (const cb)
 
-pfApply :: (b -> c) -> (a -> IO b) -> a -> IO c
-pfApply f = (return . f <=<)
-
-serializeEitherM' :: (a -> IO (Either Text ())) -> a -> IO [Text]
-serializeEitherM' = pfApply serializeEither'
-
-serializeEitherM :: (a -> IO (Either Text Text)) -> a -> IO [Text]
-serializeEitherM = pfApply serializeEither
-
 readM :: (a -> b) -> ObjRef a -> IO b
 readM f = return . f . fromObjRef
+
+newtype QmlResult a = QmlResult (Either Text a)
+
+instance Marshal (QmlResult Text) where
+    type MarshalMode (QmlResult Text) c d = ModeTo c
+    marshaller = toMarshaller $ \(QmlResult x) -> serializeEither x
+
+instance Marshal (QmlResult ()) where
+    type MarshalMode (QmlResult ()) c d = ModeTo c
+    marshaller = toMarshaller $ \(QmlResult x) -> serializeEither' x
+
+liftQmlResult :: IO (Either Text a) -> IO (QmlResult a)
+liftQmlResult = fmap QmlResult
+
+liftQmlResult1 :: (x -> IO (Either Text a)) -> (x -> IO (QmlResult a))
+liftQmlResult1 f p =  QmlResult <$> f p
+
+liftQmlResult2 :: (x -> y -> IO (Either Text a)) -> (x -> y -> IO (QmlResult a))
+liftQmlResult2 f p q =  QmlResult <$> f p q
+
+liftQmlResult3 :: (x -> y -> z -> IO (Either Text a)) -> (x -> y -> z -> IO (QmlResult a))
+liftQmlResult3 f p q r =  QmlResult <$> f p q r

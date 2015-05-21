@@ -224,11 +224,9 @@ createProjectViewState sqlBackend = do
             defStatic  "updateProjectPoi"  (updateProjectPoi sqlBackend),
             defMethod' "deleteProjectPois" (deleteHelper sqlBackend deleteProjectPoi),
             defMethod' "runPoiAction"      runPoiAction,
-            defStatic  "saveAuthKey"       (serializeEitherM . saveAuthKey),
-            defStatic  "runRdp"            (\server width height -> serializeEither <$>
-                                               runServerRdp server width height),
-            defStatic  "openSshSession"    (\server -> serializeEither <$>
-                                               openServerSshSession server),
+            defStatic  "saveAuthKey"       (liftQmlResult2 saveAuthKey),
+            defStatic  "runRdp"            (liftQmlResult3 runServerRdp),
+            defStatic  "openSshSession"    (liftQmlResult1 openServerSshSession),
             defSignalNamedParams "gotOutput" (Proxy :: Proxy SignalOutput) $
                                                  fstName "output"
         ]
