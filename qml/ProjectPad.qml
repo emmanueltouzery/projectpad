@@ -3,6 +3,7 @@ import QtQuick.Window 2.0
 import QtQuick.Controls 1.2
 import QtQuick.Layouts 1.1
 import QtQml 2.2
+import QtGraphicalEffects 1.0
 
 Window {
     width: 800; height: 650;
@@ -78,6 +79,21 @@ Window {
             // otherwise use loadViewAction() to load the search
             // view and give him the search text.
             loadViewAction("SearchView.qml", {matches: search(searchField.text), query: searchField.text})
+        }
+    }
+
+    // slight drop shadow from the toolbar for a 3d effect
+    // and a nice separation between toolbar & contents.
+    LinearGradient {
+        y: toolbar.height + searchFieldHeight()
+        z: 1
+        width: parent.width
+        height: 5
+        start: Qt.point(0, 0)
+        end: Qt.point(0, height)
+        gradient: Gradient {
+            GradientStop { position: 0.0; color: "#77000000" }
+            GradientStop { position: 1.0; color: "#00000000" }
         }
     }
 
