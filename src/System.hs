@@ -17,7 +17,10 @@ import System.FilePath.Posix
 import Control.Error
 import Control.Monad
 import Control.Concurrent
+import Data.Monoid
 import qualified Data.ByteString as BS
+import System.Environment.XDG.UserDir
+import Text.Printf
 
 import Util
 
@@ -38,9 +41,11 @@ runRdp serverIp serverUsername serverPassword width height = do
         Left x -> return $ Left $ textEx x
         _ -> error "run RDP unexpected process output"
 
-tryCommand :: String -> [String] -> Maybe FilePath
+tryCommand :: Text -> [Text] -> Maybe FilePath
     -> Maybe [(String, String)] -> (CommandProgress -> IO ()) -> IO (Either Text ())
-tryCommand cmd params mCwd envVal readCallback = do
+tryCommand cmd_ params_ mCwd envVal readCallback = do
+    let cmd = T.unpack cmd_
+    let params = T.unpack <$> params_
     r <- try (createProcess (proc cmd params)
         {
             std_out = CreatePipe,
@@ -69,7 +74,7 @@ handleProgramFinished cmdProgress phndl = do
         Just (ExitFailure code) -> cmdProgress $
             CommandFailed (T.pack $ "Error code: " ++ show code)
 
-tryCommandAsync :: String -> [String] -> Maybe FilePath
+tryCommandAsync :: Text -> [Text] -> Maybe FilePath
     -> Maybe [(String, String)] -> (CommandProgress -> IO ())  -> IO ()
 tryCommandAsync cmd params mCwd envVal readCallback = do
     let runCmd = tryCommand cmd params mCwd envVal readCallback
@@ -88,7 +93,7 @@ openAssociatedFile path = do
     let openCmd = case desktop of
           "gnome" -> "gnome-open"
           _ -> "xdg-open"
-    tryCommand openCmd [T.unpack path] Nothing Nothing (const $ return ())
+    tryCommand openCmd [path] Nothing Nothing (const $ return ())
 
 writeTempScript :: String -> Text -> IO ()
 writeTempScript fname contents = do
@@ -139,14 +144,25 @@ openSshSession server username password command = do
         createProcess (proc "gnome-terminal" params)
             { env = Just sshEnv })
 
+sshHandlePasswordAndRun :: Text -> [Text] -> (CommandProgress -> IO ()) -> IO ()
+sshHandlePasswordAndRun password sshCommandParams readCallback = do
+    sshEnv <- getTemporaryDirectory >>= prepareSshPassword password
+    tryCommandAsync "setsid" sshCommandParams Nothing (Just sshEnv) readCallback
+
 runProgramOverSshAsync :: Text -> Text -> Text -> Maybe Text -> Text
     -> (CommandProgress -> IO ()) -> IO ()
 runProgramOverSshAsync server username password workDir program readCallback = do
-    sshEnv <- getTemporaryDirectory >>= prepareSshPassword password
-    let workDirCommand = maybe "" (\dir -> "cd " ++ dir ++ ";") (T.unpack <$> workDir)
-    let command = workDirCommand ++ T.unpack program
-    let params = ["/usr/bin/ssh", T.unpack username ++ "@" ++ T.unpack server, command]
-    tryCommandAsync "setsid" params Nothing (Just sshEnv) readCallback
+    let workDirCommand = maybe "" (\dir -> "cd " <> dir <> ";") workDir
+    let command = workDirCommand <> program
+    let params = ["/usr/bin/ssh", username <> "@" <> server, command]
+    sshHandlePasswordAndRun password params readCallback
+
+downloadFileSsh :: Text -> Text -> Text -> Text -> (CommandProgress -> IO ()) -> IO ()
+downloadFileSsh server username password path readCallback = do
+    outputDir <- getUserDir "DOWNLOAD"
+    let fname = takeFileName (T.unpack path)
+    readCallback $ CommandOutput $ T.pack $ printf "\nStarting download of the file %s to %s..." fname outputDir
+    sshHandlePasswordAndRun password ["/usr/bin/scp", username <> "@" <> server <> ":" <> path, T.pack outputDir] readCallback
 
 -- alternative implementations: http://stackoverflow.com/a/28101291/516188
 saveAuthKeyBytes ::Text -> Maybe BS.ByteString -> IO (Either Text Text)

@@ -55,6 +55,9 @@ ItemTile {
                     options.push(["glyphicons-52-eye-open", function() {
                         serverViewState.executePoiSecondaryAction(server, model)
                     }])
+                    options.push(["glyphicons-182-download-alt", function() {
+                        serverViewState.executePoiThirdAction(server, model)
+                    }])
                     break
                 case "PoiConfigFile":
                     options.push(["glyphicons-52-eye-open", function() {

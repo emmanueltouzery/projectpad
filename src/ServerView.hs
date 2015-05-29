@@ -180,6 +180,16 @@ executePoiSecondaryAction (entityVal . fromObjRef -> server)
         PoiLogFile -> executePoiLogFile server serverPoi "less "
         _ -> return $ Right ()
 
+executePoiThirdAction :: ObjRef ServerViewState -> ObjRef (Entity Server)
+    -> ObjRef (Entity ServerPointOfInterest) -> IO (Either Text ())
+executePoiThirdAction srvState (entityVal . fromObjRef -> server)
+        (entityVal . fromObjRef -> serverPoi) =
+    case serverPointOfInterestInterestType serverPoi of
+        PoiLogFile -> downloadFileSsh (serverIp server) (serverUsername server)
+                      (serverPassword server) (serverPointOfInterestPath serverPoi)
+                      (fireSignal (Proxy :: Proxy SignalOutput) srvState . cmdProgressToJs) >> return (Right ())
+        _ -> return $ Right ()
+
 executePoiLogFile :: Server -> ServerPointOfInterest -> Text -> IO (Either Text ())
 executePoiLogFile server serverPoi cmd = openSshSession (serverIp server) (serverUsername server)
     (serverPassword server) (Just $ cmd `T.append` serverPointOfInterestPath serverPoi)
@@ -280,6 +290,7 @@ createServerViewState sqlBackend = do
             defStatic  "saveAuthKey"              (liftQmlResult2 saveExtraUserAuthKey),
             defMethod' "executePoiAction"         (liftQmlResult3 executePoiAction),
             defStatic "executePoiSecondaryAction" (liftQmlResult2 executePoiSecondaryAction),
+            defMethod' "executePoiThirdAction"    (liftQmlResult3 executePoiThirdAction),
             defSignalNamedParams "gotOutput"      (Proxy :: Proxy SignalOutput) $ fstName "output"
         ]
     newObject serverViewClass ()

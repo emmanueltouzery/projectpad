@@ -98,7 +98,7 @@ splitParams = eitherResult . flip feed T.empty . parse splitParamsParser
 runPoiAction :: ObjRef ProjectViewState
     -> ObjRef (Entity ProjectPointOfInterest) -> IO ()
 runPoiAction prjViewState (entityVal . fromObjRef -> poi)
-    | interest == PoiCommandToRun = case fmap T.unpack <$> splitParams txt of
+    | interest == PoiCommandToRun = case splitParams txt of
         Left x -> notify (CommandFailed $ "Error parsing the command: " <> T.pack x)
         Right [] -> notify (CommandFailed "Incomplete command line")
         Right (prog:parameters) -> tryCommandAsync prog parameters path Nothing notify
