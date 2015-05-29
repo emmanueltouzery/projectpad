@@ -24,6 +24,7 @@ Rectangle {
         Flickable {
             id: flickable
             anchors.fill: parent
+            pixelAligned: true
             contentHeight: rootFlow.implicitHeight
             ExclusiveGroup {id: serverOptionsGroup}
             Flow {

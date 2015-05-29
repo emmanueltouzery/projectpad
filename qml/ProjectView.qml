@@ -59,6 +59,7 @@ Rectangle {
         Flickable {
             anchors.fill: parent
             contentHeight: flow.implicitHeight
+            pixelAligned: true
             Flow {
                 anchors.fill: parent
                 anchors.margins: 4

@@ -35,6 +35,7 @@ ScrollView {
     Flickable {
         width: parent.width
         contentHeight: flow.implicitHeight
+        pixelAligned: true
         Loader {
             id: plLoader
         }
