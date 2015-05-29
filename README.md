@@ -26,7 +26,7 @@ That does complicate the installation of the application though.
 
 ## Installation
 
-On Fedora, you'll need to install the qt5-qtdeclarative-devel and qt5-qtquickcontrols packages.
+On Fedora, you'll need to install the qt5-qtdeclarative-devel, qt5-qtquickcontrols and qt5-qtgraphicaleffects packages.
 In the releases sections you can find binaries which have been tested on Fedora 20 and Fedora 21 x86-64.
 
 Let's now cover installation from source...
