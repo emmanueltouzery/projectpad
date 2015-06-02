@@ -23,6 +23,8 @@ That does complicate the installation of the application though.
 
 ![Edit server](https://raw.githubusercontent.com/wiki/emmanueltouzery/projectpad/edit_server.png)
 ![Action ring](https://raw.githubusercontent.com/wiki/emmanueltouzery/projectpad/action_ring.png)
+![Edit project](https://raw.githubusercontent.com/wiki/emmanueltouzery/projectpad/edit_project.png)
+![Search](https://raw.githubusercontent.com/wiki/emmanueltouzery/projectpad/search.png)
 
 ## Installation
 
