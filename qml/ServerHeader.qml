@@ -10,6 +10,16 @@ Rectangle {
     height: 40
     width: parent.width
     signal shouldRefresh()
+
+    // hide the line select menu on resize because
+    // it's pixel-anchored and won't follow the
+    // rest of the layout on resize.
+    onWidthChanged: hideLineSelectMenu()
+    function hideLineSelectMenu() {
+        lineSelectMenu.visible = false
+        serverOptionsGroup.current = null
+        lineSelectMenu.displayedServer = null
+    }
     Image {
         x: 5
         source: {
@@ -57,9 +67,7 @@ Rectangle {
                 ServerMenu.showSelectMenu(server, parent, desktopSize, shouldRefresh, lineSelectMenu, rootFlowInParent)
                 lineSelectMenu.displayedServer = server
             } else {
-                lineSelectMenu.visible = false
-                serverOptionsGroup.current = null
-                lineSelectMenu.displayedServer = null
+                hideLineSelectMenu()
             }
         }
         height: parent.height
