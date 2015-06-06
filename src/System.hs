@@ -11,6 +11,7 @@ import Control.Exception
 import System.Process
 import System.Exit
 import GHC.IO.Handle
+import System.IO hiding (stdin, stdout)
 import System.Environment
 import System.Posix.Files
 import System.FilePath.Posix
@@ -99,6 +100,35 @@ writeTempScript :: String -> Text -> IO ()
 writeTempScript fname contents = do
     T.writeFile fname contents
     setFileMode fname ownerModes
+
+getKnownHostsFilename :: IO String
+getKnownHostsFilename = do
+    homeDir <- getHomeDirectory
+    return $ homeDir </> ".ssh/known_hosts"
+
+-- It's a bit of an embarrasment. I launch ssh with setsid,
+-- so that it doesn't ask for the password through STDIN but
+-- rather uses the SSH_ASKPASS mechanism. But then if the
+-- server fingerprint is not known it won't ask to accept it,
+-- since it's not in interactive mode... So I must check myself
+-- beforehand.
+isHostTrusted :: Text -> IO Bool
+isHostTrusted hostname = do
+    knownHostsFname <- getKnownHostsFilename
+    let readLines f = T.splitOn "\n" <$> T.hGetContents f
+    let readHosts f = fmap (head . T.splitOn " ") <$> readLines f
+    hosts <- withFile knownHostsFname ReadMode readHosts
+    return $ hostname `elem` hosts
+
+getHostKeyDetails :: Text -> IO Text
+getHostKeyDetails hostname = T.pack <$> readProcess "ssh-keyscan" [T.unpack hostname] ""
+
+addInHostTrustStore :: Text -> IO (Either Text ())
+addInHostTrustStore server = fmapL textEx <$> try (do
+    knownHostsFname <- getKnownHostsFilename
+    hostKeyDetails <- getHostKeyDetails server
+    let addKeyDetails hndl = T.hPutStr hndl ("\n" <> hostKeyDetails)
+    withFile knownHostsFname AppendMode addKeyDetails)
 
 runSshContents :: FilePath -> Text -> Text -> Text
 runSshContents fname hostname username = T.concat ["#!/usr/bin/sh\n\

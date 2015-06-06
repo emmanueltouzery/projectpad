@@ -11,6 +11,12 @@ import qualified Data.Text as T
 import Control.Exception
 import Control.Applicative
 
+-- TODO a more general version is provided by Data.Bifunctor
+-- in base 4.8 (GHC 7.10). Switch when upgrading.
+bimap :: (a -> b) -> (c -> d) -> Either a c -> Either b d
+bimap f _ (Left a) = Left (f a)
+bimap _ g (Right b) = Right (g b)
+
 serializeEither :: Either Text Text -> [Text]
 serializeEither (Left x) = ["error", x]
 serializeEither (Right x) = ["success", x]

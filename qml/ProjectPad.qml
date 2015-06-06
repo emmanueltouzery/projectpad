@@ -23,9 +23,15 @@ Window {
     }
 
     function confirmDelete(callback) {
-        popup.setContentsDelete("Sure to delete?", confirmDeleteComponent,
-            function (deleteDialog) { },
-            function (deleteDialog) { callback() })
+        confirmDanger("Sure to delete?", "Are you sure to delete?", "Delete", callback)
+    }
+
+    function confirmDanger(title, contents, btnText, callback) {
+        popup.setContentsDanger(title, confirmComponent, btnText,
+                                function (deleteDialog) {
+                                    deleteDialog.setContents(contents)
+                                },
+                                function (deleteDialog) { callback() })
     }
 
     function searchFieldHeight() {
@@ -369,13 +375,17 @@ Window {
     }
 
     Component {
-        id: confirmDeleteComponent
+        id: confirmComponent
+
         Rectangle {
+            function setContents(contents) {
+                confirmContentsText.text = contents
+            }
             color: "dark grey"
             height: 60
             property int preferredHeight: 60
             Text {
-                id: deleteText
+                id: confirmContentsText
                 x: 15
                 width: parent.width-15
                 height: parent.height

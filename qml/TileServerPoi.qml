@@ -44,24 +44,34 @@ ItemTile {
                 switch (model.interestType) {
                 case "PoiCommandToRun":
                     options.push(["glyphicons-138-cogwheels", function() {
-                        var info = serverViewState.executePoiAction(server, model)
-                        appContext.progressMessage("\nStarted program\n")
+                        Utils.runIfSshHostTrusted(server, function() {
+                            var info = serverViewState.executePoiAction(server, model)
+                            appContext.progressMessage("\nStarted program\n")
+                        })
                     }])
                     break
                 case "PoiLogFile":
                     options.push(["glyphicons-283-cardio", function() {
-                        serverViewState.executePoiAction(server, model)
+                        Utils.runIfSshHostTrusted(server, function() {
+                            serverViewState.executePoiAction(server, model)
+                        })
                     }])
                     options.push(["glyphicons-52-eye-open", function() {
-                        serverViewState.executePoiSecondaryAction(server, model)
+                        Utils.runIfSshHostTrusted(server, function() {
+                            serverViewState.executePoiSecondaryAction(server, model)
+                        })
                     }])
                     options.push(["glyphicons-182-download-alt", function() {
-                        serverViewState.executePoiThirdAction(server, model)
+                        Utils.runIfSshHostTrusted(server, function() {
+                            serverViewState.executePoiThirdAction(server, model)
+                        })
                     }])
                     break
                 case "PoiConfigFile":
                     options.push(["glyphicons-52-eye-open", function() {
-                        serverViewState.executePoiAction(server, model)
+                        Utils.runIfSshHostTrusted(server, function() {
+                            serverViewState.executePoiAction(server, model)
+                        })
                     }])
                     break
                 }

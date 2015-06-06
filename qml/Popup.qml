@@ -41,11 +41,11 @@ Rectangle {
         popup.visible = true
     }
 
-    function setContentsDelete(title, contents, initCallback, okCallback) {
+    function setContentsDanger(title, contents, btnText, initCallback, okCallback) {
         implicitClose = true
         cancelButton.visible = true
         setContents(title, contents, initCallback, okCallback);
-        okButton.text = "Delete"
+        okButton.text = btnText
         okButton.style = dangerButtonStyle
     }
 

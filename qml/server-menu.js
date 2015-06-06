@@ -70,10 +70,12 @@ function showSelectMenu(server, parnt, desktopSize, refreshAction, menu, global)
             && server.username.length > 0
             && server.password.length > 0) {
         options.push(["glyphicons-489-multiple-displays", function() {
-            var info = projectViewState.openSshSession(server)
-            if (info[0] === "error") {
-                appContext.errorMessage(info[1])
-            }
+            Utils.runIfSshHostTrusted(server, function () {
+                    var info = projectViewState.openSshSession(server)
+                    if (info[0] === "error") {
+                        appContext.errorMessage(info[1])
+                    }
+            })
         }])
     }
     menu.options = options
