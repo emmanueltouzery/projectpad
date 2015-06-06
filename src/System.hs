@@ -115,7 +115,7 @@ getKnownHostsFilename = do
 isHostTrusted :: Text -> IO Bool
 isHostTrusted hostname = do
     knownHostsFname <- getKnownHostsFilename
-    let readLines f = T.splitOn "\n" <$> T.hGetContents f
+    let readLines = fmap (T.splitOn "\n") . T.hGetContents
     let readHosts f = fmap (head . T.splitOn " ") <$> readLines f
     hosts <- withFile knownHostsFname ReadMode readHosts
     return $ hostname `elem` hosts
