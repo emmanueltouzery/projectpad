@@ -1,7 +1,7 @@
 {-# LANGUAGE GADTs, GeneralizedNewtypeDeriving, MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings, TemplateHaskell, QuasiQuotes, TypeFamilies #-}
-{-# LANGUAGE DeriveDataTypeable, StandaloneDeriving, FlexibleContexts, UndecidableInstances #-}
-{-# LANGUAGE FlexibleInstances, ViewPatterns #-}
+{-# LANGUAGE DeriveDataTypeable, StandaloneDeriving, FlexibleContexts #-}
+{-# LANGUAGE UndecidableInstances, FlexibleInstances, ViewPatterns #-}
 module Model where
 
 import Data.Time.Clock
@@ -14,6 +14,9 @@ import Data.Int
 import Data.Text (Text)
 import qualified Data.Text as T
 import Data.Maybe
+import Control.Applicative
+import Data.Ord
+import Data.List
 
 import ModelBase
 
@@ -33,6 +36,7 @@ ProjectPointOfInterest
     path Text
     text Text
     interestType InterestType
+    groupName Text Maybe
     projectId ProjectId
     deriving Show Typeable
 Server
@@ -46,6 +50,7 @@ Server
     type ServerType
     accessType ServerAccessType
     environment EnvironmentType
+    groupName Text Maybe
     projectId ProjectId
     deriving Show Typeable
 ServerWebsite
@@ -79,10 +84,10 @@ ServerExtraUserAccount
 Project
     name Text
     icon ByteString
-        hasDev Text
-        hasUat Text
-        hasStage Text
-        hasProd Text
+    hasDev Text
+    hasUat Text
+    hasStage Text
+    hasProd Text
     deriving Show Typeable
 DbVersion
     code Int
@@ -147,7 +152,8 @@ instance DefaultClass (Entity Server) where
             ("authKeyFilename", fromMaybe "..." . serverAuthKeyFilename),
             ("type", text . serverType),
             ("accessType", text . serverAccessType),
-            ("environment", text . serverEnvironment)
+            ("environment", text . serverEnvironment),
+            ("groupName", fromMaybe "" . serverGroupName)
         ]
         [
             ("projectId", getKeyM $ Just . serverProjectId)
@@ -207,7 +213,8 @@ instance DefaultClass (Entity ProjectPointOfInterest) where
             ("desc", projectPointOfInterestDesc),
             ("path", projectPointOfInterestPath),
             ("text", projectPointOfInterestText),
-            ("interestType", text . projectPointOfInterestInterestType)
+            ("interestType", text . projectPointOfInterestInterestType),
+            ("groupName", fromMaybe "" . projectPointOfInterestGroupName)
         ]
         []
 
@@ -219,3 +226,18 @@ runSqlBackend = flip runSqlPersistM
 
 sqlToQml :: DefaultClass a => SqlBackend -> SqlPersistM [a] -> IO [ObjRef a]
 sqlToQml sqlBackend f = mapM newObjectDC =<< runSqlBackend sqlBackend f
+
+-- I have decided in the schema to have null for "no group".
+-- In that sense, "" makes no sense, because it would also
+-- mean "no group"... So make sure we never send "" to the DB.
+-- I also have a constraint there, length>0.
+groupOrNothing :: Maybe Text -> Maybe Text
+groupOrNothing (Just "") = Nothing
+groupOrNothing x@_ = x
+
+readEntityField :: SqlBackend -> SqlPersistM [Entity a] -> (a -> b) -> IO [b]
+readEntityField sqlBackend r f =
+    fmap (f . entityVal) <$> runSqlBackend sqlBackend r
+
+mergeNames :: [Maybe Text] -> [Text]
+mergeNames = nub . sortBy (comparing T.toCaseFold) . catMaybes

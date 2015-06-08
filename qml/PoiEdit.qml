@@ -6,7 +6,7 @@ import "utils.js" as Utils
 Rectangle {
     id: poiEdit
     color: "light grey"
-    property int preferredHeight: isServerPoi ? 190 : 160
+    property int preferredHeight: 190
     property bool isServerPoi
 
     property variant model: getDefaultModel()
@@ -31,26 +31,27 @@ Rectangle {
         poiDescription.selectAll()
         poiDescription.forceActiveFocus()
 
-        if (isServerPoi) {
-            var groups = serverViewState.getServerGroupNames(parent.id)
-            group.model.clear()
-            groups.forEach(function(grp) {
-                group.model.append({"text": grp})
-            })
-            group.currentIndex = groups.indexOf(_model.groupName)
-        }
+        var groups = isServerPoi
+            ? serverViewState.getServerGroupNames(parent.id)
+            : projectViewState.getProjectGroupNames(parent.id)
+        group.model.clear()
+        groups.forEach(function(grp) {
+            group.model.append({"text": grp})
+        })
+        group.currentIndex = groups.indexOf(_model.groupName)
     }
 
     function onOk(project) {
         if (model.id) {
             poiEdit.model = projectViewState.updateProjectPoi(
-                model, poiDescription.text, path.text,
-                text.text,
-                interestTypeItems.get(interestType.currentIndex).value)
+                model, poiDescription.text, path.text, text.text,
+                interestTypeItems.get(interestType.currentIndex).value,
+                group.editText)
         } else {
-            projectViewState.addProjectPoi(project.id,
-                poiDescription.text, path.text,
-                text.text, interestTypeItems.get(interestType.currentIndex).value)
+            projectViewState.addProjectPoi(
+                project.id, poiDescription.text, path.text, text.text,
+                interestTypeItems.get(interestType.currentIndex).value,
+                group.editText)
         }
     }
 
@@ -104,7 +105,6 @@ Rectangle {
 
         Text {
             text: "Group:"
-            visible: isServerPoi
         }
         ComboBox {
             id: group
@@ -112,7 +112,6 @@ Rectangle {
             textRole: "text"
             model: ListModel {}
             editable: true
-            visible: isServerPoi
         }
 
         Text {

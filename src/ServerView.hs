@@ -10,9 +10,6 @@ import Data.Typeable
 import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Database.Persist as P
-import Data.List
-import Data.Maybe
-import Data.Ord
 
 import Model
 import ModelBase
@@ -27,14 +24,6 @@ readServerPois serverId = select $ from $ \p -> do
     where_ (p ^. ServerPointOfInterestServerId ==. val (toSqlKey32 serverId))
     orderBy [asc (p ^. ServerPointOfInterestDesc)]
     return p
-
--- I have decided in the schema to have null for "no group".
--- In that sense, "" makes no sense, because it would also
--- mean "no group"... So make sure we never send "" to the DB.
--- I also have a constraint there, length>0.
-groupOrNothing :: Maybe Text -> Maybe Text
-groupOrNothing (Just "") = Nothing
-groupOrNothing x@_ = x
 
 addServerPoi :: SqlBackend -> Int
     -> Text -> Text -> Text -> Text -> Maybe Text -> IO ()
@@ -218,15 +207,15 @@ deleteServerExtraUserAccount = P.delete
 
 getServerGroupNames :: SqlBackend -> Int -> IO [Text]
 getServerGroupNames sqlBackend serverId = do
-    poiGroupNames <- readEF serverPointOfInterestGroupName readServerPois
-    wwwGroupNames <- readEF serverWebsiteGroupName readServerWebsites
-    dbGroupNames  <- readEF serverDatabaseGroupName readServerDatabases
-    extraAccountGroupNames <- readEF serverExtraUserAccountGroupName readServerExtraUserAccounts
-    return $ nub $ sortBy (comparing T.toCaseFold) $ catMaybes $
+    poiGroupNames <- readEF readServerPois serverPointOfInterestGroupName
+    wwwGroupNames <- readEF readServerWebsites serverWebsiteGroupName
+    dbGroupNames  <- readEF readServerDatabases serverDatabaseGroupName
+    extraAccountGroupNames <- readEF readServerExtraUserAccounts serverExtraUserAccountGroupName
+    return $ mergeNames $
         poiGroupNames ++ wwwGroupNames ++ dbGroupNames ++ extraAccountGroupNames
     where
-      readEF :: (a -> b) -> (Int -> SqlPersistM [Entity a]) -> IO [b]
-      readEF f r = fmap (f . entityVal) <$> runSqlBackend sqlBackend (r serverId)
+      readEF :: (Int -> SqlPersistM [Entity a]) -> (a -> Maybe Text) -> IO [Maybe Text]
+      readEF f = readEntityField sqlBackend (f serverId)
 
 data ServerDisplaySection = ServerDisplaySection
     {

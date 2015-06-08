@@ -111,6 +111,8 @@ Rectangle {
                 id: flow
 
                 ServerHeader {
+                    project: Utils.findById(
+                        projectListState.projects, model.projectId)
                     server: pv.model
                     rootFlowInParent: flow
                     iconType: 'server'

@@ -68,6 +68,7 @@ Rectangle {
                                     width: searchView.width
                                 }
                                 ServerHeader {
+                                    project: modelData.project
                                     server: modelData.server
                                     rootFlowInParent: rootFlow
                                     onShouldRefresh: {

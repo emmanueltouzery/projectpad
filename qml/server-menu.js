@@ -8,10 +8,10 @@ function getServerIcon(server) {
         }
 }
 
-function editServer(curServer, refreshAction) {
+function editServer(project, curServer, refreshAction) {
     popup.setContents("Edit server", serverEditComponent,
         function (serverEdit) {
-            serverEdit.activate(curServer, curServer.environment)
+            serverEdit.activate(project, curServer, curServer.environment)
         },
         function (serverEdit) {
             serverEdit.onOk()
@@ -20,10 +20,10 @@ function editServer(curServer, refreshAction) {
         })
 }
 
-function showSelectMenu(server, parnt, desktopSize, refreshAction, menu, global) {
+function showSelectMenu(project, server, parnt, desktopSize, refreshAction, menu, global) {
     var options = [
         ["glyphicons-145-folder-open", function() { loadView("ServerView.qml", server) }],
-        ["glyphicons-151-edit", function() {editServer(server, refreshAction)}],
+        ["glyphicons-151-edit", function() {editServer(project, server, refreshAction)}],
         ["glyphicons-512-copy", function() { appContext.copyItem(server.password, true) }],
         ["glyphicons-193-circle-remove", function() {
             appContext.confirmDelete(function() {

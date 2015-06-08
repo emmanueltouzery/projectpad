@@ -7,7 +7,7 @@ import "utils.js" as Utils
 Rectangle {
     id: serverEdit
     color: "light grey"
-    property int preferredHeight: 310
+    property int preferredHeight: 330
 
     property variant model: getDefaultModel()
     property string keyFilepath
@@ -21,12 +21,20 @@ Rectangle {
             "type": "", "accessType": ""}
     }
 
-    function activate(_model, _environment) {
+    function activate(parent, _model, _environment) {
         serverEdit.model = _model
         serverEdit.environment = _environment
-        serverType.currentIndex = Math.max(0, Utils.listModelGetValueIndex(serverType.model, _model.type))
-        serverAccessType.currentIndex = Math.max(0, Utils.listModelGetValueIndex(serverAccessType.model, _model.accessType))
+        serverType.currentIndex = Math.max(
+            0, Utils.listModelGetValueIndex(serverType.model, _model.type))
+        serverAccessType.currentIndex = Math.max(
+            0, Utils.listModelGetValueIndex(serverAccessType.model, _model.accessType))
         authFilename.text = keyFilepath = _model.authKeyFilename
+        var groups = projectViewState.getProjectGroupNames(parent.id)
+        group.model.clear()
+        groups.forEach(function (grp) {
+            group.model.append({"text": grp})
+        })
+        group.currentIndex = groups.indexOf(_model.groupName)
         serverDescription.selectAll()
         serverDescription.forceActiveFocus()
     }
@@ -34,18 +42,18 @@ Rectangle {
     function onOk(project) {
         if (model.id) {
             serverEdit.model = projectViewState.updateServer(
-                model, serverDescription.text, ipAddress.text,
-                txt.text,
+                model, serverDescription.text, ipAddress.text, txt.text,
                 username.text, password.text, serverEdit.keyFilepath,
                 serverTypeItems.get(serverType.currentIndex).value,
-                serverAccessTypeItems.get(serverAccessType.currentIndex).value);
+                serverAccessTypeItems.get(serverAccessType.currentIndex).value,
+                group.editText);
         } else {
-            projectViewState.addServer(project.id, serverDescription.text, ipAddress.text,
-                txt.text,
-                username.text, password.text, serverEdit.keyFilepath,
+            projectViewState.addServer(
+                project.id, serverDescription.text, ipAddress.text,
+                txt.text, username.text, password.text, serverEdit.keyFilepath,
                 serverTypeItems.get(serverType.currentIndex).value,
-                    serverAccessTypeItems.get(serverAccessType.currentIndex).value,
-                    serverEdit.environment)
+                serverAccessTypeItems.get(serverAccessType.currentIndex).value,
+                serverEdit.environment, group.editText)
         }
     }
 
@@ -81,6 +89,17 @@ Rectangle {
             id: txt
             Layout.fillWidth: true
             text: serverEdit.model.text
+        }
+
+        Text {
+            text: "Group:"
+        }
+        ComboBox {
+            id: group
+            Layout.fillWidth: true
+            textRole: "text"
+            model: ListModel {}
+            editable: true
         }
 
         Text {

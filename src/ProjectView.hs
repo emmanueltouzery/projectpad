@@ -33,22 +33,25 @@ readServers projectId = select $ from $ \s -> do
     return s
 
 addServer :: SqlBackend -> Int
-    -> Text -> IpAddress -> Text -> Text -> Text -> Text -> Text -> Text -> Text -> IO ()
+    -> Text -> IpAddress -> Text -> Text -> Text -> Text
+    -> Text -> Text -> Text -> Maybe Text -> IO ()
 addServer sqlBackend projectId sDesc ipAddr txt username password
-        keyPath serverTypeT serverAccessTypeT srvEnvironmentT = do
+        keyPath serverTypeT serverAccessTypeT srvEnvironmentT
+        (groupOrNothing -> groupName) = do
     let srvType       = readT serverTypeT
     let srvAccessType = readT serverAccessTypeT
     let srvEnv        = readT srvEnvironmentT
     authKeyInfo <- processAuthKeyInfo keyPath
     addHelper sqlBackend projectId $ Server sDesc ipAddr txt username password
             (fst <$> authKeyInfo) (snd <$> authKeyInfo)
-            srvType srvAccessType srvEnv
+            srvType srvAccessType srvEnv groupName
 
 updateServer :: SqlBackend -> ObjRef (Entity Server)
     -> Text -> IpAddress -> Text -> Text -> Text -> Text -> Text
-    -> Text -> IO (ObjRef (Entity Server))
+    -> Text -> Maybe Text -> IO (ObjRef (Entity Server))
 updateServer sqlBackend serverRef sDesc ipAddr txt
-  username password keyPath serverTypeT serverAccessTypeT = do
+  username password keyPath serverTypeT serverAccessTypeT
+  (groupOrNothing -> groupName) = do
     let srvType       = read $ T.unpack serverTypeT
     let srvAccessType = read $ T.unpack serverAccessTypeT
     authKeyInfo <- processAuthKeyInfo keyPath
@@ -59,7 +62,8 @@ updateServer sqlBackend serverRef sDesc ipAddr txt
             ServerUsername P.=. username, ServerPassword P.=. password,
             ServerType P.=. srvType, ServerAccessType P.=. srvAccessType,
             ServerAuthKey P.=. fst <$> authKeyInfo,
-            ServerAuthKeyFilename P.=. snd <$> authKeyInfo
+            ServerAuthKeyFilename P.=. snd <$> authKeyInfo,
+            ServerGroupName P.=. groupName
         ]
 
 readPois :: Int -> SqlPersistM [Entity ProjectPointOfInterest]
@@ -69,24 +73,35 @@ readPois projectId = select $ from $ \poi -> do
     return poi
 
 addProjectPoi :: SqlBackend -> Int
-    -> Text -> Text -> Text -> Text -> IO ()
+    -> Text -> Text -> Text -> Text -> Maybe Text -> IO ()
 addProjectPoi sqlBackend projectId
-    pDesc path txt interestTypeT = do
+    pDesc path txt interestTypeT (groupOrNothing -> groupName) = do
     let interestType = read $ T.unpack interestTypeT
     addHelper sqlBackend projectId
-        $ ProjectPointOfInterest pDesc path txt interestType
+        $ ProjectPointOfInterest pDesc path txt interestType groupName
 
 updateProjectPoi :: SqlBackend -> ObjRef (Entity ProjectPointOfInterest)
-    -> Text -> Text -> Text -> Text -> IO (ObjRef (Entity ProjectPointOfInterest))
+    -> Text -> Text -> Text -> Text -> Maybe Text
+    -> IO (ObjRef (Entity ProjectPointOfInterest))
 updateProjectPoi sqlBackend poiRef
-    pDesc path txt interestTypeT = do
+    pDesc path txt interestTypeT (groupOrNothing -> groupName) = do
     let interestType = read $ T.unpack interestTypeT
     updateHelper sqlBackend poiRef
         [
             ProjectPointOfInterestDesc P.=. pDesc, ProjectPointOfInterestPath P.=. path,
             ProjectPointOfInterestText P.=. txt,
-            ProjectPointOfInterestInterestType P.=. interestType
+            ProjectPointOfInterestInterestType P.=. interestType,
+            ProjectPointOfInterestGroupName P.=. groupName
         ]
+
+getProjectGroupNames :: SqlBackend -> Int -> IO [Text]
+getProjectGroupNames sqlBackend projectId = do
+    serverGroupNames      <- readEF readServers serverGroupName
+    projectPoisGroupNames <- readEF readPois projectPointOfInterestGroupName
+    return $ mergeNames $ serverGroupNames ++ projectPoisGroupNames
+    where
+      readEF :: (Int -> SqlPersistM [Entity a]) -> (a -> Maybe Text) -> IO [Maybe Text]
+      readEF f = readEntityField sqlBackend (f projectId)
 
 splitParams :: Text -> Either String [Text]
 splitParams = eitherResult . flip feed T.empty . parse splitParamsParser
@@ -215,6 +230,7 @@ createProjectViewState sqlBackend = do
     projectViewClass <- newClass
         [
             defStatic  "getServers"        (getServersExtraInfo sqlBackend),
+            defStatic  "getProjectGroupNames" (getProjectGroupNames sqlBackend),
             defStatic  "addServer"         (addServer sqlBackend),
             defStatic  "updateServer"      (updateServer sqlBackend),
             defStatic  "canDeleteServer"   (canDeleteServer sqlBackend . fromObjRef),

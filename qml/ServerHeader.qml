@@ -3,6 +3,7 @@ import QtQuick.Window 2.0
 import "server-menu.js" as ServerMenu
 
 Rectangle {
+    property variant project
     property variant server
     property variant rootFlowInParent
     property variant iconType: 'environment'
@@ -63,8 +64,11 @@ Rectangle {
         exclusiveGroup: serverOptionsGroup
         onClicked: {
             if (lineSelectMenu.displayedServer !== server) {
-                var desktopSize = {width: Screen.desktopAvailableWidth, height: Screen.desktopAvailableHeight}
-                ServerMenu.showSelectMenu(server, parent, desktopSize, shouldRefresh, lineSelectMenu, rootFlowInParent)
+                var desktopSize = {width: Screen.desktopAvailableWidth,
+                                   height: Screen.desktopAvailableHeight}
+                ServerMenu.showSelectMenu(
+                    project, server, parent, desktopSize, shouldRefresh,
+                    lineSelectMenu, rootFlowInParent)
                 lineSelectMenu.displayedServer = server
             } else {
                 hideLineSelectMenu()

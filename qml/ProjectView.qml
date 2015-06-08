@@ -32,18 +32,21 @@ Rectangle {
             case "addsrv":
                 popup.setContents("Add server", serverEditComponent,
                         function (serverEdit) {
-                            serverEdit.activate(serverEdit.getDefaultModel(), model.environment)
+                            serverEdit.activate(
+                                pv.model.project, serverEdit.getDefaultModel(),
+                                model.environment)
                         },
                         function (serverEdit) {
                             serverEdit.onOk(pv.model.project)
                             // force refresh
-                            itemsrepeater.model = projectViewState.getServers(pv.model.project.id, model.environment)
+                            itemsrepeater.model = projectViewState.getServers(
+                                pv.model.project.id, model.environment)
                         })
                 break;
             case "addpoi":
                 popup.setContents("Add point of interest", poiEditComponent,
                         function (poiEdit) {
-                            poiEdit.activate(model, poiEdit.getDefaultModel())
+                            poiEdit.activate(pv.model.project, poiEdit.getDefaultModel())
                         },
                         function (poiEdit) {
                             poiEdit.onOk(pv.model.project);
