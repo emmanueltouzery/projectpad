@@ -23,8 +23,9 @@ Rectangle {
         return {pathLinks: [], title: model.project.name + " " + PoiActions.envDesc(model.environment)};
     }
 
-    function refreshProjectPois() {
-        poisrepeater.model = projectViewState.getPois(pv.model.project.id)
+    function refreshProjectView() {
+        projectSectionRepeater.model = projectViewState.getProjectDisplaySections(
+                model.project.id, model.environment)
     }
 
     function actionTriggered(name) {
@@ -38,9 +39,7 @@ Rectangle {
                         },
                         function (serverEdit) {
                             serverEdit.onOk(pv.model.project)
-                            // force refresh
-                            itemsrepeater.model = projectViewState.getServers(
-                                pv.model.project.id, model.environment)
+                            refreshProjectView()
                         })
                 break;
             case "addpoi":
@@ -50,8 +49,7 @@ Rectangle {
                         },
                         function (poiEdit) {
                             poiEdit.onOk(pv.model.project);
-                            // force refresh
-                            refreshProjectPois()
+                            refreshProjectView()
                         })
                 break;
         }
@@ -73,19 +71,36 @@ Rectangle {
                 id: flow
 
                 Repeater {
-                    id: itemsrepeater
-                    model: projectViewState.getServers(pv.model.project.id, pv.model.environment)
+                    id: projectSectionRepeater
+                    width: parent.width
+                    model: projectViewState.getProjectDisplaySections(pv.model.project.id, pv.model.environment)
 
-                    TileServer {
-                    }
-                }
+                    Flow {
+                        width: projectSectionRepeater.width
+                        anchors.margins: 4
+                        spacing: 10
 
-                Repeater {
-                    id: poisrepeater
-                    model: projectViewState.getPois(pv.model.project.id)
+                        Text {
+                            width: parent.width
+                            text: modelData.groupName || ""
+                            visible: modelData.groupName !== null
+                        }
 
-                    TileProjectPoi {
-                        project: pv.model.project
+                        Repeater {
+                            id: serversrepeater
+                            model: modelData.servers
+                            TileServer {
+                            }
+                        }
+
+                        Repeater {
+                            id: poisrepeater
+                            model: modelData.pois
+
+                            TileProjectPoi {
+                                project: pv.model.project
+                            }
+                        }
                     }
                 }
             }

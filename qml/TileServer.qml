@@ -69,10 +69,7 @@ ItemTile {
                                height: Screen.desktopAvailableHeight}
             ServerMenu.showSelectMenu(
                 pv.model.project, modelData.server, parent, desktopSize,
-                function() {
-                    itemsrepeater.model = projectViewState.getServers(
-                        pv.model.project.id, pv.model.environment)
-                }, selectMenu)
+                function() { refreshProjectView() }, selectMenu)
         }
     }
     Component {

@@ -254,7 +254,6 @@ getServerDisplaySections sqlBackend serverId = do
     where
       runServerQ :: DefaultClass a => (Int -> SqlPersistM [a]) -> IO [ObjRef a]
       runServerQ f = sqlToQml sqlBackend (f serverId)
-      filterForGroup grp grpNameField = filter ((==grp) . grpNameField . entityVal . fromObjRef)
 
 createServerViewState :: SqlBackend -> IO (ObjRef ServerViewState)
 createServerViewState sqlBackend = do

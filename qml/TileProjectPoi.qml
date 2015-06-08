@@ -20,8 +20,7 @@ ItemTile {
             },
             function (poiEdit) {
                 poiEdit.onOk()
-                // force refresh
-                refreshProjectPois()
+                refreshProjectView()
             })
     }
 

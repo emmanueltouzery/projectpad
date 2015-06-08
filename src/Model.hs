@@ -16,7 +16,7 @@ import qualified Data.Text as T
 import Data.Maybe
 import Control.Applicative
 import Data.Ord
-import Data.List
+import Data.List as L
 
 import ModelBase
 
@@ -241,3 +241,6 @@ readEntityField sqlBackend r f =
 
 mergeNames :: [Maybe Text] -> [Text]
 mergeNames = nub . sortBy (comparing T.toCaseFold) . catMaybes
+
+filterForGroup :: Eq b => b -> (a -> b) -> [ObjRef (Entity a)] -> [ObjRef (Entity a)]
+filterForGroup grp grpNameField = L.filter ((==grp) . grpNameField . entityVal . fromObjRef)

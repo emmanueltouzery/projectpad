@@ -103,6 +103,39 @@ getProjectGroupNames sqlBackend projectId = do
       readEF :: (Int -> SqlPersistM [Entity a]) -> (a -> Maybe Text) -> IO [Maybe Text]
       readEF f = readEntityField sqlBackend (f projectId)
 
+data ProjectDisplaySection = ProjectDisplaySection
+    {
+        prjSectionGrpName     :: Maybe Text,
+        prjSectionServers     :: [ObjRef ServerExtraInfo],
+        prjSectionProjectPois :: [ObjRef (Entity ProjectPointOfInterest)]
+    } deriving Typeable
+
+instance DefaultClass ProjectDisplaySection where
+    classMembers =
+        [
+            defPropertyConst "groupName" (readM prjSectionGrpName),
+            defPropertyConst "servers"   (readM prjSectionServers),
+            defPropertyConst "pois"      (readM prjSectionProjectPois)
+        ]
+
+getProjectDisplaySections :: SqlBackend -> Int -> Text -> IO [ObjRef ProjectDisplaySection]
+getProjectDisplaySections sqlBackend projectId environment = do
+    groupNames <- getProjectGroupNames sqlBackend projectId
+    servers    <- getServersExtraInfo sqlBackend environment projectId
+    pois       <- runServerQ readPois
+    let sectionForGroup grp = ProjectDisplaySection {
+            prjSectionGrpName     = grp,
+            prjSectionServers     =
+                filter ((== grp) . serverGroupName . srvExtraInfoRefGetServer) servers,
+            prjSectionProjectPois =
+                filterForGroup grp projectPointOfInterestGroupName pois
+        }
+    mapM newObjectDC $ sectionForGroup Nothing : (sectionForGroup . Just <$> groupNames)
+    where
+      runServerQ :: DefaultClass a => (Int -> SqlPersistM [a]) -> IO [ObjRef a]
+      runServerQ f = sqlToQml sqlBackend (f projectId)
+      srvExtraInfoRefGetServer = entityVal . fromObjRef . srvExtraInfoServer . fromObjRef
+
 splitParams :: Text -> Either String [Text]
 splitParams = eitherResult . flip feed T.empty . parse splitParamsParser
     where
@@ -179,8 +212,8 @@ getInfosVal sqlBackend serversById tableId serverFk = do
         tableId serverFk $ M.keys serversById
     return $ M.fromList $ fmap (unValue *** unValue) poiInfosVal
 
-getServersExtraInfo :: SqlBackend -> Int -> Text -> IO [ObjRef ServerExtraInfo]
-getServersExtraInfo sqlBackend projectId environment = do
+getServersExtraInfo :: SqlBackend -> Text -> Int -> IO [ObjRef ServerExtraInfo]
+getServersExtraInfo sqlBackend environment projectId = do
     let environmentType = readT environment
     prjServers <- runSqlBackend sqlBackend $ readServers projectId
     let envServers = filter ((==environmentType) . serverEnvironment . entityVal) prjServers
@@ -216,9 +249,6 @@ canDeleteServer sqlBackend server = do
      [] -> Nothing
      l  -> Just (T.intercalate ", " l)
 
-getProjectPois :: SqlBackend -> Int -> IO [ObjRef (Entity ProjectPointOfInterest)]
-getProjectPois sqlBackend projectId = sqlToQml sqlBackend (readPois projectId)
-
 deleteServer :: Key Server -> SqlPersistM ()
 deleteServer = P.delete
 
@@ -229,13 +259,13 @@ createProjectViewState :: SqlBackend -> IO (ObjRef ProjectViewState)
 createProjectViewState sqlBackend = do
     projectViewClass <- newClass
         [
+            defStatic  "getProjectDisplaySections" (getProjectDisplaySections sqlBackend),
             defStatic  "getServers"        (getServersExtraInfo sqlBackend),
             defStatic  "getProjectGroupNames" (getProjectGroupNames sqlBackend),
             defStatic  "addServer"         (addServer sqlBackend),
             defStatic  "updateServer"      (updateServer sqlBackend),
             defStatic  "canDeleteServer"   (canDeleteServer sqlBackend . fromObjRef),
             defMethod' "deleteServers"     (deleteHelper sqlBackend deleteServer),
-            defStatic  "getPois"           (getProjectPois sqlBackend),
             defStatic  "addProjectPoi"     (addProjectPoi sqlBackend),
             defStatic  "updateProjectPoi"  (updateProjectPoi sqlBackend),
             defMethod' "deleteProjectPois" (deleteHelper sqlBackend deleteProjectPoi),
