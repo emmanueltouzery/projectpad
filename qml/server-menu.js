@@ -1,11 +1,17 @@
 .import "utils.js" as Utils
 
 function getServerIcon(server) {
-        if (server.accessType === "SrvAccessRdp") {
-            return "../pics/windows_logo"
-        } else {
-            return "glyphicons-464-server"
-        }
+    // a bit messy because I check several
+    // independant criteria. but makes sense in a way.
+    if (server.accessType === "SrvAccessWww") {
+        return "glyphicons-372-global"
+    } else if (server.type === "SrvDatabase") {
+        return "glyphicons-343-hdd"
+    } else if (server.accessType === "SrvAccessRdp") {
+        return "../pics/windows_logo"
+    } else {
+        return "glyphicons-464-server"
+    }
 }
 
 function editServer(project, curServer, refreshAction) {
