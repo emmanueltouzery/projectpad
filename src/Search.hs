@@ -35,6 +35,7 @@ instance Typeable a => DefaultClass (ServerChildInfo a) where
 data ServerSearchMatch = ServerSearchMatch
     {
         smServer           :: ObjRef (Entity Server),
+        smServerProject    :: ObjRef (Entity Project),
         smServerWebsites   :: [ObjRef (ServerChildInfo ServerWebsite)],
         smServerExtraUsers :: [ObjRef (ServerChildInfo ServerExtraUserAccount)],
         smServerPois       :: [ObjRef (ServerChildInfo ServerPointOfInterest)],
@@ -49,6 +50,7 @@ instance DefaultClass ServerSearchMatch where
     classMembers =
         [
             prop "server" smServer,
+            prop "project" smServerProject,
             prop "websites" smServerWebsites,
             prop "extraUsers" smServerExtraUsers,
             prop "pois" smServerPois,
@@ -137,10 +139,11 @@ makeServerChildInfos server childrenJoin = do
     children <- filterEntityJoin serverKey childrenJoin
     mapM (newObjectDC . ServerChildInfo server) children
 
-getServerSearchMatch :: ServerJoin ServerWebsite -> ServerJoin ServerExtraUserAccount -> ServerJoin ServerPointOfInterest
+getServerSearchMatch :: ObjRef (Entity Project) -> ServerJoin ServerWebsite
+    -> ServerJoin ServerExtraUserAccount -> ServerJoin ServerPointOfInterest
     -> ServerJoin ServerDatabase -> ObjRef (Entity Server) -> IO (ObjRef ServerSearchMatch)
-getServerSearchMatch serverWebsitesJoin serverExtraUsersJoin serverPoisJoin serverDatabasesJoin server =
-    newObjectDC =<< ServerSearchMatch server
+getServerSearchMatch project serverWebsitesJoin serverExtraUsersJoin serverPoisJoin serverDatabasesJoin server =
+    newObjectDC =<< ServerSearchMatch server project
         <$> makeServerChildInfos server serverWebsitesJoin
         <*> makeServerChildInfos server serverExtraUsersJoin
         <*> makeServerChildInfos server serverPoisJoin
@@ -152,7 +155,7 @@ getProjectSearchMatch :: ProjectJoin Server -> ServerJoin ServerWebsite -> Serve
 getProjectSearchMatch projectServersJoin serverWebsitesJoin serverExtraUsersJoin serverPoisJoin serverDatabasesJoin projectPoisJoin project = do
     let projectKey = entityKey (fromObjRef project)
     servers <- sortBy compareServerEntities <$> filterEntityJoin projectKey projectServersJoin
-    let serverSearchMatch = mapM (getServerSearchMatch serverWebsitesJoin serverExtraUsersJoin
+    let serverSearchMatch = mapM (getServerSearchMatch project serverWebsitesJoin serverExtraUsersJoin
                                   serverPoisJoin serverDatabasesJoin) servers
     newObjectDC =<< ProjectSearchMatch project
         <$> filterEntityJoin projectKey projectPoisJoin
