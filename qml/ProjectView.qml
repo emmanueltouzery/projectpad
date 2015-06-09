@@ -90,6 +90,7 @@ Rectangle {
                             id: serversrepeater
                             model: modelData.servers
                             TileServer {
+                                global: parent.parent
                             }
                         }
 
@@ -99,6 +100,7 @@ Rectangle {
 
                             TileProjectPoi {
                                 project: pv.model.project
+                                global: parent.parent
                             }
                         }
                     }

@@ -10,6 +10,7 @@ ItemTile {
     border.color: "green"
     itemDesc: modelData.server.desc
     icon: ServerMenu.getServerIcon(modelData.server)
+    property variant global: undefined
 
     Flow {
         x: 5
@@ -69,7 +70,7 @@ ItemTile {
                                height: Screen.desktopAvailableHeight}
             ServerMenu.showSelectMenu(
                 pv.model.project, modelData.server, parent, desktopSize,
-                function() { refreshProjectView() }, selectMenu)
+                function() { refreshProjectView() }, selectMenu, global)
         }
     }
     Component {
