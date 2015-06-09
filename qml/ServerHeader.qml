@@ -64,12 +64,13 @@ Rectangle {
         exclusiveGroup: serverOptionsGroup
         onClicked: {
             if (lineSelectMenu.displayedServer !== server) {
-                var desktopSize = {width: Screen.desktopAvailableWidth,
+                var desktopSize = {width : Screen.desktopAvailableWidth,
                                    height: Screen.desktopAvailableHeight}
                 ServerMenu.showSelectMenu(
                     project, server, parent, desktopSize, shouldRefresh,
                     lineSelectMenu, rootFlowInParent)
                 lineSelectMenu.displayedServer = server
+                lineSelectMenu.hideFunction = hideLineSelectMenu
             } else {
                 hideLineSelectMenu()
             }

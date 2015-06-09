@@ -6,6 +6,7 @@ Row {
     spacing: 8
     property variant options;
     property variant displayedServer;
+    property var hideFunction;
 
     function show(parnt, global) {
         if (global !== undefined) {
@@ -25,7 +26,10 @@ Row {
             source: '../glyphicons-free/' + modelData[0] + '.png'
             MouseArea {
                 anchors.fill: parent
-                onClicked: options[index][1]()
+                onClicked: {
+                    hideFunction()
+                    options[index][1]()
+                }
             }
         }
     }
