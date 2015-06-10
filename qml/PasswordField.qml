@@ -4,6 +4,11 @@ import QtQuick.Controls 1.2
 TextField {
     echoMode: TextInput.Password
 
+    function resetToMasked() {
+        echoMode = TextInput.Password
+        btn.source = '../glyphicons-free/glyphicons-204-lock.png'
+    }
+
     Image {
         id: btn
         anchors { top: parent.top; right: parent.right; margins: 7 }
@@ -16,8 +21,7 @@ TextField {
             anchors.fill: parent
             onClicked: {
                 if (parent.parent.echoMode === TextInput.Normal) {
-                    parent.parent.echoMode = TextInput.Password
-                    parent.source = '../glyphicons-free/glyphicons-204-lock.png'
+                    resetToMasked()
                 } else {
                     parent.parent.echoMode = TextInput.Normal
                     parent.source = '../glyphicons-free/glyphicons-205-unlock.png'

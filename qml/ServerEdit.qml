@@ -22,6 +22,7 @@ Rectangle {
     }
 
     function activate(parent, _model, _environment) {
+        password.resetToMasked()
         serverEdit.model = _model
         serverEdit.environment = _environment
         serverType.currentIndex = Math.max(
