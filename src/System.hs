@@ -196,9 +196,9 @@ downloadFileSsh server username password path readCallback = do
 
 -- alternative implementations: http://stackoverflow.com/a/28101291/516188
 saveAuthKeyBytes ::Text -> Maybe BS.ByteString -> IO (Either Text Text)
-saveAuthKeyBytes path bytes  = runEitherT $ do
+saveAuthKeyBytes path bytes  = runExceptT $ do
     targetFile <- hoistEither $ note "Invalid target file name"
         $ T.stripPrefix "file://" path
     key <- hoistEither $ note "No authentication key for that server!" bytes
-    bimapEitherT textEx (const "") . EitherT . try
+    bimapExceptT textEx (const "") . ExceptT . try
         $ BS.writeFile (T.unpack targetFile) key
