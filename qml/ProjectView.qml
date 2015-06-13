@@ -17,7 +17,8 @@ Rectangle {
 
     property variant actions: [
         ["addsrv", "glyphicons-470-server-new", "Add server"],
-        ["addpoi", "glyphicons-336-pushpin", "Add point of interest"]]
+        ["addpoi", "glyphicons-336-pushpin", "Add point of interest"],
+        ["addnote", "glyphicons-336-pushpin", "Add note"]]
 
     function getBreadCrumbs() {
         return {pathLinks: [], title: model.project.name + " " + PoiActions.envDesc(model.environment)};
@@ -30,28 +31,41 @@ Rectangle {
 
     function actionTriggered(name) {
         switch (name) {
-            case "addsrv":
-                popup.setContents("Add server", serverEditComponent,
-                        function (serverEdit) {
-                            serverEdit.activate(
-                                pv.model.project, serverEdit.getDefaultModel(),
-                                model.environment)
-                        },
-                        function (serverEdit) {
-                            serverEdit.onOk(pv.model.project)
-                            refreshProjectView()
-                        })
-                break;
-            case "addpoi":
-                popup.setContents("Add point of interest", poiEditComponent,
-                        function (poiEdit) {
-                            poiEdit.activate(pv.model.project, poiEdit.getDefaultModel())
-                        },
-                        function (poiEdit) {
-                            poiEdit.onOk(pv.model.project);
-                            refreshProjectView()
-                        })
-                break;
+        case "addsrv":
+            popup.setContents(
+                "Add server", serverEditComponent,
+                function (serverEdit) {
+                    serverEdit.activate(
+                        pv.model.project, serverEdit.getDefaultModel(),
+                        model.environment)
+                },
+                function (serverEdit) {
+                    serverEdit.onOk(pv.model.project)
+                    refreshProjectView()
+                })
+            break;
+        case "addpoi":
+            popup.setContents(
+                "Add point of interest", poiEditComponent,
+                function (poiEdit) {
+                    poiEdit.activate(pv.model.project, poiEdit.getDefaultModel())
+                },
+                function (poiEdit) {
+                    poiEdit.onOk(pv.model.project);
+                    refreshProjectView()
+                })
+            break;
+        case "addnote":
+            popup.setContents(
+                "Add note", noteEditComponent,
+                function (noteEdit) {
+                    noteEdit.activate(pv.model.project, noteEdit.getDefaultModel())
+                },
+                function (noteEdit) {
+                    noteEdit.onOk(pv.model.project);
+                    refreshProjectView()
+                })
+            break;
         }
     }
 
@@ -130,6 +144,12 @@ Rectangle {
                 PoiEdit {
                     id: poiEdit
                     isServerPoi: false
+                }
+            }
+            Component {
+                id: noteEditComponent
+                NoteEdit {
+                    id: noteEdit
                 }
             }
 
