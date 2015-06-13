@@ -103,7 +103,7 @@ Rectangle {
                 }
                 ToolButton {
                     iconSource: "../glyphicons-free/glyphicons-204-lock.png"
-                    onClicked: toggleSnippet("[pass|", "]")
+                    onClicked: toggleSnippet("[pass|", "|]")
                     visible: editAction.checked
                 }
             }
