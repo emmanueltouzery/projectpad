@@ -10,6 +10,7 @@ main :: IO ()
 main = hspec $ do
     describe "Command parsing tests" runCommandParsingTests
     describe "notes parsing tests" runNotesParsingTests
+    describe "notes html generation tests" runNotesHtmlGenTests
 
 runCommandParsingTests :: Spec
 runCommandParsingTests = it "parses command lines properly" $ do
@@ -49,3 +50,12 @@ runNotesParsingTests = it "parses notes properly" $ do
     assertEqual "password2"
                 (Right [PlainText "he", Password "llo| world", PlainText " demo"])
         $ parseNoteDocument "he[pass!llo| world!] demo"
+
+runNotesHtmlGenTests :: Spec
+runNotesHtmlGenTests = it "generates HTML properly" $ do
+    assertEqual "simple test" "<h1>hello</h1>"
+        $ noteDocumentToHtmlText [Header1 "hello"]
+    assertEqual "nested" "<b>hel<i>l</i>o</b>"
+        $ noteDocumentToHtmlText [Bold [PlainText "hel", Italics [PlainText "l"], PlainText "o"]]
+    assertEqual "link" "<a href=\"target\">text with <b>bold</b></a>"
+        $ noteDocumentToHtmlText [Link "target" [PlainText "text with ", Bold [PlainText "bold"]]]

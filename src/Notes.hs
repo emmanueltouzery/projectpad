@@ -2,12 +2,22 @@
 
 module Notes where
 
+import Prelude hiding (concatMap)
 import Data.Text (Text)
 import qualified Data.Text as T
+import qualified Data.Text.Lazy as TL
 import Data.Attoparsec.Text
 import Data.Monoid
 import Control.Applicative
 import Util
+import Lucid.Base
+import Lucid.Html5
+import Data.Foldable hiding (elem)
+
+-- NOTE of course I realize that the area of markdown parsing
+-- and even markdown->html is very well covered in haskell,
+-- but I add my own markup (password, and possibly others
+-- coming), and also it's fun to code :-)
 
 data NoteElement = Header1 Text
                    | Header2 Text
@@ -76,3 +86,22 @@ parseHeader (level, ctr) = ctr <$> (header *> readNoCr <* maybeEol)
     where
       header = string (" " <>  level <> " ")
       maybeEol = option "" (string "\n")
+
+noteDocumentToHtmlText :: NoteDocument -> Text
+noteDocumentToHtmlText = TL.toStrict . renderText . noteDocumentToHtml
+
+noteDocumentToHtml :: NoteDocument -> Html ()
+noteDocumentToHtml = fold . fmap noteElementToHtml
+
+noteElementToHtml :: NoteElement -> Html ()
+noteElementToHtml (Header1 txt) = h1_ (toHtml txt)
+noteElementToHtml (Header2 txt) = h2_ (toHtml txt)
+noteElementToHtml (Header3 txt) = h3_ (toHtml txt)
+-- noteElementToHtml (ListItem txt) = <-- probably need a List element in the ADT because I can code this...
+                   -- | ListItem Text
+noteElementToHtml (Bold elts) = b_ (noteDocumentToHtml elts)
+noteElementToHtml (Italics elts) = i_ (noteDocumentToHtml elts)
+noteElementToHtml (Link target contents) =
+    a_ [href_ target] (noteDocumentToHtml contents)
+                   -- | Password Text
+noteElementToHtml (PlainText txt) = toHtml txt
