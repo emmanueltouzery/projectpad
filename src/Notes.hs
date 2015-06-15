@@ -2,7 +2,7 @@
 
 module Notes where
 
-import Prelude hiding (concatMap)
+import Prelude hiding (concatMap, mapM_)
 import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.Text.Lazy as TL
@@ -114,8 +114,7 @@ noteElementToHtml :: NoteElement -> Html ()
 noteElementToHtml (Header1 txt) = h1_ (toHtml txt)
 noteElementToHtml (Header2 txt) = h2_ (toHtml txt)
 noteElementToHtml (Header3 txt) = h3_ (toHtml txt)
--- noteElementToHtml (ListItem txt) = <-- probably need a List element in the ADT because I can code this...
-                   -- | ListItem Text
+noteElementToHtml (List items) = ul_ (mapM_ (li_ . toHtml) items)
 noteElementToHtml (NormalLine items) = noteLineItemsToHtml items
 
 noteLineItemsToHtml :: [LineItem] -> Html ()

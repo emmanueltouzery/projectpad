@@ -70,3 +70,5 @@ runNotesHtmlGenTests = it "generates HTML properly" $ do
         $ noteDocumentToHtmlText [NormalLine [Bold [PlainText "hel", Italics [PlainText "l"], PlainText "o"]]]
     assertEqual "link" "<a href=\"target\">text with <b>bold</b></a>"
         $ noteDocumentToHtmlText [NormalLine [Link "target" [PlainText "text with ", Bold [PlainText "bold"]]]]
+    assertEqual "list" "<ul><li>one</li><li>two</li></ul>"
+        $ noteDocumentToHtmlText [List ["one", "two"]]
