@@ -25,37 +25,48 @@ runNotesParsingTests :: Spec
 runNotesParsingTests = it "parses notes properly" $ do
     assertEqual "simple test" (Right [Header1 "hello world"])
         $ parseNoteDocument " # hello world"
-    assertEqual "header then plain text" (Right [Header1 "hello world", PlainText "con*[]tents"])
+    assertEqual "simple test" (Right [NormalLine [PlainText "one line* # hello world"]])
+        $ parseNoteDocument "one line* # hello world"
+    assertEqual "header then plain text" (Right [Header1 "hello world", NormalLine [PlainText "con*[]tents"]])
         $ parseNoteDocument " # hello world\ncon*[]tents"
-    assertEqual "bold text" (Right [PlainText "hello ", Bold [PlainText "world"]])
+    assertEqual "bold text" (Right [NormalLine [PlainText "hello ", Bold [PlainText "world"]]])
         $ parseNoteDocument "hello **world**"
     assertEqual "bold italics text"
-                (Right [PlainText "hello ",
-                        Bold [PlainText "w", Italics [PlainText "or"], PlainText "ld"]])
+                (Right [NormalLine [PlainText "hello ",
+                        Bold [PlainText "w", Italics [PlainText "or"], PlainText "ld"]]])
         $ parseNoteDocument "hello **w*or*ld**"
     assertEqual "simple link"
-                (Right [PlainText "he", Link "my-url"
+                (Right [NormalLine [PlainText "he", Link "my-url"
                         [PlainText "llo world"],
-                         PlainText " demo"])
+                         PlainText " demo"]])
         $ parseNoteDocument "he[llo world](my-url) demo"
     assertEqual "link"
-                (Right [PlainText "he",
+                (Right [NormalLine [PlainText "he",
                         Link "my-url" [PlainText "llo ",
                          Bold [PlainText "w", Italics [PlainText "or"], PlainText "ld"],
-                         PlainText " demo"]])
+                         PlainText " demo"]]])
         $ parseNoteDocument "he[llo **w*or*ld** demo](my-url)"
     assertEqual "password1"
-                (Right [PlainText "he", Password "llo world", PlainText " demo"])
+                (Right [NormalLine [PlainText "he", Password "llo world", PlainText " demo"]])
         $ parseNoteDocument "he[pass|llo world|] demo"
     assertEqual "password2"
-                (Right [PlainText "he", Password "llo| world", PlainText " demo"])
+                (Right [NormalLine [PlainText "he", Password "llo| world", PlainText " demo"]])
         $ parseNoteDocument "he[pass!llo| world!] demo"
+    assertEqual "list"
+                (Right [NormalLine [PlainText "a"], List ["one", "two"], NormalLine [PlainText "b"]])
+        $ parseNoteDocument "a\n - one\n - two\nb"
+    assertEqual "single cr"
+                (Right [NormalLine [PlainText "a"], NormalLine [PlainText "b"]])
+        $ parseNoteDocument "a\nb"
+    assertEqual "leading cr"
+                (Right [NormalLine [PlainText " "], NormalLine [PlainText "a b"]])
+        $ parseNoteDocument "\na b"
 
 runNotesHtmlGenTests :: Spec
 runNotesHtmlGenTests = it "generates HTML properly" $ do
     assertEqual "simple test" "<h1>hello</h1>"
         $ noteDocumentToHtmlText [Header1 "hello"]
     assertEqual "nested" "<b>hel<i>l</i>o</b>"
-        $ noteDocumentToHtmlText [Bold [PlainText "hel", Italics [PlainText "l"], PlainText "o"]]
+        $ noteDocumentToHtmlText [NormalLine [Bold [PlainText "hel", Italics [PlainText "l"], PlainText "o"]]]
     assertEqual "link" "<a href=\"target\">text with <b>bold</b></a>"
-        $ noteDocumentToHtmlText [Link "target" [PlainText "text with ", Bold [PlainText "bold"]]]
+        $ noteDocumentToHtmlText [NormalLine [Link "target" [PlainText "text with ", Bold [PlainText "bold"]]]]

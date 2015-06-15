@@ -22,10 +22,13 @@ import Data.Foldable hiding (elem)
 data NoteElement = Header1 Text
                    | Header2 Text
                    | Header3 Text
-                   | ListItem Text
-                   | Bold [NoteElement]
-                   | Italics [NoteElement]
-                   | Link Text [NoteElement]
+                   | List [Text]
+                   | NormalLine [LineItem]
+                     deriving (Show, Eq)
+
+data LineItem = Bold [LineItem]
+                   | Italics [LineItem]
+                   | Link Text [LineItem]
                    | Password Text
                    | PlainText Text
                      deriving (Show, Eq)
@@ -33,23 +36,28 @@ data NoteElement = Header1 Text
 type NoteDocument = [NoteElement]
 
 parseNoteDocument :: Text -> Either String NoteDocument
-parseNoteDocument = fmap mergePlainTexts . attoParse noteDocumentParser
+parseNoteDocument = fmap mergePlainTexts . attoParse (many parseLine)
+
+parseLine :: Parser NoteElement
+parseLine = choice (parseHeader <$> headerTypes)
+                           <|> parseList
+                           <|> parseNormalLine <* option "" (string "\n")
+                           <|> (string "\n" >> return (NormalLine [PlainText " "]))
 
 mergePlainTexts :: [NoteElement] -> [NoteElement]
-mergePlainTexts (PlainText a : PlainText b : c) = mergePlainTexts $ PlainText (a <> b):c
+mergePlainTexts (NormalLine (PlainText x:PlainText y: ys) : z) = mergePlainTexts $ NormalLine (PlainText (x <> y):ys) : z
 mergePlainTexts (x:xs) = x:mergePlainTexts xs
 mergePlainTexts [] = []
 
-noteDocumentParser :: Parser NoteDocument
-noteDocumentParser = many parseNoteElement
+parseNormalLine :: Parser NoteElement
+parseNormalLine =  NormalLine <$> many1 parseLineItem
 
-parseNoteElement :: Parser NoteElement
-parseNoteElement = choice (parseHeader <$> headerTypes)
-                           <|> parseTextToggle Bold "**"
+parseLineItem :: Parser LineItem
+parseLineItem = parseTextToggle Bold "**"
                            <|> parseTextToggle Italics "*"
                            <|> parsePassword
                            <|> parseLink
-                           <|> PlainText <$> takeWhile1 (not . (`elem` "*[]"))
+                           <|> PlainText <$> takeWhile1 (not . (`elem` "*[]\n"))
                            <|> PlainText <$> string "["
                            <|> PlainText <$> string "]"
                            <|> PlainText <$> string "*"
@@ -59,41 +67,42 @@ parseNoteElement = choice (parseHeader <$> headerTypes)
 -- interleaved bold & italics. Stackoverflow handles it well but I think pandoc
 -- doesn't. Would rather a parse failure than stupid parse.
 -- It is a bit contrived though.
-parseTextToggle :: ([NoteElement] -> NoteElement) -> Text -> Parser NoteElement
-parseTextToggle ctr txt = ctr <$> (string txt *> manyTill1 parseNoteElement (string txt))
+parseTextToggle :: ([LineItem] -> LineItem) -> Text -> Parser LineItem
+parseTextToggle ctr txt = ctr <$> (string txt *> manyTill1 parseLineItem (string txt))
 
 manyTill1 :: Alternative f => f a -> f b -> f [a]
 manyTill1 p t = liftA2 (:) p (manyTill p t)
 
-parseLink :: Parser NoteElement
+parseLink :: Parser LineItem
 parseLink = do
-    desc <- string "[" *> manyTill parseNoteElement (string "]")
+    desc <- string "[" *> manyTill parseLineItem (string "]")
     url <- string "(" *> takeTill (== ')') <* string ")"
     return $ Link url desc
 
-parsePassword :: Parser NoteElement
+parseList :: Parser NoteElement
+parseList = List <$> many1 (parseHeader ("-", id))
+
+parsePassword :: Parser LineItem
 parsePassword = do
     separator <- string "[pass" *> anyChar
     Password <$> takeTill (== separator) <* string (T.singleton separator <> "]")
 
-type HeaderInfo = (Text, Text -> NoteElement)
+type HeaderInfo a = (Text, Text -> a)
 
-headerTypes :: [HeaderInfo]
+headerTypes :: [HeaderInfo NoteElement]
 headerTypes = [
     ("#",   Header1),
     ("##",  Header2),
-    ("###", Header3),
-    ("-",   ListItem)
+    ("###", Header3)
     ]
 
 readNoCr :: Parser Text
 readNoCr = takeWhile1 (/= '\n')
 
-parseHeader :: HeaderInfo -> Parser NoteElement
-parseHeader (level, ctr) = ctr <$> (header *> readNoCr <* maybeEol)
+parseHeader :: HeaderInfo a -> Parser a
+parseHeader (level, ctr) = ctr <$> (header *> readNoCr <* option "" (string "\n"))
     where
       header = string (" " <>  level <> " ")
-      maybeEol = option "" (string "\n")
 
 noteDocumentToHtmlText :: NoteDocument -> Text
 noteDocumentToHtmlText = TL.toStrict . renderText . noteDocumentToHtml
@@ -107,9 +116,15 @@ noteElementToHtml (Header2 txt) = h2_ (toHtml txt)
 noteElementToHtml (Header3 txt) = h3_ (toHtml txt)
 -- noteElementToHtml (ListItem txt) = <-- probably need a List element in the ADT because I can code this...
                    -- | ListItem Text
-noteElementToHtml (Bold elts) = b_ (noteDocumentToHtml elts)
-noteElementToHtml (Italics elts) = i_ (noteDocumentToHtml elts)
-noteElementToHtml (Link target contents) =
-    a_ [href_ target] (noteDocumentToHtml contents)
-                   -- | Password Text
-noteElementToHtml (PlainText txt) = toHtml txt
+noteElementToHtml (NormalLine items) = noteLineItemsToHtml items
+
+noteLineItemsToHtml :: [LineItem] -> Html ()
+noteLineItemsToHtml = fold . fmap normalLineItemToHtml
+
+normalLineItemToHtml :: LineItem -> Html ()
+normalLineItemToHtml (Bold elts) = b_ (noteLineItemsToHtml elts)
+normalLineItemToHtml (Italics elts) = i_ (noteLineItemsToHtml elts)
+normalLineItemToHtml (Link target contents) =
+    a_ [href_ target] (noteLineItemsToHtml contents)
+                   -- | Password Text <-- TODO code for passwords
+normalLineItemToHtml (PlainText txt) = toHtml txt
