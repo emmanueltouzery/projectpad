@@ -54,8 +54,16 @@ parseNoteElement = choice (parseHeader <$> headerTypes)
                            <|> PlainText <$> string "]"
                            <|> PlainText <$> string "*"
 
+-- without the manyTill1 I could get "**" parsed as Italics []...
+-- however I'm not happy about the parsing of "hello **bold *italics** endi*"
+-- interleaved bold & italics. Stackoverflow handles it well but I think pandoc
+-- doesn't. Would rather a parse failure than stupid parse.
+-- It is a bit contrived though.
 parseTextToggle :: ([NoteElement] -> NoteElement) -> Text -> Parser NoteElement
-parseTextToggle ctr txt = ctr <$> (string txt *> manyTill parseNoteElement (string txt))
+parseTextToggle ctr txt = ctr <$> (string txt *> manyTill1 parseNoteElement (string txt))
+
+manyTill1 :: Alternative f => f a -> f b -> f [a]
+manyTill1 p t = liftA2 (:) p (manyTill p t)
 
 parseLink :: Parser NoteElement
 parseLink = do
