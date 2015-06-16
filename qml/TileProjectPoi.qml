@@ -36,7 +36,7 @@ ItemTile {
                     appContext.confirmDelete(function() {
                         Utils.handleEither(projectViewState.deleteProjectPois([modelData.id]))
                         // force refresh
-                refreshProjectPois()
+                        refreshProjectView()
                     })
                 }]]
             selectMenu.show(parent, global)
