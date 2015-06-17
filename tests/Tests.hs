@@ -63,6 +63,9 @@ runNotesParsingTests = it "parses notes properly" $ do
     assertEqual "leading cr"
                 (Right [NormalLine [PlainText " "], NormalLine [PlainText "a b"]])
         $ parseNoteDocument "\na b"
+    assertEqual "escapes"
+                (Right [NormalLine [PlainText "# normal\\ **text**"]])
+        $ parseNoteDocument "\\# normal\\\\ \\*\\*text\\*\\*"
 
 runNotesHtmlGenTests :: Spec
 runNotesHtmlGenTests = it "generates HTML properly" $ do

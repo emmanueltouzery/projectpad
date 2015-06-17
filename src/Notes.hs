@@ -53,14 +53,22 @@ parseNormalLine :: Parser NoteElement
 parseNormalLine =  NormalLine <$> many1 parseLineItem
 
 parseLineItem :: Parser LineItem
-parseLineItem = parseTextToggle Bold "**"
-                           <|> parseTextToggle Italics "*"
-                           <|> parsePassword
-                           <|> parseLink
-                           <|> PlainText <$> takeWhile1 (not . (`elem` "*[]\n"))
-                           <|> PlainText <$> string "["
-                           <|> PlainText <$> string "]"
-                           <|> PlainText <$> string "*"
+parseLineItem = parseEscapedMarkers
+                     <|> parseTextToggle Bold "**"
+                     <|> parseTextToggle Italics "*"
+                     <|> parsePassword
+                     <|> parseLink
+                     <|> PlainText <$> takeWhile1 (not . (`elem` "*[]\n\\"))
+                     <|> PlainText <$> string "["
+                     <|> PlainText <$> string "]"
+                     <|> PlainText <$> string "*"
+
+parseEscapedMarkers :: Parser LineItem
+parseEscapedMarkers = parseEscape "\\"
+                          <|> parseEscape "*"
+                          <|> parseEscape "#"
+                          <|> parseEscape "-"
+    where parseEscape t = string ("\\" <> t) *> return (PlainText t)
 
 -- without the manyTill1 I could get "**" parsed as Italics []...
 -- however I'm not happy about the parsing of "hello **bold *italics** endi*"
