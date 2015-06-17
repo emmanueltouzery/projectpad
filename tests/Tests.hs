@@ -24,11 +24,11 @@ runCommandParsingTests = it "parses command lines properly" $ do
 runNotesParsingTests :: Spec
 runNotesParsingTests = it "parses notes properly" $ do
     assertEqual "simple test" (Right [Header1 "hello world"])
-        $ parseNoteDocument " # hello world"
+        $ parseNoteDocument "# hello world"
     assertEqual "simple test" (Right [NormalLine [PlainText "one line* # hello world"]])
         $ parseNoteDocument "one line* # hello world"
     assertEqual "header then plain text" (Right [Header1 "hello world", NormalLine [PlainText "con*[]tents"]])
-        $ parseNoteDocument " # hello world\ncon*[]tents"
+        $ parseNoteDocument "# hello world\ncon*[]tents"
     assertEqual "bold text" (Right [NormalLine [PlainText "hello ", Bold [PlainText "world"]]])
         $ parseNoteDocument "hello **world**"
     assertEqual "bold italics text"
@@ -53,8 +53,10 @@ runNotesParsingTests = it "parses notes properly" $ do
                 (Right [NormalLine [PlainText "he", Password "llo| world", PlainText " demo"]])
         $ parseNoteDocument "he[pass!llo| world!] demo"
     assertEqual "list"
-                (Right [NormalLine [PlainText "a"], List ["one", "two"], NormalLine [PlainText "b"]])
-        $ parseNoteDocument "a\n - one\n - two\nb"
+                (Right [NormalLine [PlainText "a"], List [
+                              [PlainText "one", Bold [PlainText "bold"]],
+                              [PlainText "two"]], NormalLine [PlainText "b"]])
+        $ parseNoteDocument "a\n - one**bold**\n - two\nb"
     assertEqual "single cr"
                 (Right [NormalLine [PlainText "a"], NormalLine [PlainText "b"]])
         $ parseNoteDocument "a\nb"
@@ -70,5 +72,5 @@ runNotesHtmlGenTests = it "generates HTML properly" $ do
         $ noteDocumentToHtmlText [NormalLine [Bold [PlainText "hel", Italics [PlainText "l"], PlainText "o"]]]
     assertEqual "link" "<a href=\"target\">text with <b>bold</b></a>"
         $ noteDocumentToHtmlText [NormalLine [Link "target" [PlainText "text with ", Bold [PlainText "bold"]]]]
-    assertEqual "list" "<ul><li>one</li><li>two</li></ul>"
-        $ noteDocumentToHtmlText [List ["one", "two"]]
+    assertEqual "list" "<ul><li>one<b>bold</b></li><li>two</li></ul>"
+        $ noteDocumentToHtmlText [List [[PlainText "one", Bold [PlainText "bold"]], [PlainText "two"]]]

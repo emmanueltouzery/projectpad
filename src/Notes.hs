@@ -22,7 +22,7 @@ import Data.Foldable hiding (elem)
 data NoteElement = Header1 Text
                    | Header2 Text
                    | Header3 Text
-                   | List [Text]
+                   | List [[LineItem]]
                    | NormalLine [LineItem]
                      deriving (Show, Eq)
 
@@ -80,7 +80,13 @@ parseLink = do
     return $ Link url desc
 
 parseList :: Parser NoteElement
-parseList = List <$> many1 (parseHeader ("-", id))
+parseList = List <$> many1 parseListItem
+
+parseListItem :: Parser [LineItem]
+parseListItem = many (string " ") *> string "- " *> manyTill parseLineItem eotOrNewLine
+
+eotOrNewLine :: Parser ()
+eotOrNewLine = endOfInput <|> endOfLine
 
 parsePassword :: Parser LineItem
 parsePassword = do
@@ -100,9 +106,9 @@ readNoCr :: Parser Text
 readNoCr = takeWhile1 (/= '\n')
 
 parseHeader :: HeaderInfo a -> Parser a
-parseHeader (level, ctr) = ctr <$> (header *> readNoCr <* option "" (string "\n"))
+parseHeader (level, ctr) = ctr <$> (header *> readNoCr <* eotOrNewLine)
     where
-      header = string (" " <>  level <> " ")
+      header = string (level <> " ")
 
 noteDocumentToHtmlText :: NoteDocument -> Text
 noteDocumentToHtmlText = TL.toStrict . renderText . noteDocumentToHtml
@@ -114,7 +120,7 @@ noteElementToHtml :: NoteElement -> Html ()
 noteElementToHtml (Header1 txt) = h1_ (toHtml txt)
 noteElementToHtml (Header2 txt) = h2_ (toHtml txt)
 noteElementToHtml (Header3 txt) = h3_ (toHtml txt)
-noteElementToHtml (List items) = ul_ (mapM_ (li_ . toHtml) items)
+noteElementToHtml (List items) = ul_ (mapM_ (li_ . noteLineItemsToHtml) items)
 noteElementToHtml (NormalLine items) = noteLineItemsToHtml items
 
 noteLineItemsToHtml :: [LineItem] -> Html ()
