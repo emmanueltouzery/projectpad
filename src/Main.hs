@@ -29,6 +29,7 @@ import System.Log.FastLogger
 import System.Environment
 import Data.List
 import Data.Char
+import Control.Error
 
 import Paths_projectpad
 
@@ -40,6 +41,7 @@ import ProjectView
 import ServerView
 import Search
 import Util
+import Notes
 
 dbFileName :: String
 dbFileName = "projectpad.db"
@@ -153,7 +155,9 @@ createContext sqlBackend = do
                 $ return . serverViewState . fromObjRef,
             defMethod' "search" (const $ searchText sqlBackend),
             defMethod' "openAssociatedFile" (\_ path ->
-                serializeEither' <$> openAssociatedFile path)
+                serializeEither' <$> openAssociatedFile path),
+            defStatic "noteTextToHtml" $ liftQmlResult1 (return . fmapL T.pack
+                 . fmap noteDocumentToHtmlText . parseNoteDocument)
         ]
     rootContext <- AppState
         <$> return projectState

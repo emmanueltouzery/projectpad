@@ -25,8 +25,10 @@ Rectangle {
             startPos = textArea.selectionStart
             endPos = textArea.selectionEnd
         }
-        if (startPos >= before.length && textArea.getText(startPos - before.length, startPos) === before
-            && textArea.getText(endPos, endPos + after.length) === after) {
+        if (startPos >= before.length
+            && textArea.getText(startPos - before.length, startPos) === before
+            && textArea.getText(endPos, endPos + after.length) === after)
+        {
             textArea.remove(endPos, endPos+after.length)
             textArea.remove(startPos-before.length, startPos)
             if (startPos != endPos) {
@@ -121,6 +123,16 @@ Rectangle {
             id: editAction
             checkable: true
             iconSource: "../glyphicons-free/glyphicons-151-edit.png"
+            onTriggered: {
+                if (editAction.checked) {
+                    textArea.text = ""
+                    textArea.textFormat = TextEdit.PlainText
+                } else {
+                    var html = noteTextToHtml(textArea.text)[1]
+                    textArea.textFormat = TextEdit.RichText
+                    textArea.text = "<html><body>" + html + "</body></html>"
+                }
+            }
         }
     }
 }
