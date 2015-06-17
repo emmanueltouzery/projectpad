@@ -69,8 +69,8 @@ runNotesParsingTests = it "parses notes properly" $ do
 
 runNotesHtmlGenTests :: Spec
 runNotesHtmlGenTests = it "generates HTML properly" $ do
-    assertEqual "simple test" "<h1>hello</h1>"
-        $ noteDocumentToHtmlText [Header1 "hello"]
+    assertEqual "simple test" "<h1>hell&gt;o</h1>"
+        $ noteDocumentToHtmlText [Header1 "hell>o"]
     assertEqual "nested" "<b>hel<i>l</i>o</b>"
         $ noteDocumentToHtmlText [NormalLine [Bold [PlainText "hel", Italics [PlainText "l"], PlainText "o"]]]
     assertEqual "link" "<a href=\"target\">text with <b>bold</b></a>"
