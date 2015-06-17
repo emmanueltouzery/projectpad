@@ -117,6 +117,7 @@ Rectangle {
             height: parent.height
             text: "test"
             readOnly: !editAction.checked
+            onLinkActivated: Qt.openUrlExternally(link)
         }
 
         Action {
@@ -125,8 +126,8 @@ Rectangle {
             iconSource: "../glyphicons-free/glyphicons-151-edit.png"
             onTriggered: {
                 if (editAction.checked) {
-                    textArea.text = ""
                     textArea.textFormat = TextEdit.PlainText
+                    textArea.text = ""
                 } else {
                     var html = noteTextToHtml(textArea.text)[1]
                     textArea.textFormat = TextEdit.RichText
