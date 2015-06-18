@@ -23,6 +23,7 @@ data NoteElement = Header1 Text
                    | Header2 Text
                    | Header3 Text
                    | List [[LineItem]]
+                   | PreformatBlock Text
                    | NormalLine [LineItem]
                      deriving (Show, Eq)
 
@@ -42,13 +43,19 @@ parseNoteDocument = fmap mergePlainTexts . attoParse (many parseLine)
 parseLine :: Parser NoteElement
 parseLine = choice (parseHeader <$> headerTypes)
                            <|> parseList
-                           <|> parseNormalLine <* option "" (string "\n")
-                           <|> (string "\n" >> return (NormalLine [PlainText " "]))
+                           <|> parsePreformatBlock
+                           <|> parseNormalLine <* eotOrNewLine
+                           <|> (endOfLine >> return (NormalLine [PlainText " "]))
 
 mergePlainTexts :: [NoteElement] -> [NoteElement]
-mergePlainTexts (NormalLine (PlainText x:PlainText y: ys) : z) = mergePlainTexts $ NormalLine (PlainText (x <> y):ys) : z
+mergePlainTexts (NormalLine (PlainText x:PlainText y: ys) : z) =
+    mergePlainTexts $ NormalLine (PlainText (x <> y):ys) : z
 mergePlainTexts (x:xs) = x:mergePlainTexts xs
 mergePlainTexts [] = []
+
+parsePreformatBlock :: Parser NoteElement
+parsePreformatBlock = PreformatBlock <$> T.pack <$> ((string "```" >> endOfLine)
+                       *> manyTill1 anyChar (endOfLine >> string "```"))
 
 parseNormalLine :: Parser NoteElement
 parseNormalLine =  NormalLine <$> many1 parseLineItem
@@ -64,6 +71,7 @@ parseLineItem = parseEscapedMarkers
                      <|> PlainText <$> string "["
                      <|> PlainText <$> string "]"
                      <|> PlainText <$> string "*"
+                     <|> PlainText <$> string "`"
 
 parseEscapedMarkers :: Parser LineItem
 parseEscapedMarkers = parseEscape "\\"
@@ -117,11 +125,8 @@ headerTypes = [
     ("###", Header3)
     ]
 
-readNoCr :: Parser Text
-readNoCr = takeWhile1 (/= '\n')
-
 parseHeader :: HeaderInfo a -> Parser a
-parseHeader (level, ctr) = ctr <$> (header *> readNoCr <* eotOrNewLine)
+parseHeader (level, ctr) = ctr <$> T.pack <$> (header *> manyTill1 anyChar eotOrNewLine)
     where
       header = string (level <> " ")
 
@@ -136,6 +141,8 @@ noteElementToHtml (Header1 txt) = h1_ (toHtml txt)
 noteElementToHtml (Header2 txt) = h2_ (toHtml txt)
 noteElementToHtml (Header3 txt) = h3_ (toHtml txt)
 noteElementToHtml (List items) = ul_ (mapM_ (li_ . noteLineItemsToHtml) items)
+noteElementToHtml (PreformatBlock txt) =
+    pre_ [style_ "background-color: #0e0e0e"] (toHtml txt)
 noteElementToHtml (NormalLine items) = noteLineItemsToHtml items
 
 noteLineItemsToHtml :: [LineItem] -> Html ()
@@ -147,4 +154,6 @@ normalLineItemToHtml (Italics elts) = i_ (noteLineItemsToHtml elts)
 normalLineItemToHtml (Link target contents) =
     a_ [href_ target] (noteLineItemsToHtml contents)
                    -- | Password Text <-- TODO code for passwords
+normalLineItemToHtml (PreformatInline txt) =
+    code_ [style_ "background-color: #eee"] (toHtml txt)
 normalLineItemToHtml (PlainText txt) = toHtml txt
