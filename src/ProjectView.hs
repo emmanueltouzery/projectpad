@@ -94,6 +94,27 @@ updateProjectPoi sqlBackend poiRef
             ProjectPointOfInterestGroupName P.=. groupName
         ]
 
+readNotes :: Int -> SqlPersistM [Entity ProjectNote]
+readNotes projectId = select $ from $ \nte -> do
+    where_ (nte ^. ProjectNoteProjectId ==. val (toSqlKey32 projectId))
+    orderBy [asc (nte ^. ProjectNoteTitle)]
+    return nte
+
+addProjectNote :: SqlBackend -> Int -> Text -> Text -> Maybe Text -> IO ()
+addProjectNote sqlBackend projectId title contents
+    (groupOrNothing -> groupName) = addHelper sqlBackend projectId
+        $ ProjectNote title contents groupName
+
+updateProjectNote :: SqlBackend -> ObjRef (Entity ProjectNote)
+    -> Text -> Text -> Maybe Text
+    -> IO (ObjRef (Entity ProjectNote))
+updateProjectNote sqlBackend noteRef title contents
+    (groupOrNothing -> groupName) = updateHelper sqlBackend noteRef
+        [
+            ProjectNoteTitle P.=. title, ProjectNoteContents P.=. contents,
+            ProjectNoteGroupName P.=. groupName
+        ]
+
 getProjectGroupNames :: SqlBackend -> Int -> IO [Text]
 getProjectGroupNames sqlBackend projectId = do
     serverGroupNames      <- readEF readServers serverGroupName
@@ -107,7 +128,8 @@ data ProjectDisplaySection = ProjectDisplaySection
     {
         prjSectionGrpName     :: Maybe Text,
         prjSectionServers     :: [ObjRef ServerExtraInfo],
-        prjSectionProjectPois :: [ObjRef (Entity ProjectPointOfInterest)]
+        prjSectionProjectPois :: [ObjRef (Entity ProjectPointOfInterest)],
+        prjSectionNotes       :: [ObjRef (Entity ProjectNote)]
     } deriving Typeable
 
 instance DefaultClass ProjectDisplaySection where
@@ -115,7 +137,8 @@ instance DefaultClass ProjectDisplaySection where
         [
             defPropertyConst "groupName" (readM prjSectionGrpName),
             defPropertyConst "servers"   (readM prjSectionServers),
-            defPropertyConst "pois"      (readM prjSectionProjectPois)
+            defPropertyConst "pois"      (readM prjSectionProjectPois),
+            defPropertyConst "notes"     (readM prjSectionNotes)
         ]
 
 getProjectDisplaySections :: SqlBackend -> Int -> Text -> IO [ObjRef ProjectDisplaySection]
@@ -123,12 +146,14 @@ getProjectDisplaySections sqlBackend projectId environment = do
     groupNames <- getProjectGroupNames sqlBackend projectId
     servers    <- getServersExtraInfo sqlBackend environment projectId
     pois       <- runServerQ readPois
+    notes      <- runServerQ readNotes
     let sectionForGroup grp = ProjectDisplaySection {
             prjSectionGrpName     = grp,
             prjSectionServers     =
                 filter ((== grp) . serverGroupName . srvExtraInfoRefGetServer) servers,
             prjSectionProjectPois =
-                filterForGroup grp projectPointOfInterestGroupName pois
+                filterForGroup grp projectPointOfInterestGroupName pois,
+            prjSectionNotes = filterForGroup grp projectNoteGroupName notes
         }
     mapM newObjectDC $ sectionForGroup Nothing : (sectionForGroup . Just <$> groupNames)
     where
@@ -255,6 +280,9 @@ deleteServer = P.delete
 deleteProjectPoi :: Key ProjectPointOfInterest -> SqlPersistM ()
 deleteProjectPoi = P.delete
 
+deleteProjectNote :: Key ProjectNote -> SqlPersistM ()
+deleteProjectNote = P.delete
+
 createProjectViewState :: SqlBackend -> IO (ObjRef ProjectViewState)
 createProjectViewState sqlBackend = do
     projectViewClass <- newClass
@@ -269,6 +297,9 @@ createProjectViewState sqlBackend = do
             defStatic  "addProjectPoi"     (addProjectPoi sqlBackend),
             defStatic  "updateProjectPoi"  (updateProjectPoi sqlBackend),
             defMethod' "deleteProjectPois" (deleteHelper sqlBackend deleteProjectPoi),
+            defStatic  "addProjectNote"    (addProjectNote sqlBackend),
+            defStatic  "updateProjectNote" (updateProjectNote sqlBackend),
+            defMethod' "deleteProjectNotes" (deleteHelper sqlBackend deleteProjectNote),
             defMethod' "runPoiAction"      runPoiAction,
             defStatic  "saveAuthKey"       (liftQmlResult2 saveAuthKey),
             defStatic  "runRdp"            (liftQmlResult3 runServerRdp),

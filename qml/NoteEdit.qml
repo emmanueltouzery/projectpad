@@ -10,10 +10,29 @@ Rectangle {
     property variant model: getDefaultModel()
 
     function getDefaultModel() {
-        return {}
+        return {"title":"New note", "contents":""}
     }
 
     function activate(parent, _model) {
+        model = _model
+        var groups = projectViewState.getProjectGroupNames(parent.id)
+        group.model.clear()
+        groups.forEach(function (grp) {
+            group.model.append({"text": grp})
+        })
+        group.currentIndex = groups.indexOf(_model.groupName)
+        title.selectAll()
+        title.forceActiveFocus()
+    }
+
+    function onOk(project) {
+        if (model.id) {
+            model = projectViewState.updateProjectNote(
+                model, title.text, textArea.text, group.editText);
+        } else {
+            projectViewState.addProjectNote(
+                project.id, title.text, textArea.text, group.editText)
+        }
     }
 
     function toggleSnippet(before, after) {
@@ -74,10 +93,36 @@ Rectangle {
         textArea.insert(curPos, toInsert)
     }
 
-    Column {
-        anchors.fill: parent
+    GridLayout {
+        y: 10
+        anchors.left: parent.left
+        anchors.right: parent.right
+        anchors.margins: 10
+        columns: 2
+
+        Text {
+            text: "Title:"
+        }
+        TextField {
+            id: title
+            Layout.fillWidth: true
+            text: model.title
+        }
+
+        Text {
+            text: "Group:"
+        }
+        ComboBox {
+            id: group
+            Layout.fillWidth: true
+            textRole: "text"
+            model: ListModel {}
+            editable: true
+        }
 
         ToolBar {
+            Layout.columnSpan: 2
+            Layout.fillWidth: true
             RowLayout {
                 ToolButton {
                     id: editModeBtn
@@ -113,9 +158,11 @@ Rectangle {
 
         TextArea {
             id: textArea
+            Layout.columnSpan: 2
+            Layout.fillWidth: true
             width: parent.width
             height: parent.height
-            text: "test"
+            text: model.contents
             readOnly: !editAction.checked
             onLinkActivated: Qt.openUrlExternally(link)
         }

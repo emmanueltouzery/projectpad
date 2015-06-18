@@ -58,7 +58,6 @@ ItemTile {
         onClicked: {
             selectMenu.options = getActions(modelData)
             selectMenu.show(parent)
-            //loadView("ProjectView.qml", modelData)
         }
     }
 }

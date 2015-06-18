@@ -101,6 +101,15 @@ Rectangle {
                         }
 
                         Repeater {
+                            id: notesrepeater
+                            model: modelData.notes
+                            TileNote {
+                                project: pv.model.project
+                                global: parent.parent
+                            }
+                        }
+
+                        Repeater {
                             id: serversrepeater
                             model: modelData.servers
                             TileServer {

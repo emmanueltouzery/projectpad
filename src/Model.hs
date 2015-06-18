@@ -39,6 +39,12 @@ ProjectPointOfInterest
     groupName Text Maybe
     projectId ProjectId
     deriving Show Typeable
+ProjectNote
+    title Text
+    contents Text
+    groupName Text Maybe
+    projectId ProjectId
+    deriving Show Typeable
 Server
     desc Text
     ip IpAddress
@@ -215,6 +221,15 @@ instance DefaultClass (Entity ProjectPointOfInterest) where
             ("text", projectPointOfInterestText),
             ("interestType", text . projectPointOfInterestInterestType),
             ("groupName", fromMaybe "" . projectPointOfInterestGroupName)
+        ]
+        []
+
+instance DefaultClass (Entity ProjectNote) where
+    classMembers = getStandardClassMembers
+        [
+            ("title", projectNoteTitle),
+            ("contents", projectNoteContents),
+            ("groupName", fromMaybe "" . projectNoteGroupName)
         ]
         []
 
