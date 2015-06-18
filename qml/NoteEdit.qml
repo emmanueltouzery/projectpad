@@ -157,14 +157,20 @@ Rectangle {
         }
 
         TextArea {
-            id: textArea
+            id: preview
             Layout.columnSpan: 2
             Layout.fillWidth: true
-            width: parent.width
-            height: parent.height
-            text: model.contents
-            readOnly: !editAction.checked
+            textFormat: TextEdit.RichText
+            text: noteTextToHtml(model.contents)[1] // #### should check for errors
+            readOnly: true
             onLinkActivated: Qt.openUrlExternally(link)
+        }
+        TextArea {
+            id: textArea
+            Layout.fillWidth: true
+            Layout.columnSpan: 2
+            visible: false
+            text: model.contents
         }
 
         Action {
@@ -173,12 +179,13 @@ Rectangle {
             iconSource: "../glyphicons-free/glyphicons-151-edit.png"
             onTriggered: {
                 if (editAction.checked) {
-                    textArea.textFormat = TextEdit.PlainText
-                    textArea.text = ""
+                    preview.visible = false
+                    textArea.visible = true
                 } else {
-                    var html = noteTextToHtml(textArea.text)[1]
-                    textArea.textFormat = TextEdit.RichText
-                    textArea.text = "<html><body>" + html + "</body></html>"
+                    preview.visible = true
+                    textArea.visible = false
+                    var html = noteTextToHtml(textArea.text)[1] // ### should check for errors
+                    preview.text = "<html><body>" + html + "</body></html>"
                 }
             }
         }
