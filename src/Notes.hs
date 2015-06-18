@@ -153,7 +153,7 @@ normalLineItemToHtml (Bold elts) = b_ (noteLineItemsToHtml elts)
 normalLineItemToHtml (Italics elts) = i_ (noteLineItemsToHtml elts)
 normalLineItemToHtml (Link target contents) =
     a_ [href_ target] (noteLineItemsToHtml contents)
-                   -- | Password Text <-- TODO code for passwords
+normalLineItemToHtml (Password txt) = a_ [href_ ("pass://" <> txt)] "[password]"
 normalLineItemToHtml (PreformatInline txt) =
     code_ [style_ "background-color: #eee"] (toHtml txt)
 normalLineItemToHtml (PlainText txt) = toHtml txt

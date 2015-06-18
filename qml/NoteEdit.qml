@@ -165,7 +165,14 @@ Rectangle {
             textFormat: TextEdit.RichText
             text: noteTextToHtml(model.contents)[1] // #### should check for errors
             readOnly: true
-            onLinkActivated: Qt.openUrlExternally(link)
+            onLinkActivated: {
+                if (link.indexOf("pass://") === 0) {
+                    passwordActions.curPass = link.substring("pass://".length)
+                    passwordActions.visible = true
+                } else {
+                    Qt.openUrlExternally(link)
+                }
+            }
         }
         TextArea {
             id: textArea
@@ -190,6 +197,31 @@ Rectangle {
                     var html = noteTextToHtml(textArea.text)[1] // ### should check for errors
                     preview.text = "<html><body>" + html + "</body></html>"
                 }
+            }
+        }
+    }
+    Rectangle {
+        id: passwordActions
+        color: "light grey"
+        width: parent.width
+        height: 30
+        property string curPass
+        z: 2
+        visible: false
+        y: parent.height - height
+        Row {
+            anchors.fill: parent
+            Button {
+                text: "Copy password"
+                onClicked: {
+                    console.error(passwordActions.curPass)
+                    passwordActions.curPass = ""
+                    passwordActions.visible = false
+                }
+            }
+            Button {
+                id: revealPassBtn
+                text: "Reveal password"
             }
         }
     }
