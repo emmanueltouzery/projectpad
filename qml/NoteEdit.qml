@@ -5,7 +5,7 @@ import QtQuick.Controls 1.3
 Rectangle {
     id: noteEdit
     color: "light grey"
-    property int preferredHeight: 290
+    property int preferredHeight: 490
 
     property variant model: getDefaultModel()
 
@@ -97,6 +97,7 @@ Rectangle {
         y: 10
         anchors.left: parent.left
         anchors.right: parent.right
+        height: parent.height - 10
         anchors.margins: 10
         columns: 2
 
@@ -160,6 +161,7 @@ Rectangle {
             id: preview
             Layout.columnSpan: 2
             Layout.fillWidth: true
+            Layout.fillHeight: true
             textFormat: TextEdit.RichText
             text: noteTextToHtml(model.contents)[1] // #### should check for errors
             readOnly: true
@@ -168,6 +170,7 @@ Rectangle {
         TextArea {
             id: textArea
             Layout.fillWidth: true
+            Layout.fillHeight: true
             Layout.columnSpan: 2
             visible: false
             text: model.contents
