@@ -14,7 +14,9 @@ Rectangle {
     }
 
     function refreshSearch() {
-        loadView("SearchView.qml", {matches: search(searchView.model.query), query: searchView.model.query })
+        loadView("SearchView.qml", {
+            matches: search(searchView.model.query),
+            query: searchView.model.query})
     }
     function refreshServerView() { refreshSearch() }
     function refreshProjectPois() { refreshSearch() }
@@ -50,10 +52,19 @@ Rectangle {
                             }
                         }
                         Repeater {
+                            model: modelData.notes
+                            TileNote {
+                                global: rootFlow
+                                model: modelData.child
+                                project: modelData.parent
+                            }
+                        }
+                        Repeater {
                             model: modelData.pois
                             TileProjectPoi {
                                 global: rootFlow
-                                project: modelData.project
+                                model: modelData.child
+                                project: modelData.parent
                             }
                         }
                         Repeater {
@@ -103,7 +114,7 @@ Rectangle {
                                     model: modelData.pois
                                     TileServerPoi {
                                         model: modelData.child
-                                        server: modelData.server
+                                        server: modelData.parent
                                         global: rootFlow
                                     }
                                 }
@@ -128,6 +139,12 @@ Rectangle {
         id: serverEditComponent
         ServerEdit {
             id: serverEdit
+        }
+    }
+    Component {
+        id: noteEditComponent
+        NoteEdit {
+            id: noteEdit
         }
     }
 }

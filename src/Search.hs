@@ -19,17 +19,20 @@ import Model
 -- item of the parent repeater => keep in the info
 -- at the child level because I need it when some
 -- menu actions are activated.
-data ServerChildInfo a = ServerChildInfo
+data ParentChildInfo a b = ParentChildInfo
     {
-        sciServer :: ObjRef (Entity Server),
-        sciChild  :: ObjRef (Entity a)
+        pciParent :: ObjRef (Entity a),
+        pciChild  :: ObjRef (Entity b)
     } deriving Typeable
 
-instance Typeable a => DefaultClass (ServerChildInfo a) where
+type ServerChildInfo a = ParentChildInfo Server a
+type ProjectChildInfo a = ParentChildInfo Project a
+
+instance (Typeable a, Typeable b) => DefaultClass (ParentChildInfo a b) where
     classMembers =
         [
-            prop "server" sciServer,
-            prop "child"  sciChild
+            prop "parent" pciParent,
+            prop "child"  pciChild
         ]
 
 data ServerSearchMatch = ServerSearchMatch
@@ -60,7 +63,8 @@ instance DefaultClass ServerSearchMatch where
 data ProjectSearchMatch = ProjectSearchMatch
     {
         smProject        :: ObjRef (Entity Project),
-        smProjectPois    :: [ObjRef (Entity ProjectPointOfInterest)],
+        smProjectNotes   :: [ObjRef (ProjectChildInfo ProjectNote)],
+        smProjectPois    :: [ObjRef (ProjectChildInfo ProjectPointOfInterest)],
         smProjectServers :: [ObjRef ServerSearchMatch]
     } deriving Typeable
 
@@ -68,7 +72,8 @@ instance DefaultClass ProjectSearchMatch where
     classMembers =
         [
             prop "project" smProject,
-            prop "pois" smProjectPois,
+            prop "notes"   smProjectNotes,
+            prop "pois"    smProjectPois,
             prop "servers" smProjectServers
         ]
 
@@ -84,6 +89,12 @@ filterProjectPois query = select $ from $ \p -> do
         ||. (p ^. ProjectPointOfInterestText `like` query)
         ||. (p ^. ProjectPointOfInterestPath `like` query))
     return p
+
+filterProjectNotes :: SqlExpr (Value Text) -> SqlPersistM [Entity ProjectNote]
+filterProjectNotes query = select $ from $ \n -> do
+    where_ ((n ^. ProjectNoteTitle `like` query)
+        ||. (n ^. ProjectNoteContents `like` query))
+    return n
 
 filterServers :: SqlExpr (Value Text) -> SqlPersistM [Entity Server]
 filterServers query = select $ from $ \s -> do
@@ -131,34 +142,36 @@ filterEntityJoin :: (DefaultClass (Entity a), Eq (Key b)) =>
 filterEntityJoin parentKey (Join parentKeyGetter entities) = mapM newObjectDC $
     filter (\e -> parentKeyGetter (entityVal e) == parentKey) entities
 
-makeServerChildInfos :: (DefaultClass (Entity a), Typeable a) =>
-    ObjRef (Entity Server)
-    -> Join a Server -> IO [ObjRef (ServerChildInfo a)]
-makeServerChildInfos server childrenJoin = do
-    let serverKey = entityKey (fromObjRef server)
-    children <- filterEntityJoin serverKey childrenJoin
-    mapM (newObjectDC . ServerChildInfo server) children
+makeParentChildInfos :: (DefaultClass (Entity b), Typeable b, Typeable a, Eq (Key a)) =>
+    ObjRef (Entity a) -> Join b a -> IO [ObjRef (ParentChildInfo a b)]
+makeParentChildInfos parent childrenJoin = do
+    let parentKey = entityKey (fromObjRef parent)
+    children <- filterEntityJoin parentKey childrenJoin
+    mapM (newObjectDC . ParentChildInfo parent) children
 
 getServerSearchMatch :: ObjRef (Entity Project) -> ServerJoin ServerWebsite
     -> ServerJoin ServerExtraUserAccount -> ServerJoin ServerPointOfInterest
     -> ServerJoin ServerDatabase -> ObjRef (Entity Server) -> IO (ObjRef ServerSearchMatch)
-getServerSearchMatch project serverWebsitesJoin serverExtraUsersJoin serverPoisJoin serverDatabasesJoin server =
+getServerSearchMatch project serverWebsitesJoin serverExtraUsersJoin
+    serverPoisJoin serverDatabasesJoin server =
     newObjectDC =<< ServerSearchMatch server project
-        <$> makeServerChildInfos server serverWebsitesJoin
-        <*> makeServerChildInfos server serverExtraUsersJoin
-        <*> makeServerChildInfos server serverPoisJoin
-        <*> makeServerChildInfos server serverDatabasesJoin
+        <$> makeParentChildInfos server serverWebsitesJoin
+        <*> makeParentChildInfos server serverExtraUsersJoin
+        <*> makeParentChildInfos server serverPoisJoin
+        <*> makeParentChildInfos server serverDatabasesJoin
 
 getProjectSearchMatch :: ProjectJoin Server -> ServerJoin ServerWebsite -> ServerJoin ServerExtraUserAccount
     -> ServerJoin ServerPointOfInterest -> ServerJoin ServerDatabase -> ProjectJoin ProjectPointOfInterest
-    -> ObjRef (Entity Project) -> IO (ObjRef ProjectSearchMatch)
-getProjectSearchMatch projectServersJoin serverWebsitesJoin serverExtraUsersJoin serverPoisJoin serverDatabasesJoin projectPoisJoin project = do
+    -> ProjectJoin ProjectNote -> ObjRef (Entity Project) -> IO (ObjRef ProjectSearchMatch)
+getProjectSearchMatch projectServersJoin serverWebsitesJoin serverExtraUsersJoin
+    serverPoisJoin serverDatabasesJoin projectPoisJoin projectNotesJoin project = do
     let projectKey = entityKey (fromObjRef project)
     servers <- sortBy compareServerEntities <$> filterEntityJoin projectKey projectServersJoin
     let serverSearchMatch = mapM (getServerSearchMatch project serverWebsitesJoin serverExtraUsersJoin
                                   serverPoisJoin serverDatabasesJoin) servers
     newObjectDC =<< ProjectSearchMatch project
-        <$> filterEntityJoin projectKey projectPoisJoin
+        <$> makeParentChildInfos project projectNotesJoin
+        <*> makeParentChildInfos project projectPoisJoin
         <*> serverSearchMatch
 
 compareServerEntities :: ObjRef (Entity Server) -> ObjRef (Entity Server) -> Ordering
@@ -180,6 +193,7 @@ joinGetParentKeys (Join parentKeyGetter entities) = Set.fromList $ parentKeyGett
 searchText :: SqlBackend -> Text -> IO [ObjRef ProjectSearchMatch]
 searchText sqlBackend txt = do
     projectPoisJoin      <- Join projectPointOfInterestProjectId <$> runQ filterProjectPois
+    projectNotesJoin     <- Join projectNoteProjectId <$> runQ filterProjectNotes
     serverWebsitesJoin   <- Join serverWebsiteServerId <$> runQ filterServerWebsites
     serverExtraUsersJoin <- Join serverExtraUserAccountServerId <$> runQ filterServerExtraUsers
     serverPoisJoin       <- Join serverPointOfInterestServerId <$> runQ filterServerPois
@@ -201,12 +215,15 @@ searchText sqlBackend txt = do
                   (getByIds ServerId $ Set.toList allServerIds)
     let projectServersJoin = Join serverProjectId allServers
     let serverProjectIds = Set.fromList $ serverProjectId . entityVal <$> allServers
-    let allProjectIds = Set.unions [projectProjectIds, serverProjectIds, joinGetParentKeys projectPoisJoin]
+    let allProjectIds = Set.unions [projectProjectIds, serverProjectIds,
+                                    joinGetParentKeys projectPoisJoin,
+                                    joinGetParentKeys projectNotesJoin]
     allProjects <- runSqlBackend sqlBackend (getByIds ProjectId $ Set.toList allProjectIds)
     projectRefs <- mapM newObjectDC
         $ sortBy (comparing $ T.toCaseFold . projectName . entityVal) allProjects
-    mapM (getProjectSearchMatch projectServersJoin serverWebsitesJoin serverExtraUsersJoin
-        serverPoisJoin serverDatabasesJoin projectPoisJoin) projectRefs
+    mapM (getProjectSearchMatch projectServersJoin serverWebsitesJoin
+          serverExtraUsersJoin serverPoisJoin serverDatabasesJoin
+          projectPoisJoin projectNotesJoin) projectRefs
     where
         query = (%) ++. val txt ++. (%)
         runQ :: (SqlExpr (Value Text) -> SqlPersistM [Entity a]) -> IO [Entity a]

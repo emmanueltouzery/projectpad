@@ -104,6 +104,7 @@ Rectangle {
                             id: notesrepeater
                             model: modelData.notes
                             TileNote {
+                                model: modelData
                                 project: pv.model.project
                                 global: parent.parent
                             }
@@ -122,6 +123,7 @@ Rectangle {
                             model: modelData.pois
 
                             TileProjectPoi {
+                                model: modelData
                                 project: pv.model.project
                                 global: parent.parent
                             }

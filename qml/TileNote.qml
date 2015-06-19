@@ -3,9 +3,10 @@ import "utils.js" as Utils
 
 ItemTile {
     property variant global: undefined
+    property variant model
     color: "orange"
     icon: "glyphicons-40-notes"
-    itemDesc: modelData.title
+    itemDesc: model.title
     property variant project
 
     MouseArea {
@@ -16,7 +17,7 @@ ItemTile {
                     popup.setContents(
                         "Edit note", noteEditComponent,
                         function (noteEdit) {
-                            noteEdit.activate(project, modelData)
+                            noteEdit.activate(project, model)
                         },
                         function (noteEdit) {
                             noteEdit.onOk()
@@ -25,7 +26,7 @@ ItemTile {
                 }],
                 ["glyphicons-193-circle-remove", function() {
                     appContext.confirmDelete(function() {
-                        Utils.handleEither(projectViewState.deleteProjectNotes([modelData.id]))
+                        Utils.handleEither(projectViewState.deleteProjectNotes([model.id]))
                         // force refresh
                         refreshProjectView()
                     })
