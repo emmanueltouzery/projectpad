@@ -149,39 +149,71 @@ Rectangle {
         ToolBar {
             Layout.columnSpan: 2
             Layout.fillWidth: true
-            RowLayout {
-                height: parent.height
+            Flow {
+                spacing: 5
+                y: (parent.height - height)/2
                 ToolButton {
                     id: editModeBtn
                     action: editAction
                 }
                 ToolButton {
-                    iconSource: "../glyphicons-free/glyphicons-103-bold.png"
+                    Image {
+                        x: 5
+                        y: 3
+                        source: "../glyphicons-free/glyphicons-103-bold.png"
+                        fillMode: Image.Pad
+                    }
                     onClicked: toggleSnippet("**", "**")
                     visible: editAction.checked
                 }
                 ToolButton {
-                    iconSource: "../glyphicons-free/glyphicons-102-italic.png"
+                    Image {
+                        x: 8
+                        y: 3
+                        source: "../glyphicons-free/glyphicons-102-italic.png"
+                        fillMode: Image.Pad
+                    }
                     onClicked: toggleSnippet("*", "*")
                     visible: editAction.checked
                 }
                 ToolButton {
-                    iconSource: "../glyphicons-free/glyphicons-460-header.png"
+                    Image {
+                        x: 4
+                        y: 4
+                        source: "../glyphicons-free/glyphicons-460-header.png"
+                        fillMode: Image.Pad
+                    }
                     onClicked: toggleHeader()
                     visible: editAction.checked
                 }
                 ToolButton {
-                    iconSource: "../glyphicons-free/glyphicons-51-link.png"
+                    Image {
+                        x: 5
+                        y: 2
+                        source: "../glyphicons-free/glyphicons-51-link.png"
+                        fillMode: Image.Pad
+                    }
                     onClicked: toggleSnippet("[", "](url)")
                     visible: editAction.checked
                 }
                 ToolButton {
-                    iconSource: "../glyphicons-free/glyphicons-204-lock.png"
+                    Image {
+                        x: 5
+                        y: 2
+                        source: "../glyphicons-free/glyphicons-204-lock.png"
+                        fillMode: Image.Pad
+                    }
                     onClicked: togglePassword()
                     visible: editAction.checked
                 }
                 ToolButton {
-                    iconSource: "../glyphicons-free/glyphicons-69-ruler.png"
+                    width: 33
+                    Image {
+                        x: 3
+                        y: 8
+                        source: "../glyphicons-free/glyphicons-69-ruler.png"
+                        fillMode: Image.Pad
+                    }
                     onClicked: togglePreformat()
                     visible: editAction.checked
                 }
