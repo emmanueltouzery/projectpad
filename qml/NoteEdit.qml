@@ -141,6 +141,7 @@ Rectangle {
             Layout.columnSpan: 2
             Layout.fillWidth: true
             RowLayout {
+                height: parent.height
                 ToolButton {
                     id: editModeBtn
                     action: editAction
