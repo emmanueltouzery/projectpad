@@ -4,7 +4,7 @@ import "utils.js" as Utils
 ItemTile {
     property variant global: undefined
     property variant model
-    color: "orange"
+    color: "lightsteelblue"
     icon: "glyphicons-40-notes"
     itemDesc: model.title
     property variant project
