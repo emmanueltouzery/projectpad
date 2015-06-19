@@ -142,7 +142,7 @@ noteElementToHtml (Header2 txt) = h2_ (toHtml txt)
 noteElementToHtml (Header3 txt) = h3_ (toHtml txt)
 noteElementToHtml (List items) = ul_ (mapM_ (li_ . noteLineItemsToHtml) items)
 noteElementToHtml (PreformatBlock txt) =
-    pre_ [style_ "background-color: #0e0e0e"] (toHtml txt)
+    pre_ [style_ "background-color: #eee"] (toHtml txt)
 noteElementToHtml (NormalLine items) = noteLineItemsToHtml items
 
 noteLineItemsToHtml :: [LineItem] -> Html ()

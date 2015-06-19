@@ -94,6 +94,21 @@ Rectangle {
         textArea.insert(curPos, toInsert)
     }
 
+    function togglePassword() {
+        var passwordSeparators = ['|', '#', '$', '/', '+', '!', '%', '.', ':']
+        var i=0
+        if (textArea.selectedText.length > 0) {
+            // search for a free password separator in case the password
+            // contains the separator as a letter.
+            while (i < passwordSeparators.length &&
+                   textArea.selectedText.indexOf(passwordSeparators[i]) >= 0) {
+                ++i
+            }
+        }
+        toggleSnippet("[pass" + passwordSeparators[i],
+                      passwordSeparators[i] + "]")
+    }
+
     GridLayout {
         y: 10
         anchors.left: parent.left
@@ -152,7 +167,7 @@ Rectangle {
                 }
                 ToolButton {
                     iconSource: "../glyphicons-free/glyphicons-204-lock.png"
-                    onClicked: toggleSnippet("[pass|", "|]")
+                    onClicked: togglePassword()
                     visible: editAction.checked
                 }
             }
