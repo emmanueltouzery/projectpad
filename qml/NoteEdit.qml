@@ -109,6 +109,15 @@ Rectangle {
                       passwordSeparators[i] + "]")
     }
 
+    function togglePreformat() {
+        var multiline = (textArea.selectedText.indexOf("\n") >= 0)
+        if (multiline) {
+            toggleSnippet("\n```\n", "\n```\n")
+        } else {
+            toggleSnippet("`", "`")
+        }
+    }
+
     GridLayout {
         y: 10
         anchors.left: parent.left
@@ -169,6 +178,11 @@ Rectangle {
                 ToolButton {
                     iconSource: "../glyphicons-free/glyphicons-204-lock.png"
                     onClicked: togglePassword()
+                    visible: editAction.checked
+                }
+                ToolButton {
+                    iconSource: "../glyphicons-free/glyphicons-69-ruler.png"
+                    onClicked: togglePreformat()
                     visible: editAction.checked
                 }
             }
