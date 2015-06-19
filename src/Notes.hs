@@ -1,4 +1,4 @@
-{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE OverloadedStrings, LambdaCase #-}
 
 module Notes where
 
@@ -137,23 +137,25 @@ noteDocumentToHtml :: NoteDocument -> Html ()
 noteDocumentToHtml = fold . fmap noteElementToHtml
 
 noteElementToHtml :: NoteElement -> Html ()
-noteElementToHtml (Header1 txt) = h1_ (toHtml txt)
-noteElementToHtml (Header2 txt) = h2_ (toHtml txt)
-noteElementToHtml (Header3 txt) = h3_ (toHtml txt)
-noteElementToHtml (List items) = ul_ (mapM_ (li_ . noteLineItemsToHtml) items)
-noteElementToHtml (PreformatBlock txt) =
-    pre_ [style_ "background-color: #eee"] (toHtml txt)
-noteElementToHtml (NormalLine items) = noteLineItemsToHtml items
+noteElementToHtml = \case
+    Header1 txt        -> h1_ (toHtml txt)
+    Header2 txt        -> h2_ (toHtml txt)
+    Header3 txt        -> h3_ (toHtml txt)
+    List items         -> ul_ (mapM_ (li_ . noteLineItemsToHtml) items)
+    NormalLine items   -> noteLineItemsToHtml items
+    PreformatBlock txt ->
+        pre_ [style_ "background-color: #eee"] (toHtml txt)
 
 noteLineItemsToHtml :: [LineItem] -> Html ()
 noteLineItemsToHtml = fold . fmap normalLineItemToHtml
 
 normalLineItemToHtml :: LineItem -> Html ()
-normalLineItemToHtml (Bold elts) = b_ (noteLineItemsToHtml elts)
-normalLineItemToHtml (Italics elts) = i_ (noteLineItemsToHtml elts)
-normalLineItemToHtml (Link target contents) =
-    a_ [href_ target] (noteLineItemsToHtml contents)
-normalLineItemToHtml (Password txt) = a_ [href_ ("pass://" <> txt)] "[password]"
-normalLineItemToHtml (PreformatInline txt) =
-    code_ [style_ "background-color: #eee"] (toHtml txt)
-normalLineItemToHtml (PlainText txt) = toHtml txt
+normalLineItemToHtml = \case
+    Bold elts     -> b_ (noteLineItemsToHtml elts)
+    Italics elts  -> i_ (noteLineItemsToHtml elts)
+    Password txt  -> a_ [href_ ("pass://" <> txt)] "[password]"
+    PlainText txt -> toHtml txt
+    Link target contents ->
+       a_ [href_ target] (noteLineItemsToHtml contents)
+    PreformatInline txt  ->
+       code_ [style_ "background-color: #eee"] (toHtml txt)
