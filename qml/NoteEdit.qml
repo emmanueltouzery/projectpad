@@ -6,6 +6,7 @@ Rectangle {
     id: noteEdit
     color: "light grey"
     property int preferredHeight: 490
+    property variant appContext: null
 
     property variant model: getDefaultModel()
 
@@ -97,7 +98,7 @@ Rectangle {
         y: 10
         anchors.left: parent.left
         anchors.right: parent.right
-        height: parent.height - 10
+        height: parent.height - 15
         anchors.margins: 10
         columns: 2
 
@@ -167,8 +168,13 @@ Rectangle {
             readOnly: true
             onLinkActivated: {
                 if (link.indexOf("pass://") === 0) {
-                    passwordActions.curPass = link.substring("pass://".length)
-                    passwordActions.visible = true
+                    var pass = link.substring("pass://".length)
+                    if (passwordActions.visible && passwordActions.curPass === pass) {
+                        closePasswordActions()
+                    } else {
+                        passwordActions.curPass = pass
+                        passwordActions.visible = true
+                    }
                 } else {
                     Qt.openUrlExternally(link)
                 }
@@ -200,29 +206,47 @@ Rectangle {
             }
         }
     }
+
+    function closePasswordActions() {
+        passwordActions.curPass = ""
+        passwordActions.visible = false
+    }
+
     Rectangle {
         id: passwordActions
         color: "light grey"
         width: parent.width
-        height: 30
+        height: 35
         property string curPass
         z: 2
         visible: false
         y: parent.height - height
-        Row {
-            anchors.fill: parent
-            Button {
-                text: "Copy password"
-                onClicked: {
-                    console.error(passwordActions.curPass)
-                    passwordActions.curPass = ""
-                    passwordActions.visible = false
-                }
+        Button {
+            id: copyPass
+            text: "Copy password"
+            x: 10
+            anchors.verticalCenter: parent.verticalCenter
+            onClicked: {
+                appContext.copyItem(passwordActions.curPass, true)
+                closePasswordActions()
             }
-            Button {
-                id: revealPassBtn
-                text: "Reveal password"
+        }
+        Button {
+            id: revealPassBtn
+            x: copyPass.x + copyPass.width + 5
+            anchors.verticalCenter: parent.verticalCenter
+            text: "Reveal password"
+            onClicked: {
+                appContext.successMessage(
+                    "The password is: " + passwordActions.curPass)
+                closePasswordActions()
             }
+        }
+        Button {
+            x: parent.width - width - 10
+            text: "Close"
+            anchors.verticalCenter: parent.verticalCenter
+            onClicked: closePasswordActions()
         }
     }
 }
