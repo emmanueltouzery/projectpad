@@ -9,6 +9,7 @@ Rectangle {
     property int preferredHeight: 260
 
     property variant model: getDefaultModel()
+    property var origModel
 
     function getDefaultModel() {
         return {"desc": "New server website", "url": "", "text": "",
@@ -16,7 +17,8 @@ Rectangle {
     }
 
     function activate(server, _model) {
-        srvWebsiteEdit.model = _model
+        origModel = _model
+        srvWebsiteEdit.model = Utils.deepCopy(_model)
         description.selectAll()
         description.forceActiveFocus()
 
@@ -44,7 +46,7 @@ Rectangle {
         }
         if (model.id) {
             srvWebsiteEdit.model = serverViewState.updateServerWebsite(
-                model, description.text, url.text, txt.text,
+                origModel, description.text, url.text, txt.text,
                 username.text, password.text, dbId, group.editText)
         } else {
             serverViewState.addServerWebsite(server.id,

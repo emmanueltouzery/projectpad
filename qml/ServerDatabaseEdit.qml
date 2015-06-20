@@ -9,6 +9,7 @@ Rectangle {
     property int preferredHeight: 230
 
     property variant model: getDefaultModel()
+    property var origModel
 
     function getDefaultModel() {
         return {"desc": "New database", "name": "",
@@ -16,7 +17,8 @@ Rectangle {
     }
 
     function activate(server, _model) {
-        srvDatabaseEdit.model = _model
+        origModel = _model
+        srvDatabaseEdit.model = Utils.deepCopy(_model)
 
         var groups = serverViewState.getServerGroupNames(server.id)
         group.model.clear()
@@ -32,7 +34,7 @@ Rectangle {
     function onOk(server) {
         if (model.id) {
             srvDatabaseEdit.model = serverViewState.updateServerDatabase(
-                model, description.text, name.text, txt.text,
+                origModel, description.text, name.text, txt.text,
                 username.text, password.text, group.editText)
         } else {
             serverViewState.addServerDatabase(server.id,

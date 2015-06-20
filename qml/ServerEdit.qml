@@ -10,6 +10,7 @@ Rectangle {
     property int preferredHeight: 330
 
     property variant model: getDefaultModel()
+    property var origModel
     property string keyFilepath
     property string environment
 
@@ -23,7 +24,8 @@ Rectangle {
 
     function activate(parent, _model, _environment) {
         password.resetToMasked()
-        serverEdit.model = _model
+        origModel = _model
+        serverEdit.model = Utils.deepCopy(_model)
         serverEdit.environment = _environment
         serverType.currentIndex = Math.max(
             0, Utils.listModelGetValueIndex(serverType.model, _model.type))
@@ -43,7 +45,7 @@ Rectangle {
     function onOk(project) {
         if (model.id) {
             serverEdit.model = projectViewState.updateServer(
-                model, serverDescription.text, ipAddress.text, txt.text,
+                origModel, serverDescription.text, ipAddress.text, txt.text,
                 username.text, password.text, serverEdit.keyFilepath,
                 serverTypeItems.get(serverType.currentIndex).value,
                 serverAccessTypeItems.get(serverAccessType.currentIndex).value,

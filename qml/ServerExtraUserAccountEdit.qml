@@ -10,6 +10,7 @@ Rectangle {
     property int preferredHeight: 190
 
     property variant model: getDefaultModel()
+    property var origModel
     property string keyFilepath
 
     function getDefaultModel() {
@@ -19,7 +20,8 @@ Rectangle {
     }
 
     function activate(server, _model) {
-        extraUserEdit.model = _model
+        origModel = _model
+        extraUserEdit.model = Utils.deepCopy(_model)
         authFilename.text = keyFilepath = _model.authKeyFilename
         userAccountDescription.selectAll()
         userAccountDescription.forceActiveFocus()
@@ -35,7 +37,7 @@ Rectangle {
     function onOk(server) {
         if (model.id) {
             extraUserEdit.model = serverViewState.updateServerExtraUserAccount(
-                model, userAccountDescription.text,
+                origModel, userAccountDescription.text,
                 username.text, password.text, extraUserEdit.keyFilepath, group.editText);
         } else {
             serverViewState.addServerExtraUserAccount(server.id,

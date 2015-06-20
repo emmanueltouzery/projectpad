@@ -37,3 +37,19 @@ function listModelGetValueIndex(listModel, value) {
     }
     return -1
 }
+
+// in normal JS I would serialize to JSON & back,
+// pretty sure that wouldn't work in QML
+// http://stackoverflow.com/a/11390499/516188
+function deepCopy(p) {
+    var c = {};
+    for (var i in p) {
+        if (typeof p[i] === 'object') {
+            c[i] = (p[i].constructor === Array) ? [] : {};
+            deepCopy(p[i], c[i]);
+        } else {
+            c[i] = p[i];
+        }
+    }
+    return c;
+}

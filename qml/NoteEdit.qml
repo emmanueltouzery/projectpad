@@ -2,6 +2,8 @@ import QtQuick 2.0
 import QtQuick.Layouts 1.1
 import QtQuick.Controls 1.3
 
+import "utils.js" as Utils
+
 Rectangle {
     id: noteEdit
     color: "light grey"
@@ -9,13 +11,15 @@ Rectangle {
     property variant appContext: null
 
     property variant model: getDefaultModel()
+    property var origModel
 
     function getDefaultModel() {
         return {"title":"New note", "contents":""}
     }
 
     function activate(parent, _model) {
-        model = _model
+        origModel = _model
+        model = Utils.deepCopy(_model)
         editAction.checked = false
         var groups = projectViewState.getProjectGroupNames(parent.id)
         group.model.clear()
@@ -31,7 +35,7 @@ Rectangle {
     function onOk(project) {
         if (model.id) {
             model = projectViewState.updateProjectNote(
-                model, title.text, textArea.text, group.editText);
+                origModel, title.text, textArea.text, group.editText);
         } else {
             projectViewState.addProjectNote(
                 project.id, title.text, textArea.text, group.editText)

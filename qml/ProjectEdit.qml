@@ -2,6 +2,8 @@ import QtQuick 2.0
 import QtQuick.Controls 1.2
 import QtQuick.Layouts 1.1
 
+import "utils.js" as Utils
+
 Rectangle {
     id: projectEdit
     color: "light grey"
@@ -15,9 +17,11 @@ Rectangle {
         "hasStaging" : "False",
         "hasProd": "True"
     }
+    property var origModel
 
     function activate(_model) {
-        projectEdit.model = _model
+        origModel = _model
+        projectEdit.model = Utils.deepCopy(_model)
         envDevelopment.checked = projectEdit.model.hasDev === "True"
         envUat.checked = projectEdit.model.hasUat === "True"
         envStaging.checked = projectEdit.model.hasStaging === "True"
@@ -34,7 +38,8 @@ Rectangle {
             return
         }
         if (model.id) {
-            projectEdit.model = projectListState.updateProject(model, projectNameEntry.text,
+            projectEdit.model = projectListState.updateProject(
+                origModel, projectNameEntry.text,
                 envDevelopment.checked, envUat.checked,
                 envStaging.checked, envProd.checked)
         } else {

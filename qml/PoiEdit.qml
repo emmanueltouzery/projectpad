@@ -10,6 +10,7 @@ Rectangle {
     property bool isServerPoi
 
     property variant model: getDefaultModel()
+    property var origModel
 
     function getDefaultModel() {
         return {"desc": "New point of interest", "path": "",
@@ -26,7 +27,8 @@ Rectangle {
     }
 
     function activate(parent, _model) {
-        poiEdit.model = _model
+        origModel = _model
+        poiEdit.model = Utils.deepCopy(_model)
         interestType.currentIndex =
             Math.max(0, Utils.listModelGetValueIndex(
                 interestType.model, _model.interestType))
@@ -46,7 +48,7 @@ Rectangle {
     function onOk(project) {
         if (model.id) {
             poiEdit.model = projectViewState.updateProjectPoi(
-                model, poiDescription.text, path.text, text.text,
+                origModel, poiDescription.text, path.text, text.text,
                 interestTypeItems.get(interestType.currentIndex).value,
                 group.editText)
         } else {
@@ -60,7 +62,7 @@ Rectangle {
     function onServerOk(server) {
         if (model.id) {
             poiEdit.model = serverViewState.updateServerPoi(
-                model, poiDescription.text, path.text, text.text,
+                origModel, poiDescription.text, path.text, text.text,
                 interestTypeItems.get(interestType.currentIndex).value,
                 group.editText)
         } else {
