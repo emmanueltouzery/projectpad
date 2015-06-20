@@ -128,6 +128,44 @@ Rectangle {
         }
     }
 
+    function replaceSelection(newText) {
+        textArea.remove(textArea.selectionStart, textArea.selectionEnd)
+        textArea.insert(textArea.selectionStart, newText)
+    }
+
+    function toggleBlockquote() {
+        if (textArea.selectedText.length > 0) {
+            var lines = textArea.selectedText.split("\n")
+            var newText = null
+            if (lines.every(function (l) { return l.indexOf("> ") == 0})) {
+                // remove the blockquote
+                newText = textArea.selectedText.replace(/\n> /g, "\n")
+                if (newText.indexOf("> ") == 0) {
+                    newText = newText.substring(2)
+                }
+            } else {
+                // add the blockquote
+                var addCr = true
+                var startOffset = textArea.selectionStart
+                if (startOffset == 0 ||
+                    textArea.getText(startOffset-1, startOffset) === "\n") {
+                    addCr = false
+                }
+                newText = (addCr ? "\n> " : "> ") +
+                    textArea.selectedText.replace(/\n/g, "\n> ")
+            }
+            replaceSelection(newText)
+        } else {
+            var pos = textArea.cursorPosition
+            if (textArea.cursorPosition > 2 &&
+                textArea.getText(pos - 2, pos) === "> ") {
+                textArea.remove(pos - 2, pos)
+            } else {
+                textArea.insert(pos, "\n> ")
+            }
+        }
+    }
+
     GridLayout {
         y: 10
         anchors.left: parent.left
@@ -233,6 +271,17 @@ Rectangle {
                         fillMode: Image.Pad
                     }
                     onClicked: togglePreformat()
+                    enabled: editAction.checked
+                }
+                ToolButton {
+                    width: 33
+                    Image {
+                        x: 3
+                        y: editAction.checked ? 8 : 100
+                        source: "../glyphicons-free/glyphicons-547-quote.png"
+                        fillMode: Image.Pad
+                    }
+                    onClicked: toggleBlockquote()
                     enabled: editAction.checked
                 }
             }
