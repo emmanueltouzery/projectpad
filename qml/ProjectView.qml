@@ -12,13 +12,11 @@ Rectangle {
     signal loadView(string name, variant model)
     property variant model
     property variant appContext: null
+    property string _popupToDisplay
 
     property bool editMode
 
-    property variant actions: [
-        ["addsrv", "glyphicons-470-server-new", "Add server"],
-        ["addpoi", "glyphicons-336-pushpin", "Add point of interest"],
-        ["addnote", "glyphicons-336-pushpin", "Add note"]]
+    property variant actions: [["add", "glyphicons-191-circle-plus", "Add..."]]
 
     function getBreadCrumbs() {
         return {pathLinks: [], title: model.project.name + " " + PoiActions.envDesc(model.environment)};
@@ -66,6 +64,26 @@ Rectangle {
                     refreshProjectView()
                 })
             break;
+        case "add":
+            popup.implicitClose = false
+            popup.setContents("Add...", addProjectComponent,
+                              function (prjAdd) {
+                                  prjAdd.init()
+                              },
+                              function (prjAdd) {
+                                  var matches = {1: "addsrv", 2: "addpoi", 3: "addnote"}
+                                  _popupToDisplay = matches[prjAdd.next()]
+                                  displayPopupTimer.start()
+                              }, {okBtnText: "Next"})
+            break;
+        }
+    }
+
+    Timer {
+        id: displayPopupTimer
+        interval: 0
+        onTriggered: {
+            actionTriggered(_popupToDisplay)
         }
     }
 
@@ -164,7 +182,12 @@ Rectangle {
                     appContext: pv.appContext
                 }
             }
-
+            Component {
+                id: addProjectComponent
+                ProjectAddPopup {
+                    id: prjAddPopup
+                }
+            }
             FileDialog {
                 id: saveAuthKeyDialog
                 title: "Please choose a destination"
