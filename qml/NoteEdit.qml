@@ -159,63 +159,71 @@ Rectangle {
                 ToolButton {
                     Image {
                         x: 5
-                        y: 3
+                        // as of Qt 5.4, if I use visible to hide,
+                        // all the bottoms appear with the bevel
+                        // visible which is ugly => rather use the
+                        // y coordinate to hide or show.
+                        y: editAction.checked ? 3 : 100
                         source: "../glyphicons-free/glyphicons-103-bold.png"
                         fillMode: Image.Pad
                     }
                     onClicked: toggleSnippet("**", "**")
-                    visible: editAction.checked
+                    // second part of the hack: since I don't use
+                    // visible to hide, but the y coord, the bevel
+                    // is still visible on hover with the y=100.
+                    // => combine with enabled to get rid of that too.
+                    enabled: editAction.checked
                 }
                 ToolButton {
                     Image {
                         x: 8
-                        y: 3
+                        y: editAction.checked ? 3 : 100
                         source: "../glyphicons-free/glyphicons-102-italic.png"
                         fillMode: Image.Pad
                     }
                     onClicked: toggleSnippet("*", "*")
-                    visible: editAction.checked
+                    enabled: editAction.checked
                 }
                 ToolButton {
                     Image {
                         x: 4
-                        y: 4
+                        y: editAction.checked ? 4 : 100
                         source: "../glyphicons-free/glyphicons-460-header.png"
                         fillMode: Image.Pad
                     }
                     onClicked: toggleHeader()
-                    visible: editAction.checked
+                    enabled: editAction.checked
                 }
                 ToolButton {
                     Image {
                         x: 5
-                        y: 2
+                        y: editAction.checked ? 2 : 100
                         source: "../glyphicons-free/glyphicons-51-link.png"
                         fillMode: Image.Pad
                     }
                     onClicked: toggleSnippet("[", "](url)")
-                    visible: editAction.checked
+                    enabled: editAction.checked
                 }
                 ToolButton {
                     Image {
                         x: 5
-                        y: 2
+                        y: editAction.checked ? 2 : 100
                         source: "../glyphicons-free/glyphicons-204-lock.png"
                         fillMode: Image.Pad
                     }
                     onClicked: togglePassword()
-                    visible: editAction.checked
+                    enabled: editAction.checked
                 }
                 ToolButton {
                     width: 33
                     Image {
                         x: 3
-                        y: 8
+                        y: editAction.checked ? 8 : 100
                         source: "../glyphicons-free/glyphicons-69-ruler.png"
                         fillMode: Image.Pad
                     }
                     onClicked: togglePreformat()
-                    visible: editAction.checked
+                    enabled: editAction.checked
                 }
             }
         }
