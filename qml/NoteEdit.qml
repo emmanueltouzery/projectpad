@@ -118,6 +118,16 @@ Rectangle {
         }
     }
 
+    function getRichText(rawText) {
+        var parseResult = noteTextToHtml(rawText)
+        if (parseResult[0] === "error") {
+            errorMessage("Error: the note text is not properly formatted")
+            return ""
+        } else {
+            return parseResult[1]
+        }
+    }
+
     GridLayout {
         y: 10
         anchors.left: parent.left
@@ -234,7 +244,7 @@ Rectangle {
             Layout.fillWidth: true
             Layout.fillHeight: true
             textFormat: TextEdit.RichText
-            text: noteTextToHtml(model.contents)[1] // #### should check for errors
+            text: getRichText(model.contents)
             readOnly: true
             onLinkActivated: {
                 if (link.indexOf("pass://") === 0) {
@@ -270,7 +280,7 @@ Rectangle {
                 } else {
                     preview.visible = true
                     textArea.visible = false
-                    var html = noteTextToHtml(textArea.text)[1] // ### should check for errors
+                    var html = getRichText(textArea.text)
                     preview.text = "<html><body>" + html + "</body></html>"
                 }
             }
