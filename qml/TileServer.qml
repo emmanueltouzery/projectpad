@@ -4,10 +4,7 @@ import "server-menu.js" as ServerMenu
 
 ItemTile {
     property int modelId: modelData.server.id
-    property bool selected: false
     color: "light blue"
-    border.width: selected ? 4 : 0
-    border.color: "green"
     itemDesc: modelData.server.desc
     icon: ServerMenu.getServerIcon(modelData.server)
     property variant global: undefined

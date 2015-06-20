@@ -4,13 +4,10 @@ import "utils.js" as Utils
 ItemTile {
     id: tileServerDatabase
     property int modelId: model.id
-    property bool selected: false
     property variant model
     property variant server
     width: 180; height: 180
     color: "gray"
-    border.width: selected ? 4 : 0
-    border.color: "green"
     itemDesc: model.desc
     icon: "glyphicons-528-database"
     property variant global: undefined

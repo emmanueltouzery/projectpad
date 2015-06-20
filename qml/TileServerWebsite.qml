@@ -4,10 +4,7 @@ import "utils.js" as Utils
 ItemTile {
     id: tileServerWebsite
     property int modelId: model.id
-    property bool selected: false
     color: "light slate gray"
-    border.width: selected ? 4 : 0
-    border.color: "green"
     itemDesc: model.desc
     property variant model
     property variant server

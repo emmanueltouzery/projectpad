@@ -7,10 +7,7 @@ ItemTile {
     property variant model
     icon: PoiActions.actions[model.interestType].icon
     property int modelId: model.id
-    property bool selected: false
     color: "light gray"
-    border.width: selected ? 4 : 0
-    border.color: "green"
     property variant global: undefined
     property variant project
 

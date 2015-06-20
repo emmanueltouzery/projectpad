@@ -4,10 +4,7 @@ import "utils.js" as Utils
 ItemTile {
 
     property int modelId: modelData.id
-    property bool selected: false
     color: "light blue"
-    border.width: selected ? 4 : 0
-    border.color: "green"
     itemDesc: modelData.name
     icon: "glyphicons-441-folder-closed"
 

@@ -5,10 +5,7 @@ import "utils.js" as Utils
 ItemTile {
     property int modelId: model.id
     property variant model
-    property bool selected: false
     color: "light gray"
-    border.width: selected ? 4 : 0
-    border.color: "green"
     itemDesc: model.desc
     property variant server
     icon: PoiActions.actions[model.interestType].icon

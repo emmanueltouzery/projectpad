@@ -5,10 +5,7 @@ ItemTile {
     property int modelId: model.id
     property variant model
     property variant server
-    property bool selected: false
     color: "dark gray"
-    border.width: selected ? 4 : 0
-    border.color: "green"
     itemDesc: model.desc
     icon: "glyphicons-526-user-key"
     property variant global: undefined
