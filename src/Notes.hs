@@ -25,6 +25,7 @@ data NoteElement = Header1 Text
                    | Header2 Text
                    | Header3 Text
                    | List [[LineItem]]
+                   | NumberedList [[LineItem]]
                    | PreformatBlock Text
                    | NormalLine [LineItem]
                    | BlockQuote Int [NoteElement]
@@ -47,6 +48,7 @@ parseNoteDocument = fmap (mergeBlockQuotes . mergePlainTexts)
 parseLine :: Parser NoteElement
 parseLine = choice (parseHeader <$> headerTypes)
                 <|> parseList
+                <|> parseNumberedList
                 <|> parsePreformatBlock
                 <|> parseBlockQuote
                 <|> parseNormalLine <* eotOrNewLine
@@ -132,6 +134,13 @@ parseList = List <$> many1 parseListItem
 parseListItem :: Parser [LineItem]
 parseListItem = many (string " ") *> string "- " *> manyTill parseLineItem eotOrNewLine
 
+parseNumberedList :: Parser NoteElement
+parseNumberedList = NumberedList <$> many1 parseNumberedListItem
+
+parseNumberedListItem :: Parser [LineItem]
+parseNumberedListItem = (many (string " ") >> many1 digit >> string ". ")
+                        *> manyTill parseLineItem eotOrNewLine
+
 eotOrNewLine :: Parser ()
 eotOrNewLine = endOfInput <|> endOfLine
 
@@ -174,6 +183,7 @@ noteElementToHtml = \case
     Header2 txt        -> h2_ (toHtml txt)
     Header3 txt        -> h3_ (toHtml txt)
     List items         -> ul_ (mapM_ (li_ . noteLineItemsToHtml) items)
+    NumberedList items -> ol_ (mapM_ (li_ . noteLineItemsToHtml) items)
     NormalLine items   -> noteLineItemsToHtml items
     BlockQuote depth content -> table_ [bgcolor_ "lightblue", cellspacing_ "0"] $ tr_ $ do
           td_ $ replicateRawH depth "&nbsp;&nbsp;"

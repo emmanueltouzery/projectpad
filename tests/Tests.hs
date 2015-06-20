@@ -57,6 +57,11 @@ runNotesParsingTests = it "parses notes properly" $ do
                               [PlainText "one", Bold [PlainText "bold"]],
                               [PlainText "two"]], NormalLine [PlainText "b"]])
         $ parseNoteDocument "a\n - one**bold**\n - two\nb"
+    assertEqual "numbered list"
+                (Right [NormalLine [PlainText "a"], NumberedList [
+                              [PlainText "one", Bold [PlainText "bold"]],
+                              [PlainText "two"]], NormalLine [PlainText "b"]])
+        $ parseNoteDocument "a\n 1. one**bold**\n 2. two\nb"
     assertEqual "single cr"
                 (Right [NormalLine [PlainText "a"], NormalLine [PlainText "b"]])
         $ parseNoteDocument "a\nb"
