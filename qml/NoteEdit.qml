@@ -16,12 +16,14 @@ Rectangle {
 
     function activate(parent, _model) {
         model = _model
+        editAction.checked = false
         var groups = projectViewState.getProjectGroupNames(parent.id)
         group.model.clear()
         groups.forEach(function (grp) {
             group.model.append({"text": grp})
         })
         group.currentIndex = groups.indexOf(_model.groupName)
+        editModeChanged()
         title.selectAll()
         title.forceActiveFocus()
     }
@@ -322,17 +324,19 @@ Rectangle {
             id: editAction
             checkable: true
             iconSource: "../glyphicons-free/glyphicons-151-edit.png"
-            onTriggered: {
-                if (editAction.checked) {
-                    preview.visible = false
-                    textArea.visible = true
-                } else {
-                    preview.visible = true
-                    textArea.visible = false
-                    var html = getRichText(textArea.text)
-                    preview.text = "<html><body>" + html + "</body></html>"
-                }
-            }
+            onTriggered: editModeChanged()
+        }
+    }
+
+    function editModeChanged() {
+        if (editAction.checked) {
+            preview.visible = false
+            textArea.visible = true
+        } else {
+            preview.visible = true
+            textArea.visible = false
+            var html = getRichText(textArea.text)
+            preview.text = "<html><body>" + html + "</body></html>"
         }
     }
 
