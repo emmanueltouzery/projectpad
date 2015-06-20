@@ -136,6 +136,10 @@ noteDocumentToHtmlText = TL.toStrict . renderText . noteDocumentToHtml
 noteDocumentToHtml :: NoteDocument -> Html ()
 noteDocumentToHtml = fold . fmap noteElementToHtml
 
+-- despite the documentation http://doc.qt.io/qt-5/richtext-html-subset.html
+bgcolor_ :: Text -> Attribute
+bgcolor_ = makeAttribute "bgcolor"
+
 noteElementToHtml :: NoteElement -> Html ()
 noteElementToHtml = \case
     Header1 txt        -> h1_ (toHtml txt)
@@ -144,7 +148,7 @@ noteElementToHtml = \case
     List items         -> ul_ (mapM_ (li_ . noteLineItemsToHtml) items)
     NormalLine items   -> noteLineItemsToHtml items
     PreformatBlock txt ->
-        pre_ [style_ "background-color: #eee"] (toHtml txt)
+        p_ $ table_ [bgcolor_ "#eee"] (tr_ $ td_ (pre_ $ toHtml txt))
 
 noteLineItemsToHtml :: [LineItem] -> Html ()
 noteLineItemsToHtml = fold . fmap normalLineItemToHtml
