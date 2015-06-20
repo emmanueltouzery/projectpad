@@ -72,6 +72,12 @@ runNotesParsingTests = it "parses notes properly" $ do
     assertEqual "block pre"
                 (Right [NormalLine [PlainText "hello"], PreformatBlock "this is\n pre*form*atted."])
         $ parseNoteDocument "hello\n```\nthis is\n pre*form*atted.\n```"
+    assertEqual "blockquote"
+        (Right [NormalLine [PlainText "hello"],
+                BlockQuote 1 [NormalLine [PlainText "quoted"], NormalLine [PlainText " "], NormalLine [PlainText"again"]],
+                BlockQuote 2 [NormalLine [PlainText "two ", Bold [PlainText "level"]]],
+                BlockQuote 1 [Header1 "header"], NormalLine [PlainText "back to normal."]])
+        $ parseNoteDocument "hello\n> quoted\n> again\n> > two **level**\n> # header\nback to normal."
 
 runNotesHtmlGenTests :: Spec
 runNotesHtmlGenTests = it "generates HTML properly" $ do

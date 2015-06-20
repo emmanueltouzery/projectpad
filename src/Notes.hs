@@ -2,7 +2,7 @@
 
 module Notes where
 
-import Prelude hiding (concatMap, mapM_)
+import Prelude hiding (concatMap, mapM_, concat)
 import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.Text.Lazy as TL
@@ -17,7 +17,9 @@ import Data.Foldable hiding (elem)
 -- NOTE of course I realize that the area of markdown parsing
 -- and even markdown->html is very well covered in haskell,
 -- but I add my own markup (password, and possibly others
--- coming), and also it's fun to code :-)
+-- coming), I'm generating HTML for the QML TextArea which
+-- means a pretty small subset of HTML,
+-- and also it's fun to code :-)
 
 data NoteElement = Header1 Text
                    | Header2 Text
@@ -25,6 +27,7 @@ data NoteElement = Header1 Text
                    | List [[LineItem]]
                    | PreformatBlock Text
                    | NormalLine [LineItem]
+                   | BlockQuote Int [NoteElement]
                      deriving (Show, Eq)
 
 data LineItem = Bold [LineItem]
@@ -38,24 +41,45 @@ data LineItem = Bold [LineItem]
 type NoteDocument = [NoteElement]
 
 parseNoteDocument :: Text -> Either String NoteDocument
-parseNoteDocument = fmap mergePlainTexts . attoParse (many parseLine)
+parseNoteDocument = fmap (mergeBlockQuotes . mergePlainTexts)
+                    . attoParse (many parseLine)
 
 parseLine :: Parser NoteElement
 parseLine = choice (parseHeader <$> headerTypes)
-                           <|> parseList
-                           <|> parsePreformatBlock
-                           <|> parseNormalLine <* eotOrNewLine
-                           <|> (endOfLine >> return (NormalLine [PlainText " "]))
+                <|> parseList
+                <|> parsePreformatBlock
+                <|> parseBlockQuote
+                <|> parseNormalLine <* eotOrNewLine
+                <|> (endOfLine >> return (NormalLine [PlainText " "]))
 
 mergePlainTexts :: [NoteElement] -> [NoteElement]
-mergePlainTexts (NormalLine (PlainText x:PlainText y: ys) : z) =
-    mergePlainTexts $ NormalLine (PlainText (x <> y):ys) : z
-mergePlainTexts (x:xs) = x:mergePlainTexts xs
-mergePlainTexts [] = []
+mergePlainTexts  = \case
+    NormalLine (PlainText x:PlainText y: ys) : z ->
+        mergePlainTexts $ NormalLine (PlainText (x <> y):ys) : z
+    x:xs -> x:mergePlainTexts xs
+    []   -> []
+
+mergeBlockQuotes :: [NoteElement] -> [NoteElement]
+mergeBlockQuotes = \case
+    u@(BlockQuote x a) : v@(BlockQuote y b) : xs ->
+        if x == y
+           then mergeBlockQuotes $ BlockQuote x
+                (a <> [NormalLine [PlainText " "]] <> b):xs
+           else u:mergeBlockQuotes (v:xs)
+    x:xs -> x:mergeBlockQuotes xs
+    []   -> []
 
 parsePreformatBlock :: Parser NoteElement
 parsePreformatBlock = PreformatBlock <$> T.pack <$> ((string "```" >> endOfLine)
                        *> manyTill1 anyChar (endOfLine >> string "```"))
+
+parseBlockQuote :: Parser NoteElement
+parseBlockQuote = do
+    string "> "
+    contents <- parseLine
+    return $ case contents of
+        (BlockQuote i c) -> BlockQuote (i+1) c
+        x@_ -> BlockQuote 1 [x]
 
 parseNormalLine :: Parser NoteElement
 parseNormalLine =  NormalLine <$> many1 parseLineItem
@@ -130,15 +154,19 @@ parseHeader (level, ctr) = ctr <$> T.pack <$> (header *> manyTill1 anyChar eotOr
     where
       header = string (level <> " ")
 
+-- restrict myself to http://doc.qt.io/qt-5/richtext-html-subset.html
+-- which is pretty much a subset of html4.
 noteDocumentToHtmlText :: NoteDocument -> Text
 noteDocumentToHtmlText = TL.toStrict . renderText . noteDocumentToHtml
 
 noteDocumentToHtml :: NoteDocument -> Html ()
 noteDocumentToHtml = fold . fmap noteElementToHtml
 
--- despite the documentation http://doc.qt.io/qt-5/richtext-html-subset.html
 bgcolor_ :: Text -> Attribute
 bgcolor_ = makeAttribute "bgcolor"
+
+cellspacing_ :: Text -> Attribute
+cellspacing_ = makeAttribute "cellspacing"
 
 noteElementToHtml :: NoteElement -> Html ()
 noteElementToHtml = \case
@@ -147,8 +175,12 @@ noteElementToHtml = \case
     Header3 txt        -> h3_ (toHtml txt)
     List items         -> ul_ (mapM_ (li_ . noteLineItemsToHtml) items)
     NormalLine items   -> noteLineItemsToHtml items
+    BlockQuote depth content -> table_ [bgcolor_ "lightblue", cellspacing_ "0"] $ tr_ $ do
+          td_ $ replicateRawH depth "&nbsp;&nbsp;"
+          td_ $ table_ [bgcolor_ "white"] (tr_ $ td_ $ noteDocumentToHtml content)
     PreformatBlock txt ->
         p_ $ table_ [bgcolor_ "#eee"] (tr_ $ td_ (pre_ $ toHtml txt))
+    where replicateRawH d = toHtmlRaw . T.pack . concat . replicate d
 
 noteLineItemsToHtml :: [LineItem] -> Html ()
 noteLineItemsToHtml = fold . fmap normalLineItemToHtml
