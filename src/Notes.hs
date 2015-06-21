@@ -42,8 +42,7 @@ data LineItem = Bold [LineItem]
 type NoteDocument = [NoteElement]
 
 parseNoteDocument :: Text -> Either String NoteDocument
-parseNoteDocument = fmap mergeBlockQuotes
-                    . attoParse (many parseLine)
+parseNoteDocument = fmap mergeBlockQuotes . attoParse (many parseLine)
 
 parseLine :: Parser NoteElement
 parseLine = choice (parseHeader <$> headerTypes)
@@ -56,11 +55,9 @@ parseLine = choice (parseHeader <$> headerTypes)
 
 mergeBlockQuotes :: [NoteElement] -> [NoteElement]
 mergeBlockQuotes = \case
-    u@(BlockQuote x a) : v@(BlockQuote y b) : xs ->
-        if x == y
-           then mergeBlockQuotes $ BlockQuote x
+    BlockQuote x a : BlockQuote y b : xs | x == y ->
+           mergeBlockQuotes $ BlockQuote x
                 (a <> [NormalLine [PlainText " "]] <> b):xs
-           else u:mergeBlockQuotes (v:xs)
     x:xs -> x:mergeBlockQuotes xs
     []   -> []
 
@@ -93,17 +90,10 @@ parseLineItem = parseEscapedMarkers
                      <|> parsePassword
                      <|> parseLink
                      <|> PlainText <$> takeWhile1 (not . (`elem` "*[]\n\\`"))
-                     <|> PlainText <$> string "["
-                     <|> PlainText <$> string "]"
-                     <|> PlainText <$> string "*"
-                     <|> PlainText <$> string "`"
+                     <|> PlainText <$> choice (string <$> ["[", "]", "*", "`"])
 
 parseEscapedMarkers :: Parser LineItem
-parseEscapedMarkers = parseEscape "\\"
-                          <|> parseEscape "*"
-                          <|> parseEscape "`"
-                          <|> parseEscape "#"
-                          <|> parseEscape "-"
+parseEscapedMarkers = choice (parseEscape <$> ["\\", "*", "`", "#",  "-"])
     where parseEscape t = string ("\\" <> t) *> return (PlainText t)
 
 parsePreformatInline :: Parser LineItem
@@ -116,7 +106,8 @@ parsePreformatInline = PreformatInline <$>
 -- doesn't. Would rather a parse failure than stupid parse.
 -- It is a bit contrived though.
 parseTextToggle :: ([LineItem] -> LineItem) -> Text -> Parser LineItem
-parseTextToggle ctr txt = ctr <$> (string txt *> manyTill1 parseLineItem (string txt))
+parseTextToggle ctr txt =
+    ctr <$> (string txt *> manyTill1 parseLineItem (string txt))
 
 manyTill1 :: Alternative f => f a -> f b -> f [a]
 manyTill1 p t = liftA2 (:) p (manyTill p t)
@@ -131,7 +122,8 @@ parseList :: Parser NoteElement
 parseList = List <$> many1 parseListItem
 
 parseListItem :: Parser [LineItem]
-parseListItem = many (string " ") *> string "- " *> manyTill parseLineItem eotOrNewLine
+parseListItem = many (string " ") *> string "- " *>
+    manyTill parseLineItem eotOrNewLine
 
 parseNumberedList :: Parser NoteElement
 parseNumberedList = NumberedList <$> many1 parseNumberedListItem
@@ -151,16 +143,13 @@ parsePassword = do
 type HeaderInfo a = (Text, Text -> a)
 
 headerTypes :: [HeaderInfo NoteElement]
-headerTypes = [
-    ("#",   Header1),
-    ("##",  Header2),
-    ("###", Header3)
-    ]
+headerTypes = [("#",   Header1), ("##",  Header2), ("###", Header3)]
 
 parseHeader :: HeaderInfo a -> Parser a
-parseHeader (level, ctr) = ctr <$> T.pack <$> (header *> manyTill1 anyChar eotOrNewLine)
+parseHeader (level, ctr) = ctr <$> T.pack <$> (header *> contents)
     where
-      header = string (level <> " ")
+      header   = string (level <> " ")
+      contents = manyTill1 anyChar eotOrNewLine
 
 -- restrict myself to http://doc.qt.io/qt-5/richtext-html-subset.html
 -- which is pretty much a subset of html4.
@@ -184,9 +173,10 @@ noteElementToHtml = \case
     List items         -> ul_ (mapM_ (li_ . noteLineItemsToHtml) items)
     NumberedList items -> ol_ (mapM_ (li_ . noteLineItemsToHtml) items)
     NormalLine items   -> noteLineItemsToHtml items
-    BlockQuote depth content -> table_ [bgcolor_ "lightblue", cellspacing_ "0"] $ tr_ $ do
-          td_ $ replicateRawH depth "&nbsp;&nbsp;"
-          td_ $ table_ [bgcolor_ "white"] (tr_ $ td_ $ noteDocumentToHtml content)
+    BlockQuote depth content -> table_ [bgcolor_ "lightblue", cellspacing_ "0"]
+        $ tr_ $ do
+            td_ $ replicateRawH depth "&nbsp;&nbsp;"
+            td_ $ table_ [bgcolor_ "white"] (tr_ $ td_ $ noteDocumentToHtml content)
     PreformatBlock txt ->
         p_ $ table_ [bgcolor_ "#eee"] (tr_ $ td_ (pre_ $ toHtml txt))
     where replicateRawH d = toHtmlRaw . T.pack . concat . replicate d
