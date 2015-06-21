@@ -42,7 +42,7 @@ data LineItem = Bold [LineItem]
 type NoteDocument = [NoteElement]
 
 parseNoteDocument :: Text -> Either String NoteDocument
-parseNoteDocument = fmap (mergeBlockQuotes . mergePlainTexts)
+parseNoteDocument = fmap mergeBlockQuotes
                     . attoParse (many parseLine)
 
 parseLine :: Parser NoteElement
@@ -53,13 +53,6 @@ parseLine = choice (parseHeader <$> headerTypes)
                 <|> parseBlockQuote
                 <|> parseNormalLine <* eotOrNewLine
                 <|> (endOfLine >> return (NormalLine [PlainText " "]))
-
-mergePlainTexts :: [NoteElement] -> [NoteElement]
-mergePlainTexts  = \case
-    NormalLine (PlainText x:PlainText y: ys) : z ->
-        mergePlainTexts $ NormalLine (PlainText (x <> y):ys) : z
-    x:xs -> x:mergePlainTexts xs
-    []   -> []
 
 mergeBlockQuotes :: [NoteElement] -> [NoteElement]
 mergeBlockQuotes = \case
@@ -84,7 +77,13 @@ parseBlockQuote = do
         x@_ -> BlockQuote 1 [x]
 
 parseNormalLine :: Parser NoteElement
-parseNormalLine =  NormalLine <$> many1 parseLineItem
+parseNormalLine =  NormalLine <$> mergePlainTexts <$> many1 parseLineItem
+
+mergePlainTexts :: [LineItem] -> [LineItem]
+mergePlainTexts = \case
+    PlainText x : PlainText y : xs -> mergePlainTexts $ PlainText (x <> y) : xs
+    x:xs -> x:mergePlainTexts xs
+    [] -> []
 
 parseLineItem :: Parser LineItem
 parseLineItem = parseEscapedMarkers
