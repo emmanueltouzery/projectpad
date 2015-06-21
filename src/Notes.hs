@@ -9,7 +9,6 @@ import qualified Data.Text.Lazy as TL
 import Data.Attoparsec.Text
 import Data.Monoid
 import Control.Applicative
-import Util
 import Lucid.Base
 import Lucid.Html5
 import Data.Foldable hiding (elem)
@@ -42,7 +41,7 @@ data LineItem = Bold [LineItem]
 type NoteDocument = [NoteElement]
 
 parseNoteDocument :: Text -> Either String NoteDocument
-parseNoteDocument = fmap mergeBlockQuotes . attoParse (many parseLine)
+parseNoteDocument = fmap mergeBlockQuotes . parseOnly (many parseLine)
 
 parseLine :: Parser NoteElement
 parseLine = choice (parseHeader <$> headerTypes)

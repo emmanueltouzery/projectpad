@@ -162,7 +162,7 @@ getProjectDisplaySections sqlBackend projectId environment = do
       srvExtraInfoRefGetServer = entityVal . fromObjRef . srvExtraInfoServer . fromObjRef
 
 splitParams :: Text -> Either String [Text]
-splitParams = attoParse splitParamsParser
+splitParams = parseOnly splitParamsParser
     where
         splitParamsParser = (parseQuotedParam <|> parseParam) `sepBy` char ' '
         parseQuotedParam = char '"' *> takeWhile1 (/= '"') <* char '"'

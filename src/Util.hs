@@ -10,7 +10,6 @@ import qualified Data.ByteString as BS
 import qualified Data.Text as T
 import Control.Exception
 import Control.Applicative
-import Data.Attoparsec.Text
 
 -- TODO a more general version is provided by Data.Bifunctor
 -- in base 4.8 (GHC 7.10). Switch when upgrading.
@@ -78,6 +77,3 @@ liftQmlResult2 f p q =  QmlResult <$> f p q
 
 liftQmlResult3 :: (x -> y -> z -> IO (Either Text a)) -> (x -> y -> z -> IO (QmlResult a))
 liftQmlResult3 f p q r =  QmlResult <$> f p q r
-
-attoParse :: Parser a -> Text -> Either String a
-attoParse parser = eitherResult . flip feed T.empty . parse parser
