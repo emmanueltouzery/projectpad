@@ -164,7 +164,7 @@ getProjectDisplaySections sqlBackend projectId environment = do
 splitParams :: Text -> Either String [Text]
 splitParams = parseOnly splitParamsParser
     where
-        splitParamsParser = (parseQuotedParam <|> parseParam) `sepBy` char ' '
+        splitParamsParser = (parseQuotedParam <|> parseParam) `sepBy` char ' ' <* endOfInput
         parseQuotedParam = char '"' *> takeWhile1 (/= '"') <* char '"'
         parseParam = takeWhile1 (/= ' ')
 

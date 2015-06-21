@@ -41,7 +41,10 @@ data LineItem = Bold [LineItem]
 type NoteDocument = [NoteElement]
 
 parseNoteDocument :: Text -> Either String NoteDocument
-parseNoteDocument = fmap mergeBlockQuotes . parseOnly (many parseLine)
+parseNoteDocument = fmap mergeBlockQuotes . parseOnly parseDocument
+
+parseDocument :: Parser NoteDocument
+parseDocument = many parseLine <* endOfInput
 
 parseLine :: Parser NoteElement
 parseLine = choice (parseHeader <$> headerTypes)
