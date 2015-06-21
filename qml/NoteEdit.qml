@@ -139,6 +139,12 @@ Rectangle {
         textArea.insert(textArea.selectionStart, newText)
     }
 
+    function blockquoteNeedCr(startOffset) {
+        var dontNeedCr = startOffset == 0 ||
+            textArea.getText(startOffset-1, startOffset) === "\n"
+        return !dontNeedCr
+    }
+
     function toggleBlockquote() {
         if (textArea.selectedText.length > 0) {
             var lines = textArea.selectedText.split("\n")
@@ -151,23 +157,19 @@ Rectangle {
                 }
             } else {
                 // add the blockquote
-                var addCr = true
-                var startOffset = textArea.selectionStart
-                if (startOffset == 0 ||
-                    textArea.getText(startOffset-1, startOffset) === "\n") {
-                    addCr = false
-                }
+                var addCr = blockquoteNeedCr(textArea.selectionStart)
                 newText = (addCr ? "\n> " : "> ") +
                     textArea.selectedText.replace(/\n/g, "\n> ")
             }
             replaceSelection(newText)
         } else {
             var pos = textArea.cursorPosition
-            if (textArea.cursorPosition > 2 &&
+            if (textArea.cursorPosition >= 2 &&
                 textArea.getText(pos - 2, pos) === "> ") {
                 textArea.remove(pos - 2, pos)
             } else {
-                textArea.insert(pos, "\n> ")
+                var addCr = blockquoteNeedCr(pos)
+                textArea.insert(pos, addCr ? "\n> " : "> ")
             }
         }
     }
