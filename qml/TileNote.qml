@@ -31,7 +31,7 @@ ItemTile {
                         refreshProjectView()
                     })
                 }]]
-            selectMenu.show(parent)
+            selectMenu.show(parent, global)
         }
     }
 }
