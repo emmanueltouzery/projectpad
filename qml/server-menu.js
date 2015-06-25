@@ -33,19 +33,19 @@ function showSelectMenu(project, server, parnt, desktopSize, refreshAction, menu
         ["glyphicons-512-copy", function() { appContext.copyItem(server.password, true) }],
         ["glyphicons-193-circle-remove", function() {
             appContext.confirmDelete(function() {
-                var msg = projectViewState.canDeleteServer(server)
+                var msg = getAppState().projectViewState.canDeleteServer(server)
                 if (msg !== null) {
                     appContext.errorMessage(msg)
                     return
                 }
-                Utils.handleEither(projectViewState.deleteServers([server.id]))
+                Utils.handleEither(getAppState().projectViewState.deleteServers([server.id]))
                 // force refresh
                 refreshAction()
             })
         }]]
     if (server.accessType === "SrvAccessWww") {
         options.push(["glyphicons-372-global", function() {
-            openAssociatedFile(server.serverIp)
+            getAppState().openAssociatedFile(server.serverIp)
         }])
     }
     if (server.authKeyFilename !== "...") {
@@ -64,7 +64,7 @@ function showSelectMenu(project, server, parnt, desktopSize, refreshAction, menu
                 // width by two to compensate.
                 desktopWidth = desktopWidth / 2
             }
-            var info = projectViewState.runRdp(server,
+            var info = getAppState().projectViewState.runRdp(server,
                 Math.round(desktopWidth * 0.75),
                 Math.round(desktopSize.height * 0.75))
             if (info[0] === "error") {
@@ -77,7 +77,7 @@ function showSelectMenu(project, server, parnt, desktopSize, refreshAction, menu
             && server.password.length > 0) {
         options.push(["glyphicons-489-multiple-displays", function() {
             Utils.runIfSshHostTrusted(server, function () {
-                    var info = projectViewState.openSshSession(server)
+                var info = getAppState().projectViewState.openSshSession(server)
                     if (info[0] === "error") {
                         appContext.errorMessage(info[1])
                     }

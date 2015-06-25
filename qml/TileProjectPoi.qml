@@ -26,13 +26,14 @@ ItemTile {
         anchors.fill: parent
         onClicked: {
             selectMenu.options = [[PoiActions.actions[model.interestType].icon, function() {
-                var info = projectViewState.runPoiAction(model)
+                var info = getAppState().projectViewState.runPoiAction(model)
                 appContext.progressMessage("\nStarted program\n")
                 }],
                 ["glyphicons-151-edit", function() {editPoi(model)}],
                 ["glyphicons-193-circle-remove", function() {
                     appContext.confirmDelete(function() {
-                        Utils.handleEither(projectViewState.deleteProjectPois([model.id]))
+                        Utils.handleEither(getAppState()
+                                           .projectViewState.deleteProjectPois([model.id]))
                         // force refresh
                         refreshProjectView()
                     })

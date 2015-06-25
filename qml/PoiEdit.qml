@@ -36,8 +36,8 @@ Rectangle {
         poiDescription.forceActiveFocus()
 
         var groups = isServerPoi
-            ? serverViewState.getServerGroupNames(parent.id)
-            : projectViewState.getProjectGroupNames(parent.id)
+            ? getAppState().serverViewState.getServerGroupNames(parent.id)
+            : getAppState().projectViewState.getProjectGroupNames(parent.id)
         group.model.clear()
         groups.forEach(function(grp) {
             group.model.append({"text": grp})
@@ -47,12 +47,12 @@ Rectangle {
 
     function onOk(project) {
         if (model.id) {
-            poiEdit.model = projectViewState.updateProjectPoi(
+            poiEdit.model = getAppState().projectViewState.updateProjectPoi(
                 origModel, poiDescription.text, path.text, text.text,
                 interestTypeItems.get(interestType.currentIndex).value,
                 group.editText)
         } else {
-            projectViewState.addProjectPoi(
+            getAppState().projectViewState.addProjectPoi(
                 project.id, poiDescription.text, path.text, text.text,
                 interestTypeItems.get(interestType.currentIndex).value,
                 group.editText)
@@ -61,12 +61,12 @@ Rectangle {
 
     function onServerOk(server) {
         if (model.id) {
-            poiEdit.model = serverViewState.updateServerPoi(
+            poiEdit.model = getAppState().serverViewState.updateServerPoi(
                 origModel, poiDescription.text, path.text, text.text,
                 interestTypeItems.get(interestType.currentIndex).value,
                 group.editText)
         } else {
-            serverViewState.addServerPoi(server.id,
+            getAppState().serverViewState.addServerPoi(server.id,
                 poiDescription.text, path.text,
                 text.text, interestTypeItems.get(interestType.currentIndex).value,
                 group.editText)

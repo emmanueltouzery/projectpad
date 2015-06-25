@@ -84,7 +84,12 @@ Window {
             // just tell him the search text changed.
             // otherwise use loadViewAction() to load the search
             // view and give him the search text.
-            loadViewAction("SearchView.qml", {matches: search(searchField.text), query: searchField.text})
+            loadViewAction(
+                "SearchView.qml",
+                {
+                    matches: getAppState().search(searchField.text),
+                    query: searchField.text
+                })
         }
     }
 
@@ -186,12 +191,14 @@ Window {
     }
 
     Connections {
-        target: projectViewState
+        id: projectViewStateSignalConn
+        target: null
         onGotOutput: processRunCommandSignal(output)
     }
 
     Connections {
-        target: serverViewState
+        id: serverViewStateSignalConn
+        target: null
         onGotOutput: processRunCommandSignal(output)
     }
 
@@ -222,6 +229,8 @@ Window {
         PasswordEnter {
             onLoadView: {
                 progressMessage("Welcome!\n")
+                serverViewStateSignalConn.target = getAppState().serverViewState
+                projectViewStateSignalConn.target = getAppState().projectViewState
                 loadViewAction(name, model)
             }
         }

@@ -30,7 +30,8 @@ ItemTile {
                 ["glyphicons-512-copy", function() { appContext.copyItem(model.path, false) }],
                 ["glyphicons-193-circle-remove", function() {
                     appContext.confirmDelete(function() {
-                        Utils.handleEither(serverViewState.deleteServerPois([model.id]))
+                        Utils.handleEither(getAppState().
+                                           serverViewState.deleteServerPois([model.id]))
                         refreshServerView()
                     })
                 }]]
@@ -42,7 +43,8 @@ ItemTile {
                 case "PoiCommandToRun":
                     options.push(["glyphicons-138-cogwheels", function() {
                         Utils.runIfSshHostTrusted(server, function() {
-                            var info = serverViewState.executePoiAction(server, model)
+                            var info = getAppState().
+                                serverViewState.executePoiAction(server, model)
                             appContext.progressMessage("\nStarted program\n")
                         })
                     }])
@@ -50,24 +52,28 @@ ItemTile {
                 case "PoiLogFile":
                     options.push(["glyphicons-283-cardio", function() {
                         Utils.runIfSshHostTrusted(server, function() {
-                            serverViewState.executePoiAction(server, model)
+                            getAppState()
+                                .serverViewState.executePoiAction(server, model)
                         })
                     }])
                     options.push(["glyphicons-52-eye-open", function() {
                         Utils.runIfSshHostTrusted(server, function() {
-                            serverViewState.executePoiSecondaryAction(server, model)
+                            getAppState().serverViewState
+                                .executePoiSecondaryAction(server, model)
                         })
                     }])
                     options.push(["glyphicons-182-download-alt", function() {
                         Utils.runIfSshHostTrusted(server, function() {
-                            serverViewState.executePoiThirdAction(server, model)
+                            getAppState().
+                                serverViewState.executePoiThirdAction(server, model)
                         })
                     }])
                     break
                 case "PoiConfigFile":
                     options.push(["glyphicons-52-eye-open", function() {
                         Utils.runIfSshHostTrusted(server, function() {
-                            serverViewState.executePoiAction(server, model)
+                            getAppState().
+                                serverViewState.executePoiAction(server, model)
                         })
                     }])
                     break

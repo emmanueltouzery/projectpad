@@ -32,7 +32,7 @@ Rectangle {
         serverAccessType.currentIndex = Math.max(
             0, Utils.listModelGetValueIndex(serverAccessType.model, _model.accessType))
         authFilename.text = keyFilepath = _model.authKeyFilename
-        var groups = projectViewState.getProjectGroupNames(parent.id)
+        var groups = getAppState().projectViewState.getProjectGroupNames(parent.id)
         group.model.clear()
         groups.forEach(function (grp) {
             group.model.append({"text": grp})
@@ -44,14 +44,14 @@ Rectangle {
 
     function onOk(project) {
         if (model.id) {
-            serverEdit.model = projectViewState.updateServer(
+            serverEdit.model = getAppState().projectViewState.updateServer(
                 origModel, serverDescription.text, ipAddress.text, txt.text,
                 username.text, password.text, serverEdit.keyFilepath,
                 serverTypeItems.get(serverType.currentIndex).value,
                 serverAccessTypeItems.get(serverAccessType.currentIndex).value,
                 group.editText);
         } else {
-            projectViewState.addServer(
+            getAppState().projectViewState.addServer(
                 project.id, serverDescription.text, ipAddress.text,
                 txt.text, username.text, password.text, serverEdit.keyFilepath,
                 serverTypeItems.get(serverType.currentIndex).value,

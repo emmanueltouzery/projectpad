@@ -22,14 +22,14 @@ Rectangle {
         description.selectAll()
         description.forceActiveFocus()
 
-        var groups = serverViewState.getServerGroupNames(server.id)
+        var groups = getAppState().serverViewState.getServerGroupNames(server.id)
         group.model.clear()
         groups.forEach(function(grp) {
             group.model.append({"text": grp})
         })
         group.currentIndex = groups.indexOf(_model.groupName)
 
-        var dbs = serverViewState.getAllDatabases()
+        var dbs = getAppState().serverViewState.getAllDatabases()
         database.model.clear()
         database.model.append({"text": "No database", "value": -1})
         dbs.forEach(function(db) {
@@ -45,11 +45,11 @@ Rectangle {
             dbId = null
         }
         if (model.id) {
-            srvWebsiteEdit.model = serverViewState.updateServerWebsite(
+            srvWebsiteEdit.model = getAppState().serverViewState.updateServerWebsite(
                 origModel, description.text, url.text, txt.text,
                 username.text, password.text, dbId, group.editText)
         } else {
-            serverViewState.addServerWebsite(server.id,
+            getAppState().serverViewState.addServerWebsite(server.id,
                 description.text, url.text, txt.text,
                 username.text, password.text, dbId, group.editText)
         }

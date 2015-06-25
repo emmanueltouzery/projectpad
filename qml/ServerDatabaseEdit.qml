@@ -20,7 +20,8 @@ Rectangle {
         origModel = _model
         srvDatabaseEdit.model = Utils.deepCopy(_model)
 
-        var groups = serverViewState.getServerGroupNames(server.id)
+        var groups = getAppState().serverViewState
+            .getServerGroupNames(server.id)
         group.model.clear()
         groups.forEach(function(grp) {
             group.model.append({"text": grp})
@@ -33,11 +34,12 @@ Rectangle {
 
     function onOk(server) {
         if (model.id) {
-            srvDatabaseEdit.model = serverViewState.updateServerDatabase(
+            srvDatabaseEdit.model = getAppState()
+                .serverViewState.updateServerDatabase(
                 origModel, description.text, name.text, txt.text,
                 username.text, password.text, group.editText)
         } else {
-            serverViewState.addServerDatabase(server.id,
+            getAppState().serverViewState.addServerDatabase(server.id,
                 description.text, name.text,
                 txt.text, username.text, password.text, group.editText)
         }

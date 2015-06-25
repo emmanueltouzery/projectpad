@@ -21,7 +21,7 @@ Rectangle {
         origModel = _model
         model = Utils.deepCopy(_model)
         editAction.checked = false
-        var groups = projectViewState.getProjectGroupNames(parent.id)
+        var groups = getAppState().projectViewState.getProjectGroupNames(parent.id)
         group.model.clear()
         groups.forEach(function (grp) {
             group.model.append({"text": grp})
@@ -125,7 +125,7 @@ Rectangle {
     }
 
     function getRichText(rawText) {
-        var parseResult = noteTextToHtml(rawText)
+        var parseResult = getAppState().noteTextToHtml(rawText)
         if (parseResult[0] === "error") {
             errorMessage("Error: the note text is not properly formatted")
             return ""

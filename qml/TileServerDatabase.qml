@@ -31,12 +31,13 @@ ItemTile {
                 ["glyphicons-512-copy", function() { appContext.copyItem(model.password, true) }],
                 ["glyphicons-193-circle-remove", function() {
                     appContext.confirmDelete(function() {
-                        var msg = serverViewState.canDeleteServerDatabase(model)
+                        var msg = getAppState().serverViewState.canDeleteServerDatabase(model)
                         if (msg !== null) {
                             appContext.errorMessage(msg)
                             return
                         }
-                        Utils.handleEither(serverViewState.deleteServerDatabases([model.id]))
+                        Utils.handleEither(getAppState()
+                                           .serverViewState.deleteServerDatabases([model.id]))
                     refreshServerView()
                     })
                 }]]

@@ -44,7 +44,8 @@ ItemTile {
             }],
             ["glyphicons-193-circle-remove", function() {
                 appContext.confirmDelete(function() {
-                    Utils.handleEither(projectListState.deleteProjects([projectModel.id]))
+                    Utils.handleEither(
+                        getAppState().projectListState.deleteProjects([projectModel.id]))
                 })
             }]
         ]);

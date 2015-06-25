@@ -14,7 +14,7 @@ import Database.Persist.Sqlite
 import Control.Applicative
 import Graphics.QML
 import Data.Typeable
-import Database.Sqlite
+import Database.Sqlite as Sqlite
 import Data.ByteString (ByteString)
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Char8 as BS8
@@ -30,6 +30,7 @@ import System.Environment
 import Data.List
 import Data.Char
 import Control.Error
+import Control.Concurrent.MVar
 
 import Paths_projectpad
 
@@ -57,8 +58,8 @@ main = do
     logQueriesToStdout <- elem "--printQueries" <$> getArgs
     appDir <- getAppDir
     createDirectoryIfMissing True appDir
-    sqlBackend <- getSqlBackend logQueriesToStdout (appDir </> dbFileName)
-    displayApp sqlBackend
+    let dbFullPath = T.pack $ appDir </> dbFileName
+    displayApp dbFullPath logQueriesToStdout
 
 getAppDir :: IO String
 getAppDir = (</> projectPadFolder) <$> getHomeDirectory
@@ -67,15 +68,6 @@ getDbPath :: IO String
 getDbPath = do
     appDir <- getAppDir
     return (appDir </> dbFileName)
-
-getSqlBackend :: Bool -> String -> IO SqlBackend
-getSqlBackend logQueriesToStdout (T.pack -> t) = do
-    conn <- open t
-    prepare conn "PRAGMA foreign_keys = ON;" >>= step
-    let logger _ _ _ = if logQueriesToStdout
-        then putStrLn . getLogQuery
-        else const $ return ()
-    wrapConnection conn logger
 
 -- hiding the PRAGMA calls because of the first PRAGMA
 -- call which contains the password to the database...
@@ -87,13 +79,6 @@ getLogQuery logStr = if "PRAGMA" `isPrefixOf` normalizedQuery
     where
       origQuery = BS8.unpack (fromLogStr logStr)
       normalizedQuery = toUpper <$> dropWhile (`elem` "\" \t") origQuery
-
-data AppState = AppState
-    {
-        projectListState :: ObjRef ProjectListState,
-        projectViewState :: ObjRef ProjectViewState,
-        serverViewState :: ObjRef ServerViewState
-    } deriving Typeable
 
 -- might fail on windows if sqlite reserves exclusive
 -- access to the file.
@@ -123,30 +108,65 @@ data UnlockResult = Ok
     | DbNotEncrypted
     deriving (Read, Show)
 
-setupPasswordAndUpgradeDb :: SqlBackend -> ObjRef AppState -> Text -> Text -> IO Text
-setupPasswordAndUpgradeDb sqlBackend _ password newPassword = do
+
+openAndUnlockDb :: Text -> Text -> Text -> IO Sqlite.Connection
+openAndUnlockDb dbFullPath password newPassword = do
+    conn <- open dbFullPath
+    prepare conn "PRAGMA foreign_keys = ON;" >>= step
+    prepare conn (T.concat ["PRAGMA key = '", password, "'"]) >>= step
+    when (T.length newPassword > 0) $
+        void $ prepare conn (T.concat ["PRAGMA rekey = '", newPassword, "'"]) >>= step
+    return conn
+
+disableWal :: Sqlite.Connection -> IO ()
+disableWal conn = do
+    -- i didn't manage easily to stop persistent from enabling
+    -- the WAL but disable it manually after they do it:
+    -- https://github.com/yesodweb/persistent/issues/363#issuecomment-114239523
+    turnOnWal <- prepare conn "PRAGMA journal_mode=DELETE;"
+    _ <- step turnOnWal
+    reset conn turnOnWal
+    finalize turnOnWal
+
+getSqlBackend :: Text -> Bool -> Text -> Text -> IO SqlBackend
+getSqlBackend dbFullPath logQueriesToStdout password newPassword = do
+    conn <- openAndUnlockDb dbFullPath password newPassword
+    let logger _ _ _ = if logQueriesToStdout
+        then putStrLn . getLogQuery
+        else const $ return ()
+    sqlBackend <- wrapConnection conn logger
+    disableWal conn
+    return sqlBackend
+
+setupPasswordAndUpgradeDb :: Text -> Bool -> ObjRef LoginState -> Text -> Text -> IO Text
+setupPasswordAndUpgradeDb dbFullPath logQueriesToStdout (fromObjRef -> loginState) password newPassword = do
     encrypted <- sanityCheckIsDbEncrypted
     T.pack . show <$> if not encrypted
         then return DbNotEncrypted
         else do
-            upgrade <- try $ runSqlBackend sqlBackend $ do
-                rawExecute (T.concat ["PRAGMA key = '", password, "'"]) []
-                when (T.length newPassword > 0) $
-                    rawExecute (T.concat ["PRAGMA rekey = '", newPassword, "'"]) []
-                upgradeSchema
+            setupResult <- try $ do
+                sqlBackend <- getSqlBackend dbFullPath
+                              logQueriesToStdout password newPassword
+                runSqlBackend sqlBackend upgradeSchema
+                return sqlBackend
             -- print details to STDOUT in case of failure because maybe
             -- it was the right password and the schema upgrade failed!
-            case upgrade of
+            case setupResult of
                 (Left (x :: SomeException)) -> print x >> return WrongPassword
-                Right _ -> return Ok
+                Right sqlBackend -> setupContext loginState sqlBackend >> return Ok
 
-createContext :: SqlBackend -> IO (ObjRef AppState)
-createContext sqlBackend = do
+data AppState = AppState
+    {
+        projectListState :: ObjRef ProjectListState,
+        projectViewState :: ObjRef ProjectViewState,
+        serverViewState :: ObjRef ServerViewState
+    } deriving Typeable
+
+setupContext :: LoginState -> SqlBackend -> IO ()
+setupContext loginState sqlBackend = do
     projectState <- fst <$> createProjectListState sqlBackend
     rootClass <- newClass
         [
-            defMethod' "isDbInitialized" $ const isDbInitialized,
-            defMethod "setupPasswordAndUpgradeDb" (setupPasswordAndUpgradeDb sqlBackend),
             defPropertyConst "projectListState"
                 $ return . projectListState . fromObjRef,
             defPropertyConst "projectViewState"
@@ -163,12 +183,31 @@ createContext sqlBackend = do
         <$> return projectState
         <*> createProjectViewState sqlBackend
         <*> createServerViewState sqlBackend
-    newObject rootClass rootContext
+    appCtx <- newObject rootClass rootContext
+    void $ swapMVar (appContext loginState) (Just appCtx)
 
+data LoginState = LoginState
+    {
+        appContext :: MVar (Maybe (ObjRef AppState))
+    } deriving Typeable
 
-displayApp :: SqlBackend -> IO ()
-displayApp sqlBackend = do
-    ctx <- createContext sqlBackend
+getAppState :: ObjRef LoginState -> IO (Maybe (ObjRef AppState))
+getAppState (fromObjRef -> loginState) = readMVar (appContext loginState)
+
+createLoginContext :: Text -> Bool -> IO (ObjRef LoginState)
+createLoginContext dbFullPath logQueriesToStdout = do
+    loginClass <- newClass
+        [
+            defMethod' "isDbInitialized" $ const isDbInitialized,
+            defMethod  "setupPasswordAndUpgradeDb"
+                (setupPasswordAndUpgradeDb dbFullPath logQueriesToStdout),
+            defMethod  "getAppState" getAppState
+        ]
+    newObject loginClass =<< LoginState <$> newMVar Nothing
+
+displayApp :: Text -> Bool -> IO ()
+displayApp dbFullPath logQueriesToStdout = do
+    ctx <- createLoginContext dbFullPath logQueriesToStdout
     mainQml <- Paths_projectpad.getDataFileName "qml/ProjectPad.qml"
     runEngineLoop defaultEngineConfig
         {

@@ -38,12 +38,12 @@ Rectangle {
             return
         }
         if (model.id) {
-            projectEdit.model = projectListState.updateProject(
+            projectEdit.model = getAppState().projectListState.updateProject(
                 origModel, projectNameEntry.text,
                 envDevelopment.checked, envUat.checked,
                 envStaging.checked, envProd.checked)
         } else {
-            projectListState.addProject(projectNameEntry.text,
+            getAppState().projectListState.addProject(projectNameEntry.text,
                                   envDevelopment.checked, envUat.checked,
                                   envStaging.checked, envProd.checked)
         }

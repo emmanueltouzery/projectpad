@@ -16,7 +16,8 @@ Rectangle {
     property variant actions: [["add", "glyphicons-191-circle-plus", "Add..."]]
 
     function getBreadCrumbs() {
-        var projectModel = Utils.findById(projectListState.projects, model.projectId)
+        var projectModel = Utils.findById(
+            getAppState().projectListState.projects, model.projectId)
         return {pathLinks:
             [
                 {screen: "ProjectView.qml",
@@ -27,7 +28,8 @@ Rectangle {
     }
 
     function refreshServerView() {
-        serverSectionRepeater.model = serverViewState.getServerDisplaySections(pv.model.id)
+        serverSectionRepeater.model = getAppState().serverViewState
+            .getServerDisplaySections(pv.model.id)
     }
 
     function actionTriggered(name) {
@@ -112,17 +114,19 @@ Rectangle {
 
                 ServerHeader {
                     project: Utils.findById(
-                        projectListState.projects, model.projectId)
+                        getAppState().projectListState.projects, model.projectId)
                     server: pv.model
                     rootFlowInParent: flow
                     iconType: 'server'
                     onShouldRefresh: {
-                        var allServers = projectViewState.getServers(pv.model.projectId, pv.model.environment).map(
+                        var allServers = getAppState().projectViewState
+                            .getServers(pv.model.projectId, pv.model.environment).map(
                                              function(se) { return se.server })
                         var updatedServer = Utils.findById(allServers, pv.model.id)
                         if (updatedServer === null) {
                             // the server was deleted! Go to the parent project.
-                            var projectModel = Utils.findById(projectListState.projects, model.projectId)
+                            var projectModel = Utils.findById(
+                                getAppState().projectListState.projects, model.projectId)
                             loadView("ProjectView.qml", {"project": projectModel, "environment": pv.model.environment})
                         } else {
                             loadView("ServerView.qml", updatedServer)
@@ -133,7 +137,8 @@ Rectangle {
                 Repeater {
                     id: serverSectionRepeater
                     width: parent.width
-                    model: serverViewState.getServerDisplaySections(pv.model.id)
+                    model: getAppState().serverViewState
+                        .getServerDisplaySections(pv.model.id)
 
                     Flow {
                         width: serverSectionRepeater.width
@@ -236,7 +241,7 @@ Rectangle {
                 visible: false
                 selectFolder: true
                 onAccepted: {
-                    serverViewState.saveAuthKey(fileUrls[0]
+                    getAppState().serverViewState.saveAuthKey(fileUrls[0]
                         + "/" + userAcct.authKeyFilename, userAcct)
                     appContext.successMessage("Saved file to "
                         + fileUrls[0] + "/" + userAcct.authKeyFilename)

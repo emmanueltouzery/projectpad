@@ -50,7 +50,7 @@ ScrollView {
 
             Repeater {
                 id: itemsrepeater
-                model: projectListState.projects
+                model: getAppState().projectListState.projects
 
                 TileProject {
                 }

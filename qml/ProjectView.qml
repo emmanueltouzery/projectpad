@@ -105,7 +105,8 @@ Rectangle {
                 Repeater {
                     id: projectSectionRepeater
                     width: parent.width
-                    model: projectViewState.getProjectDisplaySections(pv.model.project.id, pv.model.environment)
+                    model: getAppState().projectViewState.getProjectDisplaySections(
+                        pv.model.project.id, pv.model.environment)
 
                     Flow {
                         width: projectSectionRepeater.width

@@ -26,12 +26,14 @@ ItemTile {
     MouseArea {
         anchors.fill: parent
         onClicked: {
-            selectMenu.options = [["glyphicons-151-edit", function() { editSrvWww(model)}],
-                ["glyphicons-372-global", function() { openAssociatedFile(model.url)}],
+            selectMenu.options = [
+                ["glyphicons-151-edit", function() { editSrvWww(model)}],
+                ["glyphicons-372-global", function() { getAppState().openAssociatedFile(model.url)}],
                 ["glyphicons-512-copy", function() { appContext.copyItem(model.password, true) }],
                 ["glyphicons-193-circle-remove", function() {
                     appContext.confirmDelete(function() {
-                        Utils.handleEither(serverViewState.deleteServerWebsites([model.id]))
+                        Utils.handleEither(getAppState().serverViewState
+                                           .deleteServerWebsites([model.id]))
                         refreshServerView()
                     })
                 }]]

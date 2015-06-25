@@ -26,7 +26,7 @@ Rectangle {
         userAccountDescription.selectAll()
         userAccountDescription.forceActiveFocus()
 
-        var groups = serverViewState.getServerGroupNames(server.id)
+        var groups = getAppState().serverViewState.getServerGroupNames(server.id)
         group.model.clear()
         groups.forEach(function(grp) {
             group.model.append({"text": grp})
@@ -36,11 +36,13 @@ Rectangle {
 
     function onOk(server) {
         if (model.id) {
-            extraUserEdit.model = serverViewState.updateServerExtraUserAccount(
-                origModel, userAccountDescription.text,
-                username.text, password.text, extraUserEdit.keyFilepath, group.editText);
+            extraUserEdit.model = getAppState().serverViewState
+                .updateServerExtraUserAccount(
+                    origModel, userAccountDescription.text,
+                    username.text, password.text,
+                    extraUserEdit.keyFilepath, group.editText);
         } else {
-            serverViewState.addServerExtraUserAccount(server.id,
+            getAppState().serverViewState.addServerExtraUserAccount(server.id,
                 userAccountDescription.text, username.text, password.text,
                 extraUserEdit.keyFilepath, group.editText)
         }
