@@ -23,7 +23,7 @@ Rectangle {
     }
 
     function refreshProjectView() {
-        projectSectionRepeater.model = projectViewState.getProjectDisplaySections(
+        projectSectionRepeater.model = getAppState().projectViewState.getProjectDisplaySections(
                 model.project.id, model.environment)
     }
 

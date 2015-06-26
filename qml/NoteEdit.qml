@@ -34,10 +34,10 @@ Rectangle {
 
     function onOk(project) {
         if (model.id) {
-            model = projectViewState.updateProjectNote(
+            model = getAppState().projectViewState.updateProjectNote(
                 origModel, title.text, textArea.text, group.editText);
         } else {
-            projectViewState.addProjectNote(
+            getAppState().projectViewState.addProjectNote(
                 project.id, title.text, textArea.text, group.editText)
         }
     }
