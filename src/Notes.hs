@@ -195,7 +195,7 @@ noteElementToHtml = \case
         p_ $ table_ [bgcolor_ "#eee"] (tr_ $ td_ (pre_ $ toHtml txt))
     BlockQuote content -> table_ [bgcolor_ "lightblue", cellspacing_ "0"]
         $ tr_ $ do
-            td_ "&nbsp;&nbsp;"
+            td_ $ toHtmlRaw $ T.pack "&nbsp;&nbsp;"
             td_ $ table_ [bgcolor_ "white"] (tr_ $ td_ $ noteDocumentToHtml content)
 
 noteLineItemsToHtml :: [LineItem] -> Html ()
