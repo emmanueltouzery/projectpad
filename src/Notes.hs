@@ -7,11 +7,13 @@ import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.Text.Lazy as TL
 import Data.Attoparsec.Text
+import Data.Attoparsec.Combinator
 import Data.Monoid
 import Control.Applicative
 import Lucid.Base
 import Lucid.Html5
 import Data.Foldable hiding (elem)
+import Control.Monad (void)
 
 -- NOTE of course I realize that the area of markdown parsing
 -- and even markdown->html is very well covered in haskell,
@@ -20,63 +22,75 @@ import Data.Foldable hiding (elem)
 -- means a pretty small subset of HTML,
 -- and also it's fun to code :-)
 
-data NoteElement = Header1 Text
-                   | Header2 Text
-                   | Header3 Text
-                   | List [[LineItem]]
-                   | NumberedList [[LineItem]]
-                   | PreformatBlock Text
-                   | NormalLine [LineItem]
-                   | BlockQuote Int [NoteElement]
-                     deriving (Show, Eq)
+data NoteElementNoBlockQuote = Header1 Text
+    | Header2 Text
+    | Header3 Text
+    | List [[LineItem]]
+    | NumberedList [[LineItem]]
+    | PreformatBlock Text
+    | Paragraph [LineItem]
+    | InlineText [LineItem]
+    deriving (Show, Eq)
+
+data NoteElementRawBlockQuote = NormalNoteEltRaw NoteElementNoBlockQuote
+    | RawBlockQuote Text
+    deriving (Show, Eq)
+
+data NoteElement = NormalNote NoteElementNoBlockQuote
+    | BlockQuote [NoteElement]
+    deriving (Show, Eq)
 
 data LineItem = Bold [LineItem]
-                   | Italics [LineItem]
-                   | Link Text [LineItem]
-                   | Password Text
-                   | PreformatInline Text
-                   | PlainText Text
-                     deriving (Show, Eq)
+    | Italics [LineItem]
+    | Link Text [LineItem]
+    | Password Text
+    | PreformatInline Text
+    | PlainText Text
+    deriving (Show, Eq)
 
 type NoteDocument = [NoteElement]
 
 parseNoteDocument :: Text -> Either String NoteDocument
-parseNoteDocument = fmap mergeBlockQuotes . parseOnly parseDocument
+parseNoteDocument t = mapM parseBlockQuotes =<< parseOnly parseDocument t
 
-parseDocument :: Parser NoteDocument
-parseDocument = many parseLine <* endOfInput
+parseDocument :: Parser [NoteElementRawBlockQuote]
+parseDocument = many parseNoteElement <* endOfInput
 
-parseLine :: Parser NoteElement
-parseLine = choice (parseHeader <$> headerTypes)
-                <|> parseList
-                <|> parseNumberedList
-                <|> parsePreformatBlock
-                <|> parseBlockQuote
-                <|> parseNormalLine <* eotOrNewLine
-                <|> (endOfLine >> return (NormalLine [PlainText " "]))
+parseBlockQuotes :: NoteElementRawBlockQuote -> Either String NoteElement
+parseBlockQuotes = \case
+    NormalNoteEltRaw a -> Right $ NormalNote a
+    RawBlockQuote txt  -> BlockQuote <$> parseNoteDocument txt
 
-mergeBlockQuotes :: [NoteElement] -> [NoteElement]
-mergeBlockQuotes = \case
-    BlockQuote x a : BlockQuote y b : xs | x == y ->
-           mergeBlockQuotes $ BlockQuote x
-                (a <> [NormalLine [PlainText " "]] <> b):xs
-    x:xs -> x:mergeBlockQuotes xs
-    []   -> []
+parseNoteElement :: Parser NoteElementRawBlockQuote
+parseNoteElement = choice (parseHeader <$> headerTypes)
+    <|> parseList
+    <|> parseNumberedList
+    <|> parsePreformatBlock
+    <|> parseBlockQuote
+    <|> parseParagraph
 
-parsePreformatBlock :: Parser NoteElement
-parsePreformatBlock = PreformatBlock <$> T.pack <$> ((string "```" >> endOfLine)
+parsePreformatBlock :: Parser NoteElementRawBlockQuote
+parsePreformatBlock = NormalNoteEltRaw <$> PreformatBlock <$> T.pack <$> ((string "```" >> endOfLine)
                        *> manyTill1 anyChar (endOfLine >> string "```"))
 
-parseBlockQuote :: Parser NoteElement
-parseBlockQuote = do
-    string "> "
-    contents <- parseLine
-    return $ case contents of
-        (BlockQuote i c) -> BlockQuote (i+1) c
-        x@_ -> BlockQuote 1 [x]
+parseBlockQuote :: Parser NoteElementRawBlockQuote
+parseBlockQuote = RawBlockQuote <$> T.intercalate "\n" . fmap T.pack <$>
+        many1 (string "> " *> manyTill1 anyChar (endOfInput <|> endOfLine))
 
-parseNormalLine :: Parser NoteElement
-parseNormalLine =  NormalLine <$> mergePlainTexts <$> many1 parseLineItem
+-- the lookAhead is to be able to detect blockquotes from
+-- paragraphs without two CRs, eg "a\n> b"
+-- which is nice but also needed because I can have
+-- paragraphs within blockquotes and I want the blockquote
+-- to keep going, eg "> a\n> b"
+parseParagraph :: Parser NoteElementRawBlockQuote
+parseParagraph =  NormalNoteEltRaw <$> Paragraph <$> mergePlainTexts <$>
+    manyTill1 parseLineItem (endOfInput <|> endOfParagraph
+                             <|> (endOfLine >> lookAhead (void $ string "> ")))
+
+endOfParagraph :: Parser ()
+endOfParagraph = do
+    endOfLine
+    void $ many1 (string " " <|> string "\t" <|> (endOfLine >> return ""))
 
 mergePlainTexts :: [LineItem] -> [LineItem]
 mergePlainTexts = \case
@@ -93,6 +107,7 @@ parseLineItem = parseEscapedMarkers
                      <|> parseLink
                      <|> PlainText <$> takeWhile1 (not . (`elem` "*[]\n\\`"))
                      <|> PlainText <$> choice (string <$> ["[", "]", "*", "`"])
+                     <|> PlainText <$> (endOfLine >> return " ")
 
 parseEscapedMarkers :: Parser LineItem
 parseEscapedMarkers = choice (parseEscape <$> ["\\", "*", "`", "#",  "-"])
@@ -120,15 +135,15 @@ parseLink = do
     url <- string "(" *> takeTill (== ')') <* string ")"
     return $ Link url desc
 
-parseList :: Parser NoteElement
-parseList = List <$> many1 parseListItem
+parseList :: Parser NoteElementRawBlockQuote
+parseList = NormalNoteEltRaw <$> List <$> many1 parseListItem
 
 parseListItem :: Parser [LineItem]
 parseListItem = many (string " ") *> string "- " *>
     manyTill parseLineItem eotOrNewLine
 
-parseNumberedList :: Parser NoteElement
-parseNumberedList = NumberedList <$> many1 parseNumberedListItem
+parseNumberedList :: Parser NoteElementRawBlockQuote
+parseNumberedList = NormalNoteEltRaw <$> NumberedList <$> many1 parseNumberedListItem
 
 parseNumberedListItem :: Parser [LineItem]
 parseNumberedListItem = (many (string " ") >> many1 digit >> string ". ")
@@ -144,8 +159,8 @@ parsePassword = do
 
 type HeaderInfo a = (Text, Text -> a)
 
-headerTypes :: [HeaderInfo NoteElement]
-headerTypes = [("#",   Header1), ("##",  Header2), ("###", Header3)]
+headerTypes :: [HeaderInfo NoteElementRawBlockQuote]
+headerTypes = [("#", NormalNoteEltRaw . Header1), ("##", NormalNoteEltRaw . Header2), ("###", NormalNoteEltRaw . Header3)]
 
 parseHeader :: HeaderInfo a -> Parser a
 parseHeader (level, ctr) = ctr <$> T.pack <$> (header *> contents)
@@ -169,19 +184,19 @@ cellspacing_ = makeAttribute "cellspacing"
 
 noteElementToHtml :: NoteElement -> Html ()
 noteElementToHtml = \case
-    Header1 txt        -> h1_ (toHtml txt)
-    Header2 txt        -> h2_ (toHtml txt)
-    Header3 txt        -> h3_ (toHtml txt)
-    List items         -> ul_ (mapM_ (li_ . noteLineItemsToHtml) items)
-    NumberedList items -> ol_ (mapM_ (li_ . noteLineItemsToHtml) items)
-    NormalLine items   -> noteLineItemsToHtml items
-    BlockQuote depth content -> table_ [bgcolor_ "lightblue", cellspacing_ "0"]
-        $ tr_ $ do
-            td_ $ replicateRawH depth "&nbsp;&nbsp;"
-            td_ $ table_ [bgcolor_ "white"] (tr_ $ td_ $ noteDocumentToHtml content)
-    PreformatBlock txt ->
+    NormalNote (Header1 txt)        -> h1_ (toHtml txt)
+    NormalNote (Header2 txt)        -> h2_ (toHtml txt)
+    NormalNote (Header3 txt)        -> h3_ (toHtml txt)
+    NormalNote (List items)         -> ul_ (mapM_ (li_ . noteLineItemsToHtml) items)
+    NormalNote (NumberedList items) -> ol_ (mapM_ (li_ . noteLineItemsToHtml) items)
+    NormalNote (InlineText items)   -> noteLineItemsToHtml items
+    NormalNote (Paragraph items)    -> p_ (noteLineItemsToHtml items)
+    NormalNote (PreformatBlock txt) ->
         p_ $ table_ [bgcolor_ "#eee"] (tr_ $ td_ (pre_ $ toHtml txt))
-    where replicateRawH d = toHtmlRaw . T.pack . concat . replicate d
+    BlockQuote content -> table_ [bgcolor_ "lightblue", cellspacing_ "0"]
+        $ tr_ $ do
+            td_ "&nbsp;&nbsp;"
+            td_ $ table_ [bgcolor_ "white"] (tr_ $ td_ $ noteDocumentToHtml content)
 
 noteLineItemsToHtml :: [LineItem] -> Html ()
 noteLineItemsToHtml = fold . fmap normalLineItemToHtml

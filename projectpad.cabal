@@ -40,7 +40,7 @@ executable projectpad
                        process,
                        filepath,
                        unix,
-                       attoparsec,
+                       attoparsec >= 0.13,
                        xdg-userdirs,
                        lucid >= 2.9.2
   hs-source-dirs:      src
@@ -74,7 +74,7 @@ test-suite tests
                        process,
                        filepath,
                        unix,
-                       attoparsec,
+                       attoparsec >= 0.13,
                        xdg-userdirs,
                        lucid >= 2.9.2
   ghc-options:         -Wall -threaded -fno-warn-unused-do-bind
