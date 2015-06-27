@@ -72,6 +72,11 @@ parsePreformatBlock :: Parser NoteElementRawBlockQuote
 parsePreformatBlock = NormalNoteEltRaw <$> PreformatBlock <$> T.pack <$> ((string "```" >> endOfLine)
                        *> manyTill1 anyChar (endOfLine >> string "```") <* optional endOfLine)
 
+-- regarding the decision to parse blocknotes as raw
+-- and then only later properly. See:
+-- http://stackoverflow.com/questions/31082272
+-- and https://www.reddit.com/r/haskell/comments/3ba7s7/how_would_you_solve_this_attoparsec_problem/
+-- and the branch blockquotes_record_depth
 parseBlockQuote :: Parser NoteElementRawBlockQuote
 parseBlockQuote = RawBlockQuote <$> T.intercalate "\n" . fmap T.pack <$>
         many1 ((string "> " <|> string ">") *> manyTill anyChar (endOfInput <|> endOfLine))
