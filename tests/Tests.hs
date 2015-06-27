@@ -25,72 +25,72 @@ runNotesParsingTests :: Spec
 runNotesParsingTests = it "parses notes properly" $ do
     assertEqual "simple test" (Right [Header1 "hello world"])
         $ parseNoteDocument "# hello world"
-    assertEqual "simple test" (Right [NormalLine [PlainText "one line* # hello world"]])
+    assertEqual "simple test" (Right [Paragraph [PlainText "one line* # hello world"]])
         $ parseNoteDocument "one line* # hello world"
-    assertEqual "header then plain text" (Right [Header1 "hello world", NormalLine [PlainText "con*[]tents"]])
+    assertEqual "header then plain text" (Right [Header1 "hello world", Paragraph [PlainText "con*[]tents"]])
         $ parseNoteDocument "# hello world\ncon*[]tents"
-    assertEqual "bold text" (Right [NormalLine [PlainText "hello ", Bold [PlainText "world"]]])
+    assertEqual "bold text" (Right [Paragraph [PlainText "hello ", Bold [PlainText "world"]]])
         $ parseNoteDocument "hello **world**"
     assertEqual "bold italics text"
-                (Right [NormalLine [PlainText "hello ",
+                (Right [Paragraph [PlainText "hello ",
                         Bold [PlainText "w", Italics [PlainText "or"], PlainText "ld"]]])
         $ parseNoteDocument "hello **w*or*ld**"
     assertEqual "simple link"
-                (Right [NormalLine [PlainText "he", Link "my-url"
+                (Right [Paragraph [PlainText "he", Link "my-url"
                         [PlainText "llo world"],
                          PlainText " demo"]])
         $ parseNoteDocument "he[llo world](my-url) demo"
     assertEqual "link"
-                (Right [NormalLine [PlainText "he",
+                (Right [Paragraph [PlainText "he",
                         Link "my-url" [PlainText "llo ",
                          Bold [PlainText "w", Italics [PlainText "or"], PlainText "ld"],
                          PlainText " demo"]]])
         $ parseNoteDocument "he[llo **w*or*ld** demo](my-url)"
     assertEqual "password1"
-                (Right [NormalLine [PlainText "he", Password "llo world", PlainText " demo"]])
+                (Right [Paragraph [PlainText "he", Password "llo world", PlainText " demo"]])
         $ parseNoteDocument "he[pass|llo world|] demo"
     assertEqual "password2"
-                (Right [NormalLine [PlainText "he", Password "llo| world", PlainText " demo"]])
+                (Right [Paragraph [PlainText "he", Password "llo| world", PlainText " demo"]])
         $ parseNoteDocument "he[pass!llo| world!] demo"
     assertEqual "list"
-                (Right [NormalLine [PlainText "a"], List [
+                (Right [Paragraph [PlainText "a"], List [
                               [PlainText "one", Bold [PlainText "bold"]],
-                              [PlainText "two"]], NormalLine [PlainText "b"]])
+                              [PlainText "two"]], Paragraph [PlainText "b"]])
         $ parseNoteDocument "a\n - one**bold**\n - two\nb"
     assertEqual "numbered list"
-                (Right [NormalLine [PlainText "a"], NumberedList [
+                (Right [Paragraph [PlainText "a"], NumberedList [
                               [PlainText "one", Bold [PlainText "bold"]],
-                              [PlainText "two"]], NormalLine [PlainText "b"]])
+                              [PlainText "two"]], Paragraph [PlainText "b"]])
         $ parseNoteDocument "a\n 1. one**bold**\n 2. two\nb"
     assertEqual "single cr"
-                (Right [NormalLine [PlainText "a"], NormalLine [PlainText "b"]])
+                (Right [Paragraph [PlainText "a b"]])
         $ parseNoteDocument "a\nb"
     assertEqual "leading cr"
-                (Right [NormalLine [PlainText " "], NormalLine [PlainText "a b"]])
+                (Right [Paragraph [PlainText " a b"]])
         $ parseNoteDocument "\na b"
     assertEqual "escapes"
-                (Right [NormalLine [PlainText "# normal\\ **text**"]])
+                (Right [Paragraph [PlainText "# normal\\ **text**"]])
         $ parseNoteDocument "\\# normal\\\\ \\*\\*text\\*\\*"
     assertEqual "inline pre"
-                (Right [NormalLine [PlainText "hello ", PreformatInline "world"]])
+                (Right [Paragraph [PlainText "hello ", PreformatInline "world"]])
         $ parseNoteDocument "hello `world`"
     assertEqual "block pre"
-                (Right [NormalLine [PlainText "hello"], PreformatBlock "this is\n pre*form*atted."])
-        $ parseNoteDocument "hello\n```\nthis is\n pre*form*atted.\n```"
+                (Right [Paragraph [PlainText "hello"], PreformatBlock "this is\n pre*form*atted."])
+        $ parseNoteDocument "hello\n\n```\nthis is\n pre*form*atted.\n```"
     assertEqual "blockquote"
-        (Right [NormalLine [PlainText "hello"],
-                BlockQuote 1 [NormalLine [PlainText "quoted"], NormalLine [PlainText " "], NormalLine [PlainText"again"]],
-                BlockQuote 2 [NormalLine [PlainText "two ", Bold [PlainText "level"]]],
-                BlockQuote 1 [Header1 "header"], NormalLine [PlainText "back to normal."]])
+        (Right [Paragraph [PlainText "hello"],
+                BlockQuote [Paragraph [PlainText "quoted"], Paragraph [PlainText " "], Paragraph [PlainText"again"]],
+                BlockQuote [Paragraph [PlainText "two ", Bold [PlainText "level"]]],
+                BlockQuote [Header1 "header"], Paragraph [PlainText "back to normal."]])
         $ parseNoteDocument "hello\n> quoted\n> again\n> > two **level**\n> # header\nback to normal."
 
 runNotesHtmlGenTests :: Spec
 runNotesHtmlGenTests = it "generates HTML properly" $ do
     assertEqual "simple test" "<h1>hell&gt;o</h1>"
         $ noteDocumentToHtmlText [Header1 "hell>o"]
-    assertEqual "nested" "<b>hel<i>l</i>o</b>"
-        $ noteDocumentToHtmlText [NormalLine [Bold [PlainText "hel", Italics [PlainText "l"], PlainText "o"]]]
-    assertEqual "link" "<a href=\"target\">text with <b>bold</b></a>"
-        $ noteDocumentToHtmlText [NormalLine [Link "target" [PlainText "text with ", Bold [PlainText "bold"]]]]
+    assertEqual "nested" "<p><b>hel<i>l</i>o</b></p>"
+        $ noteDocumentToHtmlText [Paragraph [Bold [PlainText "hel", Italics [PlainText "l"], PlainText "o"]]]
+    assertEqual "link" "<p><a href=\"target\">text with <b>bold</b></a></p>"
+        $ noteDocumentToHtmlText [Paragraph [Link "target" [PlainText "text with ", Bold [PlainText "bold"]]]]
     assertEqual "list" "<ul><li>one<b>bold</b></li><li>two</li></ul>"
         $ noteDocumentToHtmlText [List [[PlainText "one", Bold [PlainText "bold"]], [PlainText "two"]]]

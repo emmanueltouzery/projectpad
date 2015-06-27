@@ -7,11 +7,13 @@ import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.Text.Lazy as TL
 import Data.Attoparsec.Text
+import Data.Attoparsec.Combinator
 import Data.Monoid
 import Control.Applicative
 import Lucid.Base
 import Lucid.Html5
 import Data.Foldable hiding (elem)
+import Control.Monad (void)
 
 -- NOTE of course I realize that the area of markdown parsing
 -- and even markdown->html is very well covered in haskell,
@@ -26,8 +28,8 @@ data NoteElement = Header1 Text
                    | List [[LineItem]]
                    | NumberedList [[LineItem]]
                    | PreformatBlock Text
-                   | NormalLine [LineItem]
-                   | BlockQuote Int [NoteElement]
+                   | Paragraph [LineItem]
+                   | BlockQuote [NoteElement]
                      deriving (Show, Eq)
 
 data LineItem = Bold [LineItem]
@@ -41,42 +43,46 @@ data LineItem = Bold [LineItem]
 type NoteDocument = [NoteElement]
 
 parseNoteDocument :: Text -> Either String NoteDocument
-parseNoteDocument = fmap mergeBlockQuotes . parseOnly parseDocument
+parseNoteDocument = parseOnly parseDocument
 
 parseDocument :: Parser NoteDocument
-parseDocument = many parseLine <* endOfInput
+parseDocument = many (parseLine 0) <* endOfInput
 
-parseLine :: Parser NoteElement
-parseLine = choice (parseHeader <$> headerTypes)
-                <|> parseList
-                <|> parseNumberedList
-                <|> parsePreformatBlock
-                <|> parseBlockQuote
-                <|> parseNormalLine <* eotOrNewLine
-                <|> (endOfLine >> return (NormalLine [PlainText " "]))
+blockQuoteStart :: Int -> Parser ()
+blockQuoteStart blockQuoteDepth = void $ count blockQuoteDepth (string "> ")
 
-mergeBlockQuotes :: [NoteElement] -> [NoteElement]
-mergeBlockQuotes = \case
-    BlockQuote x a : BlockQuote y b : xs | x == y ->
-           mergeBlockQuotes $ BlockQuote x
-                (a <> [NormalLine [PlainText " "]] <> b):xs
-    x:xs -> x:mergeBlockQuotes xs
-    []   -> []
+parseLine :: Int -> Parser NoteElement
+parseLine blockQuoteDepth = (bqStart *> choice (parseHeader <$> headerTypes))
+                <|> parseList blockQuoteDepth
+                <|> parseNumberedList blockQuoteDepth
+                <|> parsePreformatBlock blockQuoteDepth
+                <|> parseBlockQuote blockQuoteDepth
+                <|> parseParagraph blockQuoteDepth
+            where bqStart = blockQuoteStart blockQuoteDepth
 
-parsePreformatBlock :: Parser NoteElement
-parsePreformatBlock = PreformatBlock <$> T.pack <$> ((string "```" >> endOfLine)
-                       *> manyTill1 anyChar (endOfLine >> string "```"))
+parsePreformatBlock :: Int -> Parser NoteElement
+parsePreformatBlock blockQuoteDepth =
+    PreformatBlock <$> T.pack <$> ((marker >> endOfLine)
+        *> manyTill1 anyChar (endOfLine >> marker))
+    where marker = blockQuoteStart blockQuoteDepth *> string "```"
 
-parseBlockQuote :: Parser NoteElement
-parseBlockQuote = do
-    string "> "
-    contents <- parseLine
-    return $ case contents of
-        (BlockQuote i c) -> BlockQuote (i+1) c
-        x@_ -> BlockQuote 1 [x]
+parseBlockQuote :: Int -> Parser NoteElement
+parseBlockQuote blockQuoteDepth = do
+    lookAhead (blockQuoteStart $ blockQuoteDepth+1)
+    contents <- many1 (parseLine $ blockQuoteDepth+1)
+    return $ BlockQuote contents
 
-parseNormalLine :: Parser NoteElement
-parseNormalLine =  NormalLine <$> mergePlainTexts <$> many1 parseLineItem
+parseParagraph :: Int -> Parser NoteElement
+parseParagraph blockQuoteDepth =  Paragraph <$> mergePlainTexts <$>
+    (bqStart *> manyTill1 (parseLineItem blockQuoteDepth) (endOfInput <|> endOfParagraph blockQuoteDepth
+        <|> (endOfLine >> lookAhead (bqStart >> void (string "> "))))) -- <--- end the paragraph if the blockquote depth changes one way or another!
+    where bqStart = blockQuoteStart blockQuoteDepth
+
+endOfParagraph :: Int -> Parser ()
+endOfParagraph blockQuoteDepth = do
+    endOfLine
+    void $ many1 (blockQuoteStart blockQuoteDepth >>
+        (string " " <|> string "\t" <|> (endOfLine >> return "")))
 
 mergePlainTexts :: [LineItem] -> [LineItem]
 mergePlainTexts = \case
@@ -84,8 +90,8 @@ mergePlainTexts = \case
     x:xs -> x:mergePlainTexts xs
     [] -> []
 
-parseLineItem :: Parser LineItem
-parseLineItem = parseEscapedMarkers
+parseLineItem :: Int -> Parser LineItem
+parseLineItem blockQuoteDepth = parseEscapedMarkers
                      <|> parsePreformatInline
                      <|> parseTextToggle Bold "**"
                      <|> parseTextToggle Italics "*"
@@ -93,6 +99,7 @@ parseLineItem = parseEscapedMarkers
                      <|> parseLink
                      <|> PlainText <$> takeWhile1 (not . (`elem` "*[]\n\\`"))
                      <|> PlainText <$> choice (string <$> ["[", "]", "*", "`"])
+                     <|> PlainText <$> (endOfLine >> blockQuoteStart blockQuoteDepth >> return " ")
 
 parseEscapedMarkers :: Parser LineItem
 parseEscapedMarkers = choice (parseEscape <$> ["\\", "*", "`", "#",  "-"])
@@ -109,30 +116,32 @@ parsePreformatInline = PreformatInline <$>
 -- It is a bit contrived though.
 parseTextToggle :: ([LineItem] -> LineItem) -> Text -> Parser LineItem
 parseTextToggle ctr txt =
-    ctr <$> (string txt *> manyTill1 parseLineItem (string txt))
+    ctr <$> (string txt *> manyTill1 (parseLineItem 0) (string txt))
 
 manyTill1 :: Alternative f => f a -> f b -> f [a]
 manyTill1 p t = liftA2 (:) p (manyTill p t)
 
 parseLink :: Parser LineItem
 parseLink = do
-    desc <- string "[" *> manyTill parseLineItem (string "]")
+    desc <- string "[" *> manyTill (parseLineItem 0) (string "]")
     url <- string "(" *> takeTill (== ')') <* string ")"
     return $ Link url desc
 
-parseList :: Parser NoteElement
-parseList = List <$> many1 parseListItem
+parseList :: Int -> Parser NoteElement
+parseList blockQuoteDepth = List <$>
+    many1 (blockQuoteStart blockQuoteDepth *> parseListItem)
 
 parseListItem :: Parser [LineItem]
 parseListItem = many (string " ") *> string "- " *>
-    manyTill parseLineItem eotOrNewLine
+    manyTill (parseLineItem 0) eotOrNewLine
 
-parseNumberedList :: Parser NoteElement
-parseNumberedList = NumberedList <$> many1 parseNumberedListItem
+parseNumberedList :: Int -> Parser NoteElement
+parseNumberedList blockQuoteDepth = NumberedList <$>
+    many1 (blockQuoteStart blockQuoteDepth *> parseNumberedListItem)
 
 parseNumberedListItem :: Parser [LineItem]
 parseNumberedListItem = (many (string " ") >> many1 digit >> string ". ")
-                        *> manyTill parseLineItem eotOrNewLine
+                        *> manyTill (parseLineItem 0) eotOrNewLine
 
 eotOrNewLine :: Parser ()
 eotOrNewLine = endOfInput <|> endOfLine
@@ -174,14 +183,13 @@ noteElementToHtml = \case
     Header3 txt        -> h3_ (toHtml txt)
     List items         -> ul_ (mapM_ (li_ . noteLineItemsToHtml) items)
     NumberedList items -> ol_ (mapM_ (li_ . noteLineItemsToHtml) items)
-    NormalLine items   -> noteLineItemsToHtml items
-    BlockQuote depth content -> table_ [bgcolor_ "lightblue", cellspacing_ "0"]
+    Paragraph items   -> p_ (noteLineItemsToHtml items)
+    BlockQuote content -> table_ [bgcolor_ "lightblue", cellspacing_ "0"]
         $ tr_ $ do
-            td_ $ replicateRawH depth "&nbsp;&nbsp;"
+            td_ "&nbsp;&nbsp;"
             td_ $ table_ [bgcolor_ "white"] (tr_ $ td_ $ noteDocumentToHtml content)
     PreformatBlock txt ->
         p_ $ table_ [bgcolor_ "#eee"] (tr_ $ td_ (pre_ $ toHtml txt))
-    where replicateRawH d = toHtmlRaw . T.pack . concat . replicate d
 
 noteLineItemsToHtml :: [LineItem] -> Html ()
 noteLineItemsToHtml = fold . fmap normalLineItemToHtml
