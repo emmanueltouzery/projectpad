@@ -70,7 +70,7 @@ parseNoteElement = choice (parseHeader <$> headerTypes)
 
 parsePreformatBlock :: Parser NoteElementRawBlockQuote
 parsePreformatBlock = NormalNoteEltRaw <$> PreformatBlock <$> T.pack <$> ((string "```" >> endOfLine)
-                       *> manyTill1 anyChar (endOfLine >> string "```"))
+                       *> manyTill1 anyChar (endOfLine >> string "```") <* optional endOfLine)
 
 parseBlockQuote :: Parser NoteElementRawBlockQuote
 parseBlockQuote = RawBlockQuote <$> T.intercalate "\n" . fmap T.pack <$>
