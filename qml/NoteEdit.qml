@@ -7,7 +7,8 @@ import "utils.js" as Utils
 Rectangle {
     id: noteEdit
     color: "light grey"
-    property int preferredHeight: 490
+    property bool widthResize: true
+    property int preferredHeight: -1
     property variant appContext: null
 
     property variant model: getDefaultModel()

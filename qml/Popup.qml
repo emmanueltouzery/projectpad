@@ -63,7 +63,9 @@ Rectangle {
         id: popupWindow
         anchors.horizontalCenter: parent.horizontalCenter
         y: 40
-        width: 580
+        width: popupContentsLoader.item.widthResize
+            ? parent.width - 220
+            : 580
         color: Qt.lighter("light gray", 1.15)
         height: popupHeader.height
         z: 2
@@ -117,7 +119,9 @@ Rectangle {
             id: popupContentsLoader
             width: parent.width
             y: popupHeader.height
-            onLoaded: height = item.preferredHeight
+            height: item.preferredHeight < 0
+               ? popupHost.height - mapToItem(popupHost, 0, 0).y - 60
+               : item.preferredHeight
         }
     }
 
