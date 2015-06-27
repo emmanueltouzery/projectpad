@@ -29,7 +29,6 @@ data NoteElementNoBlockQuote = Header1 Text
     | NumberedList [[LineItem]]
     | PreformatBlock Text
     | Paragraph [LineItem]
-    | InlineText [LineItem]
     deriving (Show, Eq)
 
 data NoteElementRawBlockQuote = NormalNoteEltRaw NoteElementNoBlockQuote
@@ -189,7 +188,6 @@ noteElementToHtml = \case
     NormalNote (Header3 txt)        -> h3_ (toHtml txt)
     NormalNote (List items)         -> ul_ (mapM_ (li_ . noteLineItemsToHtml) items)
     NormalNote (NumberedList items) -> ol_ (mapM_ (li_ . noteLineItemsToHtml) items)
-    NormalNote (InlineText items)   -> noteLineItemsToHtml items
     NormalNote (Paragraph items)    -> p_ (noteLineItemsToHtml items)
     NormalNote (PreformatBlock txt) ->
         p_ $ table_ [bgcolor_ "#eee"] (tr_ $ td_ (pre_ $ toHtml txt))
