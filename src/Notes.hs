@@ -75,7 +75,7 @@ parsePreformatBlock = NormalNoteEltRaw <$> PreformatBlock <$> T.pack <$> ((strin
 
 parseBlockQuote :: Parser NoteElementRawBlockQuote
 parseBlockQuote = RawBlockQuote <$> T.intercalate "\n" . fmap T.pack <$>
-        many1 (string "> " *> manyTill anyChar (endOfInput <|> endOfLine))
+        many1 ((string "> " <|> string ">") *> manyTill anyChar (endOfInput <|> endOfLine))
 
 -- the lookAhead is to be able to detect blockquotes from
 -- paragraphs without two CRs, eg "a\n> b"

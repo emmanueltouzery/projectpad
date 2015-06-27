@@ -95,6 +95,10 @@ runNotesParsingTests = it "parses notes properly" $ do
                 (Right [BlockQuote [NormalNote $ Paragraph [PlainText "hello continue"],
                         NormalNote $ Paragraph [PlainText "new paragraph!"]]])
         $ parseNoteDocument "> hello\n> continue\n> \n> new paragraph!"
+    assertEqual "space optional in blockquotes"
+                (Right [BlockQuote [NormalNote $ Paragraph [PlainText "hello"],
+                        NormalNote $ Paragraph [PlainText "new paragraph!"]]])
+        $ parseNoteDocument "> hello\n>\n> new paragraph!"
 
 runNotesHtmlGenTests :: Spec
 runNotesHtmlGenTests = it "generates HTML properly" $ do
