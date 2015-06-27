@@ -78,9 +78,6 @@ parseBlockQuote = RawBlockQuote <$> T.intercalate "\n" . fmap T.pack <$>
 
 -- the lookAhead is to be able to detect blockquotes from
 -- paragraphs without two CRs, eg "a\n> b"
--- which is nice but also needed because I can have
--- paragraphs within blockquotes and I want the blockquote
--- to keep going, eg "> a\n> b"
 parseParagraph :: Parser NoteElementRawBlockQuote
 parseParagraph =  NormalNoteEltRaw <$> Paragraph <$> mergePlainTexts <$>
     manyTill1 parseLineItem (endOfInput <|> endOfParagraph
