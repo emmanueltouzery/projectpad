@@ -83,9 +83,18 @@ runNotesParsingTests = it "parses notes properly" $ do
                          BlockQuote [NormalNote $ Paragraph [PlainText "two ", Bold [PlainText "level"]]],
              NormalNote $ Header1 "header"], NormalNote $ Paragraph [PlainText "back to normal."]])
         $ parseNoteDocument "hello\n\n> quoted\n> again\n> > two **level**\n> # header\nback to normal."
---     -- test list in blockquote (should not open a new list everytime!)
---     -- test paragraphs vs lines in blockquote
---     -- test paragraphs vs lines in normal text.
+    assertEqual "paragraphs"
+                (Right [NormalNote $ Paragraph [PlainText "hello continue"],
+                        NormalNote $ Paragraph [PlainText "new paragraph!"]])
+        $ parseNoteDocument "hello\ncontinue\n\nnew paragraph!"
+    assertEqual "list in blockquote"
+                (Right [BlockQuote [NormalNote $ NumberedList [[PlainText "first item"], [PlainText "second"]]],
+                        NormalNote $ NumberedList [[PlainText "new list."]]])
+        $ parseNoteDocument "> 1. first item\n> 2. second\n 3. new list."
+    assertEqual "paragraphs in blockquotes"
+                (Right [BlockQuote [NormalNote $ Paragraph [PlainText "hello continue"],
+                        NormalNote $ Paragraph [PlainText "new paragraph!"]]])
+        $ parseNoteDocument "> hello\n> continue\n> \n> new paragraph!"
 
 runNotesHtmlGenTests :: Spec
 runNotesHtmlGenTests = it "generates HTML properly" $ do
