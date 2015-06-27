@@ -102,7 +102,7 @@ parseLineItem = parseEscapedMarkers
                      <|> parsePassword
                      <|> parseLink
                      <|> PlainText <$> takeWhile1 (not . (`elem` "*[]\n\\`"))
-                     <|> PlainText <$> choice (string <$> ["[", "]", "*", "`"])
+                     <|> PlainText <$> choice (string <$> ["[", "]", "*", "`", "\\"])
                      <|> PlainText <$> (endOfLine >> return " ")
 
 parseEscapedMarkers :: Parser LineItem

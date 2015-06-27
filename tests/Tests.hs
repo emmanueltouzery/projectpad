@@ -99,6 +99,9 @@ runNotesParsingTests = it "parses notes properly" $ do
                 (Right [BlockQuote [NormalNote $ Paragraph [PlainText "hello"],
                         NormalNote $ Paragraph [PlainText "new paragraph!"]]])
         $ parseNoteDocument "> hello\n>\n> new paragraph!"
+    assertEqual "user friendly backslash"
+                (Right [NormalNote $ Paragraph [PlainText "\\x"]])
+        $ parseNoteDocument "\\x"
 
 runNotesHtmlGenTests :: Spec
 runNotesHtmlGenTests = it "generates HTML properly" $ do
