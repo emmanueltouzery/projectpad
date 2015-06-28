@@ -110,14 +110,14 @@ mergePlainTexts = \case
 
 parseLineItem :: Parser LineItem
 parseLineItem = parseEscapedMarkers
-                     <|> parsePreformatInline
-                     <|> parseTextToggle Bold "**"
-                     <|> parseTextToggle Italics "*"
-                     <|> parsePassword
-                     <|> parseLink
-                     <|> PlainText <$> takeWhile1 (not . (`elem` "*[]\n\\`"))
-                     <|> PlainText <$> choice (string <$> ["[", "]", "*", "`", "\\"])
-                     <|> PlainText <$> (endOfLine >> return " ")
+    <|> parsePreformatInline
+    <|> parseTextToggle Bold "**"
+    <|> parseTextToggle Italics "*"
+    <|> parsePassword
+    <|> parseLink
+    <|> PlainText <$> takeWhile1 (not . (`elem` "*[]\n\\`"))
+    <|> PlainText <$> choice (string <$> ["[", "]", "*", "`", "\\"])
+    <|> PlainText <$> (endOfLine >> return " ")
 
 parseEscapedMarkers :: Parser LineItem
 parseEscapedMarkers = choice (parseEscape <$> ["\\", "*", "`", "#",  "-"])
@@ -167,13 +167,14 @@ parsePassword = do
     separator <- string "[pass" *> anyChar
     Password <$> takeTill (== separator) <* string (T.singleton separator <> "]")
 
-type HeaderInfo a = (Text, Text -> a)
+type HeaderInfo = (Text, Text -> NoteElementNoBlockQuote)
 
-headerTypes :: [HeaderInfo NoteElementRawBlockQuote]
-headerTypes = [("#", NormalNoteEltRaw . Header1), ("##", NormalNoteEltRaw . Header2), ("###", NormalNoteEltRaw . Header3)]
+headerTypes :: [HeaderInfo]
+headerTypes = [("#", Header1), ("##", Header2), ("###", Header3)]
 
-parseHeader :: HeaderInfo a -> Parser a
-parseHeader (level, ctr) = ctr <$> T.pack <$> (header *> contents)
+parseHeader :: HeaderInfo -> Parser NoteElementRawBlockQuote
+parseHeader (level, ctr) =
+    NormalNoteEltRaw <$> ctr <$> T.pack <$> (header *> contents)
     where
       header   = string (level <> " ")
       contents = manyTill1 anyChar eotOrNewLine
