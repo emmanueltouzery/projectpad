@@ -61,7 +61,7 @@ runNotesParsingTests = it "parses notes properly" $ do
                 (Right [NormalNote $ Paragraph [PlainText "a"], NormalNote $ NumberedList [
                               [PlainText "one", Bold [PlainText "bold"]],
                               [PlainText "two"]], NormalNote $ Paragraph [PlainText "b"]])
-        $ parseNoteDocument "a\n 1. one**bold**\n 2. two\nb"
+        $ parseNoteDocument "a\n\n 1. one**bold**\n 2. two\nb"
     assertEqual "single cr"
                 (Right [NormalNote $ Paragraph [PlainText "a b"]])
         $ parseNoteDocument "a\nb"
@@ -102,6 +102,11 @@ runNotesParsingTests = it "parses notes properly" $ do
     assertEqual "user friendly backslash"
                 (Right [NormalNote $ Paragraph [PlainText "\\x"]])
         $ parseNoteDocument "\\x"
+    assertEqual "alternative preformat block syntax"
+                (Right [NormalNote $ Paragraph [PlainText "normal"],
+                        NormalNote $ PreformatBlock "block start\n continue",
+                        NormalNote $ Paragraph [PlainText "   normal again."]])
+        $ parseNoteDocument "normal\n\n    block start\n     continue\n   normal again."
 
 runNotesHtmlGenTests :: Spec
 runNotesHtmlGenTests = it "generates HTML properly" $ do

@@ -65,6 +65,7 @@ parseNoteElement = choice (parseHeader <$> headerTypes)
     <|> parseList
     <|> parseNumberedList
     <|> parsePreformatBlock
+    <|> parsePreformatBlock2
     <|> parseBlockQuote
     <|> parseParagraph
 
@@ -72,14 +73,22 @@ parsePreformatBlock :: Parser NoteElementRawBlockQuote
 parsePreformatBlock = NormalNoteEltRaw <$> PreformatBlock <$> T.pack <$> ((string "```" >> endOfLine)
                        *> manyTill1 anyChar (endOfLine >> string "```") <* optional endOfLine)
 
+parsePreformatBlock2 :: Parser NoteElementRawBlockQuote
+parsePreformatBlock2 = NormalNoteEltRaw <$> PreformatBlock <$>
+    manyCharToText <$> many1 parsePreformatLine
+    where parsePreformatLine = string "    " *> manyTill1 anyChar eotOrNewLine
+
+manyCharToText :: [String] -> Text
+manyCharToText = T.intercalate "\n" . fmap T.pack
+
 -- regarding the decision to parse blocknotes as raw
 -- and then only later properly. See:
 -- http://stackoverflow.com/questions/31082272
 -- and https://www.reddit.com/r/haskell/comments/3ba7s7/how_would_you_solve_this_attoparsec_problem/
 -- and the branch blockquotes_record_depth
 parseBlockQuote :: Parser NoteElementRawBlockQuote
-parseBlockQuote = RawBlockQuote <$> T.intercalate "\n" . fmap T.pack <$>
-        many1 ((string "> " <|> string ">") *> manyTill anyChar (endOfInput <|> endOfLine))
+parseBlockQuote = RawBlockQuote <$> manyCharToText <$>
+        many1 ((string "> " <|> string ">") *> manyTill anyChar eotOrNewLine)
 
 -- the lookAhead is to be able to detect blockquotes from
 -- paragraphs without two CRs, eg "a\n> b"
@@ -91,7 +100,7 @@ parseParagraph =  NormalNoteEltRaw <$> Paragraph <$> mergePlainTexts <$>
 endOfParagraph :: Parser ()
 endOfParagraph = do
     endOfLine
-    void $ many1 (string " " <|> string "\t" <|> (endOfLine >> return ""))
+    void $ manyTill (string " " <|> string "\t") eotOrNewLine
 
 mergePlainTexts :: [LineItem] -> [LineItem]
 mergePlainTexts = \case
