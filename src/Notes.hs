@@ -121,7 +121,8 @@ parseEscapedMarkers = choice (parseEscape <$> ["\\", "*", "`", "#",  "-"])
 parsePreformatInline :: Parser LineItem
 parsePreformatInline = do
     separator <- T.concat <$> many1 (string "`")
-    contents <- T.pack <$> manyTill1 anyChar (string separator)
+    spc <- option "" (string " ")
+    contents <- T.pack <$> manyTill1 anyChar (string $ spc <> separator)
     return $ PreformatInline contents
 
 -- without the manyTill1 I could get "**" parsed as Italics []...

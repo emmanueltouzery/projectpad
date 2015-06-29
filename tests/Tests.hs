@@ -77,7 +77,7 @@ runNotesParsingTests = it "parses notes properly" $ do
     assertEqual "multi backticks pre"
                 (Right [NormalNote $ Paragraph [PlainText "hello"],
                         NormalNote $ Paragraph [PreformatInline "this i`s\n pre*f``orm*atted.\n"]])
-        $ parseNoteDocument "hello\n\n```this i`s\n pre*f``orm*atted.\n```"
+        $ parseNoteDocument "hello\n\n``` this i`s\n pre*f``orm*atted.\n ```"
     assertEqual "blockquote"
         (Right [NormalNote $ Paragraph [PlainText "hello"],
              BlockQuote [NormalNote $ Paragraph [PlainText "quoted again"],
