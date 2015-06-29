@@ -108,7 +108,7 @@ runNotesParsingTests = it "parses notes properly" $ do
                 (Right [NormalNote $ Paragraph [PlainText "normal"],
                         NormalNote $ PreformatBlock "block start\n continue",
                         NormalNote $ Paragraph [PlainText "   normal again."]])
-        $ parseNoteDocument "normal\n\n    block start\n     continue\n   normal again."
+        $ parseNoteDocument "normal\n    block start\n     continue\n   normal again."
     assertEqual "hr"
                 (Right [NormalNote HorizontalRule])
         $ parseNoteDocument "* * *"

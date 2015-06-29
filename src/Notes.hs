@@ -99,6 +99,7 @@ parseBlockQuote = RawBlockQuote <$> manyCharToText <$>
 parseParagraph :: Parser NoteElementRawBlockQuote
 parseParagraph =  NormalNoteEltRaw <$> Paragraph <$> mergePlainTexts <$>
     manyTill1 parseLineItem (endOfInput <|> endOfParagraph
+                             <|> (endOfLine >> lookAhead (void $ string "    "))
                              <|> (endOfLine >> lookAhead (void $ string "> ")))
 
 endOfParagraph :: Parser ()
