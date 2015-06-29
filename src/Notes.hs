@@ -80,7 +80,7 @@ parseHorRule = do
 parsePreformatBlock :: Parser NoteElementRawBlockQuote
 parsePreformatBlock = NormalNoteEltRaw <$> PreformatBlock <$>
     manyCharToText <$> many1 parsePreformatLine
-    where parsePreformatLine = string "    " *> manyTill1 anyChar eotOrNewLine
+    where parsePreformatLine = string "    " *> manyTill anyChar eotOrNewLine
 
 manyCharToText :: [String] -> Text
 manyCharToText = T.intercalate "\n" . fmap T.pack
