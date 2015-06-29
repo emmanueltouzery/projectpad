@@ -62,7 +62,7 @@ parseBlockQuotes = \case
     RawBlockQuote txt  -> BlockQuote <$> parseNoteDocument txt
 
 parseNoteElement :: Parser NoteElementRawBlockQuote
-parseNoteElement = choice (parseHeader <$> headerTypes)
+parseNoteElement = parseHeaders
     <|> parseHorRule
     <|> parseList
     <|> parseNumberedList
@@ -100,7 +100,8 @@ parseParagraph :: Parser NoteElementRawBlockQuote
 parseParagraph =  NormalNoteEltRaw <$> Paragraph <$> mergePlainTexts <$>
     manyTill1 parseLineItem (endOfInput <|> endOfParagraph
                              <|> (endOfLine >> lookAhead (void $ string "    "))
-                             <|> (endOfLine >> lookAhead (void $ string "> ")))
+                             <|> (endOfLine >> lookAhead (void $ string "> "))
+                             <|> (endOfLine >> lookAhead (void parseHeaders)))
 
 endOfParagraph :: Parser ()
 endOfParagraph = do
@@ -180,6 +181,9 @@ type HeaderInfo = (Text, Text -> NoteElementNoBlockQuote)
 
 headerTypes :: [HeaderInfo]
 headerTypes = [("#", Header1), ("##", Header2), ("###", Header3)]
+
+parseHeaders :: Parser NoteElementRawBlockQuote
+parseHeaders = choice (parseHeader <$> headerTypes)
 
 parseHeader :: HeaderInfo -> Parser NoteElementRawBlockQuote
 parseHeader (level, ctr) =
