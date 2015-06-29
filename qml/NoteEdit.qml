@@ -119,7 +119,41 @@ Rectangle {
     function togglePreformat() {
         var multiline = (textArea.selectedText.indexOf("\n") >= 0)
         if (multiline) {
-            toggleSnippet("\n```\n", "\n```\n")
+            var startPos = textArea.selectionStart
+            var movedStart = false
+            if (startPos > 0 && textArea.getText(startPos-1, startPos) === "\n") {
+                movedStart = true
+                --startPos
+            }
+            var curPos = textArea.selectionEnd
+            // first, do we comment or uncomment?
+            var isUncomment = textArea.selectedText.indexOf("\n    ") >= 0
+            while (curPos >= startPos && isUncomment) {
+                var curChar = textArea.getText(curPos, curPos+1)
+                if (curChar === "\n") {
+                    if (curPos+5>textArea.text.length ||
+                        (textArea.getText(curPos, curPos + 5) !== "\n    ")) {
+                        isUncomment = false
+                    }
+                }
+                --curPos
+            }
+            // ok now do it!
+            curPos = textArea.selectionEnd
+            while (curPos >= startPos) {
+                var curChar = textArea.getText(curPos, curPos+1)
+                if (curChar === "\n") {
+                    if (isUncomment) {
+                        textArea.remove(curPos+1, curPos+5)
+                    } else {
+                        textArea.insert(curPos+1, "    ")
+                    }
+                }
+                --curPos
+            }
+            if (movedStart && !isUncomment) {
+                textArea.select(textArea.selectionStart-4, textArea.selectionEnd)
+            }
         } else {
             toggleSnippet("`", "`")
         }
