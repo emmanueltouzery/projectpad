@@ -109,6 +109,9 @@ runNotesParsingTests = it "parses notes properly" $ do
                         NormalNote $ PreformatBlock "block start\n continue",
                         NormalNote $ Paragraph [PlainText "   normal again."]])
         $ parseNoteDocument "normal\n\n    block start\n     continue\n   normal again."
+    assertEqual "hr"
+                (Right [NormalNote HorizontalRule])
+        $ parseNoteDocument "* * *"
 
 runNotesHtmlGenTests :: Spec
 runNotesHtmlGenTests = it "generates HTML properly" $ do

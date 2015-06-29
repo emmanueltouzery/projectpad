@@ -25,6 +25,7 @@ import Control.Monad (void)
 data NoteElementNoBlockQuote = Header1 Text
     | Header2 Text
     | Header3 Text
+    | HorizontalRule
     | List [[LineItem]]
     | NumberedList [[LineItem]]
     | PreformatBlock Text
@@ -62,11 +63,19 @@ parseBlockQuotes = \case
 
 parseNoteElement :: Parser NoteElementRawBlockQuote
 parseNoteElement = choice (parseHeader <$> headerTypes)
+    <|> parseHorRule
     <|> parseList
     <|> parseNumberedList
     <|> parsePreformatBlock
     <|> parseBlockQuote
     <|> parseParagraph
+
+parseHorRule :: Parser NoteElementRawBlockQuote
+parseHorRule = do
+    let marker = char '-' <|> char '*' <|> char '_'
+    count 3 (many space >> marker)
+    manyTill (marker <|> space) eotOrNewLine
+    return $ NormalNoteEltRaw HorizontalRule
 
 parsePreformatBlock :: Parser NoteElementRawBlockQuote
 parsePreformatBlock = NormalNoteEltRaw <$> PreformatBlock <$>
@@ -200,6 +209,7 @@ noteElementToHtml = \case
     NormalNote (List items)         -> ul_ (mapM_ (li_ . noteLineItemsToHtml) items)
     NormalNote (NumberedList items) -> ol_ (mapM_ (li_ . noteLineItemsToHtml) items)
     NormalNote (Paragraph items)    -> p_ (noteLineItemsToHtml items)
+    NormalNote HorizontalRule       -> hr_ []
     NormalNote (PreformatBlock txt) ->
         p_ $ table_ [bgcolor_ "#eee"] (tr_ $ td_ (pre_ $ toHtml txt))
     BlockQuote content -> table_ [bgcolor_ "lightblue", cellspacing_ "0"]
