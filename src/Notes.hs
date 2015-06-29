@@ -65,16 +65,11 @@ parseNoteElement = choice (parseHeader <$> headerTypes)
     <|> parseList
     <|> parseNumberedList
     <|> parsePreformatBlock
-    <|> parsePreformatBlock2
     <|> parseBlockQuote
     <|> parseParagraph
 
 parsePreformatBlock :: Parser NoteElementRawBlockQuote
-parsePreformatBlock = NormalNoteEltRaw <$> PreformatBlock <$> T.pack <$> ((string "```" >> endOfLine)
-                       *> manyTill1 anyChar (endOfLine >> string "```") <* optional endOfLine)
-
-parsePreformatBlock2 :: Parser NoteElementRawBlockQuote
-parsePreformatBlock2 = NormalNoteEltRaw <$> PreformatBlock <$>
+parsePreformatBlock = NormalNoteEltRaw <$> PreformatBlock <$>
     manyCharToText <$> many1 parsePreformatLine
     where parsePreformatLine = string "    " *> manyTill1 anyChar eotOrNewLine
 
@@ -124,8 +119,10 @@ parseEscapedMarkers = choice (parseEscape <$> ["\\", "*", "`", "#",  "-"])
     where parseEscape t = string ("\\" <> t) *> return (PlainText t)
 
 parsePreformatInline :: Parser LineItem
-parsePreformatInline = PreformatInline <$>
-     (string "`" *> takeWhile1 (not . (== '`')) <* string "`")
+parsePreformatInline = do
+    separator <- T.concat <$> many1 (string "`")
+    contents <- T.pack <$> manyTill1 anyChar (string separator)
+    return $ PreformatInline contents
 
 -- without the manyTill1 I could get "**" parsed as Italics []...
 -- however I'm not happy about the parsing of "hello **bold *italics** endi*"
