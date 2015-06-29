@@ -55,8 +55,9 @@ runNotesParsingTests = it "parses notes properly" $ do
     assertEqual "list"
                 (Right [NormalNote $ Paragraph [PlainText "a"], NormalNote $ List [
                               [PlainText "one", Bold [PlainText "bold"]],
-                              [PlainText "two"]], NormalNote $ Paragraph [PlainText "b"]])
-        $ parseNoteDocument "a\n\n - one**bold**\n - two\nb"
+                              [PlainText "two"], [PlainText "three"]],
+                        NormalNote $ Paragraph [PlainText "b"]])
+        $ parseNoteDocument "a\n\n - one**bold**\n * two\n + three\nb"
     assertEqual "numbered list"
                 (Right [NormalNote $ Paragraph [PlainText "a"], NormalNote $ NumberedList [
                               [PlainText "one", Bold [PlainText "bold"]],

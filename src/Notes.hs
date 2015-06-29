@@ -147,7 +147,8 @@ parseList :: Parser NoteElementRawBlockQuote
 parseList = NormalNoteEltRaw <$> List <$> many1 parseListItem
 
 parseListItem :: Parser [LineItem]
-parseListItem = many (string " ") *> string "- " *>
+parseListItem = many (string " ") *>
+    (string "- " <|> string "* " <|> string "+ ") *>
     manyTill parseLineItem eotOrNewLine
 
 parseNumberedList :: Parser NoteElementRawBlockQuote
