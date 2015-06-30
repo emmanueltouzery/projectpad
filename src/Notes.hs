@@ -206,6 +206,9 @@ bgcolor_ = makeAttribute "bgcolor"
 cellspacing_ :: Text -> Attribute
 cellspacing_ = makeAttribute "cellspacing"
 
+center_ :: Term arg result => arg -> result
+center_ = term "center"
+
 noteElementToHtml :: NoteElement -> Html ()
 noteElementToHtml = \case
     NormalNote (Header1 txt)        -> h1_ (toHtml txt)
@@ -214,7 +217,7 @@ noteElementToHtml = \case
     NormalNote (List items)         -> ul_ (mapM_ (li_ . noteLineItemsToHtml) items)
     NormalNote (NumberedList items) -> ol_ (mapM_ (li_ . noteLineItemsToHtml) items)
     NormalNote (Paragraph items)    -> p_ (noteLineItemsToHtml items)
-    NormalNote HorizontalRule       -> hr_ []
+    NormalNote HorizontalRule       -> p_ $ center_ $ toHtml (T.replicate 10 "\x2015")
     NormalNote (PreformatBlock txt) ->
         p_ $ table_ [bgcolor_ "#eee"] (tr_ $ td_ (pre_ $ toHtml txt))
     BlockQuote content -> table_ [bgcolor_ "lightblue", cellspacing_ "0"]
@@ -229,7 +232,7 @@ normalLineItemToHtml :: LineItem -> Html ()
 normalLineItemToHtml = \case
     Bold elts     -> b_ (noteLineItemsToHtml elts)
     Italics elts  -> i_ (noteLineItemsToHtml elts)
-    Password txt  -> a_ [href_ ("pass://" <> txt)] "[password]"
+    Password txt  -> a_ [href_ ("pass://" <> txt)] "\x1F512[Password]"
     PlainText txt -> toHtml txt
     Link target contents ->
        a_ [href_ target] (noteLineItemsToHtml contents)
