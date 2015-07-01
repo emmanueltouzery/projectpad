@@ -44,7 +44,7 @@ function listModelGetValueIndex(listModel, value) {
 function deepCopy(p) {
     var c = {};
     for (var i in p) {
-        if (typeof p[i] === 'object') {
+        if (p[i] !== null && typeof p[i] === 'object') {
             c[i] = (p[i].constructor === Array) ? [] : {};
             deepCopy(p[i], c[i]);
         } else {
