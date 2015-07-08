@@ -15,7 +15,7 @@ Rectangle {
 
     function refreshSearch() {
         loadView("SearchView.qml", {
-            matches: search(searchView.model.query),
+            matches: getAppState().search(searchView.model.query),
             query: searchView.model.query})
     }
     function refreshServerView() { refreshSearch() }

@@ -1,9 +1,9 @@
 function runIfSshHostTrusted(server, f) {
-    if (!serverViewState.isHostTrusted(server.serverIp)) {
+    if (!getAppState().serverViewState.isHostTrusted(server.serverIp)) {
         var title = "Server '" + server.serverIp + "' is not trusted!"
         var msg = "Add the key automatically to the trust store?"
         appContext.confirmDanger(title, msg, "Add", function() {
-            serverViewState.addInHostTrustStore(server.serverIp)
+            getAppState().serverViewState.addInHostTrustStore(server.serverIp)
             f();
         })
     } else {
