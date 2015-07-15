@@ -19,6 +19,7 @@ Rectangle {
             query: searchView.model.query})
     }
     function refreshServerView() { refreshSearch() }
+    function refreshProjectView() { refreshSearch() }
     function refreshProjectPois() { refreshSearch() }
 
     ScrollView {
