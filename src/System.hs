@@ -1,4 +1,4 @@
-{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE OverloadedStrings, LambdaCase #-}
 
 module System where
 
@@ -55,25 +55,29 @@ tryCommand cmd_ params_ mCwd envVal readCallback = do
         })
     case r of
         Right (_, Just stdout, _, phndl) -> Right <$> readHandleProgress stdout readCallback phndl
-        Left (SomeException x) -> return $ Left $ T.pack $ show x
+        Left (SomeException x) -> do
+            readCallback (CommandFailed $ T.pack $ show x)
+            return (Left $ T.pack $ show x)
         _ -> error "Try command unexpected process output"
 
 readHandleProgress :: Handle -> (CommandProgress -> IO ()) -> ProcessHandle -> IO ()
 readHandleProgress hndl cmdProgress phndl = do
     chunk <- T.hGetChunk hndl
-    cmdProgress $ CommandOutput chunk
     if not $ T.null chunk
-        then readHandleProgress hndl cmdProgress phndl
-        else handleProgramFinished cmdProgress phndl
+        then do
+            cmdProgress $ CommandOutput chunk
+            readHandleProgress hndl cmdProgress phndl
+        else do
+            mExitCode <- getProcessExitCode phndl
+            case mExitCode of
+                Nothing -> readHandleProgress hndl cmdProgress phndl
+                Just exitCode -> handleProgramFinished cmdProgress exitCode
 
-handleProgramFinished :: (CommandProgress -> IO ()) -> ProcessHandle -> IO ()
-handleProgramFinished cmdProgress phndl = do
-    mExitCode <- getProcessExitCode phndl
-    case mExitCode of
-        Nothing -> cmdProgress $ CommandFailed "Can't get process exit code from handle"
-        Just ExitSuccess -> cmdProgress CommandSucceeded
-        Just (ExitFailure code) -> cmdProgress $
-            CommandFailed (T.pack $ "Error code: " ++ show code)
+handleProgramFinished :: (CommandProgress -> IO ()) -> ExitCode -> IO ()
+handleProgramFinished cmdProgress = \case
+    ExitSuccess      -> cmdProgress CommandSucceeded
+    ExitFailure code -> cmdProgress $
+        CommandFailed (T.pack $ "Error code: " ++ show code)
 
 tryCommandAsync :: Text -> [Text] -> Maybe FilePath
     -> Maybe [(String, String)] -> (CommandProgress -> IO ())  -> IO ()
