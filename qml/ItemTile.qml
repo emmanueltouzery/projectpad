@@ -26,6 +26,12 @@ Rectangle {
         anchors.bottom: parent.bottom
         anchors.right: parent.right
         anchors.margins: 10
-        source: '../glyphicons-free/' + icon + '.png'
+        source: {
+            if (icon.length > 0 && icon.indexOf("/") === 0) {
+                return icon
+            } else {
+                return '../glyphicons-free/' + icon + '.png'
+            }
+        }
     }
 }

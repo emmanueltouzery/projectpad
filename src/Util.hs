@@ -10,6 +10,14 @@ import qualified Data.ByteString as BS
 import qualified Data.Text as T
 import Control.Exception
 import Control.Applicative
+import System.FilePath.Posix
+import System.Directory
+
+projectPadFolder :: String
+projectPadFolder = ".projectpad"
+
+getAppDir :: IO String
+getAppDir = (</> projectPadFolder) <$> getHomeDirectory
 
 -- TODO a more general version is provided by Data.Bifunctor
 -- in base 4.8 (GHC 7.10). Switch when upgrading.

@@ -47,9 +47,6 @@ import Notes
 dbFileName :: String
 dbFileName = "projectpad.db"
 
-projectPadFolder :: String
-projectPadFolder = ".projectpad"
-
 sqLiteDiscrimitator :: ByteString
 sqLiteDiscrimitator = "SQLite format 3"
 
@@ -60,9 +57,6 @@ main = do
     createDirectoryIfMissing True appDir
     let dbFullPath = T.pack $ appDir </> dbFileName
     displayApp dbFullPath logQueriesToStdout
-
-getAppDir :: IO String
-getAppDir = (</> projectPadFolder) <$> getHomeDirectory
 
 getDbPath :: IO String
 getDbPath = do

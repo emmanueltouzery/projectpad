@@ -13,6 +13,7 @@ import Database.Persist.Sql
 import Data.Int
 import Data.Text (Text)
 import qualified Data.Text as T
+import qualified Data.ByteString as BS
 import Data.Maybe
 import Control.Applicative
 import Data.Ord
@@ -134,6 +135,7 @@ instance DefaultClass (Entity Project) where
     classMembers = getStandardClassMembers
         [
             ("name", projectName),
+            ("hasCustomIcon", text . not . BS.null . projectIcon),
             ("hasDev", projectHasDev), -- TODO bool as string, ugly..
             ("hasUat", projectHasUat),
             ("hasStaging", projectHasStage),

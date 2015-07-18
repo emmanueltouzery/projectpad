@@ -42,6 +42,7 @@ Column {
                 introText.text = "Wrong password! Try again."
                 break;
             case "Ok":
+                getAppState().projectListState.copyProjectIcons()
                 popup.doClose()
                 loadView("ProjectList.qml", null)
                 break;

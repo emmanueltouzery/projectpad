@@ -6,7 +6,14 @@ ItemTile {
     property int modelId: modelData.id
     color: "light blue"
     itemDesc: modelData.name
-    icon: "glyphicons-441-folder-closed"
+    icon: {
+        if (modelData.hasCustomIcon === "True") {
+            return getAppState().projectListState.projectIconsFolder +
+                "/" + modelData.id + ".png"
+        } else {
+            return "glyphicons-441-folder-closed"
+        }
+    }
 
     function getActions(projectModel) {
         var environments = [];
