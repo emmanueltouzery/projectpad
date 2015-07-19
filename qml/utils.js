@@ -1,3 +1,8 @@
+function projectGetCustomIcon(project) {
+    return getAppState().projectListState.projectIconsFolder +
+        "/" + project.id + ".png"
+}
+
 function runIfSshHostTrusted(server, f) {
     if (!getAppState().serverViewState.isHostTrusted(server.serverIp)) {
         var title = "Server '" + server.serverIp + "' is not trusted!"

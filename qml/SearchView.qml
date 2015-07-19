@@ -2,6 +2,8 @@ import QtQuick 2.0
 import QtQuick.Controls 1.2
 import QtQuick.Layouts 1.1
 
+import "utils.js" as Utils
+
 Rectangle {
     id: searchView
     anchors.fill: parent
@@ -45,11 +47,26 @@ Rectangle {
                             color: "gray"
                             width: searchView.width
                             height: 40
-                            Text {
-                                x: 5
-                                text: modelData.project.name
+                            Flow {
                                 height: parent.height
-                                verticalAlignment: Text.AlignVCenter
+                                x: 5
+                                spacing: 5
+                                Image {
+                                    height: parent.height
+                                    fillMode: Image.PreserveAspectFit
+                                    source: {
+                                        if (modelData.project.hasCustomIcon === "True") {
+                                            return Utils.projectGetCustomIcon(modelData.project)
+                                        } else {
+                                            return "../glyphicons-free/glyphicons-441-folder-closed.png"
+                                        }
+                                    }
+                                }
+                                Text {
+                                    text: modelData.project.name
+                                    height: parent.height
+                                    verticalAlignment: Text.AlignVCenter
+                                }
                             }
                         }
                         Repeater {

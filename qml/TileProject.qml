@@ -8,8 +8,7 @@ ItemTile {
     itemDesc: modelData.name
     icon: {
         if (modelData.hasCustomIcon === "True") {
-            return getAppState().projectListState.projectIconsFolder +
-                "/" + modelData.id + ".png"
+            return Utils.projectGetCustomIcon(modelData)
         } else {
             return "glyphicons-441-folder-closed"
         }

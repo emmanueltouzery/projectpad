@@ -25,9 +25,7 @@ Rectangle {
         origModel = _model
         projectEdit.model = Utils.deepCopy(_model)
         if (projectEdit.model.hasCustomIcon === "True") {
-            projectIconButton.iconSource =
-                getAppState().projectListState.projectIconsFolder +
-                    "/" + projectEdit.model.id + ".png"
+            projectIconButton.iconSource = Utils.projectGetCustomIcon(projectEdit.model)
         } else {
             projectIconButton.iconSource = ""
         }
