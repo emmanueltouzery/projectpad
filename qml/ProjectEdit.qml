@@ -24,11 +24,14 @@ Rectangle {
     function activate(_model) {
         origModel = _model
         projectEdit.model = Utils.deepCopy(_model)
+        var iconPath
         if (projectEdit.model.hasCustomIcon === "True") {
-            projectIconButton.iconSource = Utils.projectGetCustomIcon(projectEdit.model)
+            iconPath = Utils.projectGetCustomIcon(projectEdit.model)
         } else {
-            projectIconButton.iconSource = ""
+            iconPath = ""
         }
+        projectIconButton.iconSource = iconPath
+        projectEdit.iconFilePath = "file://" + iconPath
         envDevelopment.checked = projectEdit.model.hasDev === "True"
         envUat.checked = projectEdit.model.hasUat === "True"
         envStaging.checked = projectEdit.model.hasStaging === "True"
@@ -44,15 +47,16 @@ Rectangle {
             appContext.errorMessage("Pick at least one environment! (Development, UAT, ...)");
             return
         }
+        var iconPath = customIconCb.checked ? projectEdit.iconFilePath : ""
         if (model.id) {
             projectEdit.model = getAppState().projectListState.updateProject(
                 origModel, projectNameEntry.text,
-                projectEdit.iconFilePath,
+                iconPath,
                 envDevelopment.checked, envUat.checked,
                 envStaging.checked, envProd.checked)
         } else {
             getAppState().projectListState.addProject(
-                projectNameEntry.text, projectEdit.iconFilePath,
+                projectNameEntry.text, iconPath,
                 envDevelopment.checked, envUat.checked,
                 envStaging.checked, envProd.checked)
         }
