@@ -1,4 +1,4 @@
-import QtQuick 2.0
+import QtQuick 2.4
 import QtQuick.Controls 1.2
 import QtQuick.Layouts 1.1
 
@@ -48,11 +48,13 @@ Rectangle {
                             width: searchView.width
                             height: 40
                             Flow {
-                                height: parent.height
+                                height: parent.height - 10
+                                y: 5
                                 x: 5
                                 spacing: 5
                                 Image {
                                     height: parent.height
+                                    mipmap: true
                                     fillMode: Image.PreserveAspectFit
                                     source: {
                                         if (modelData.project.hasCustomIcon === "True") {

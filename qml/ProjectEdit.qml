@@ -91,7 +91,7 @@ Rectangle {
 
         Button {
             id: projectIconButton
-            text: projectEdit.model.hasCustomIcon ? "Change icon" : "Pick icon"
+            text: (projectEdit.model.hasCustomIcon === "True") ? "Change icon" : "Pick icon"
             enabled: customIconCb.checked
             onClicked: fileDialog.visible = true
         }
