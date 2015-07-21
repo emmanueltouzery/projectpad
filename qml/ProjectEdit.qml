@@ -14,10 +14,10 @@ Rectangle {
 
     property var basicModel : {
         "name":       "Project name",
-        "hasDev":     "False",
-        "hasUat":     "False",
-        "hasStaging": "False",
-        "hasProd":    "True",
+        "hasDev":     false,
+        "hasUat":     false,
+        "hasStaging": false,
+        "hasProd":    true,
         "hasCustomIcon": false
     }
     property var model: Utils.deepCopy(basicModel)
@@ -34,10 +34,10 @@ Rectangle {
         }
         projectIconButton.iconSource = iconPath
         projectEdit.iconFilePath = "file://" + iconPath
-        envDevelopment.checked = projectEdit.model.hasDev === "True"
-        envUat.checked = projectEdit.model.hasUat === "True"
-        envStaging.checked = projectEdit.model.hasStaging === "True"
-        envProd.checked = projectEdit.model.hasProd === "True"
+        envDevelopment.checked = projectEdit.model.hasDev
+        envUat.checked = projectEdit.model.hasUat
+        envStaging.checked = projectEdit.model.hasStaging
+        envProd.checked = projectEdit.model.hasProd
         projectNameEntry.selectAll()
         projectNameEntry.forceActiveFocus()
     }

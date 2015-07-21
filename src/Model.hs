@@ -135,13 +135,16 @@ getKeyM f (fromObjRef -> entity) = do
 instance DefaultClass (Entity Project) where
     classMembers = getStandardClassMembers
         [
-            defPropConst "name" projectName,
+            defPropConst "name"          projectName,
             defPropConst "hasCustomIcon" $ not . BS.null . projectIcon,
-            defPropConst "hasDev" projectHasDev, -- TODO bool as string, ugly..
-            defPropConst "hasUat" projectHasUat,
-            defPropConst "hasStaging" projectHasStage,
-            defPropConst "hasProd" projectHasProd
+            defPropConst "hasDev"        $ readBool . projectHasDev,
+            defPropConst "hasUat"        $ readBool . projectHasUat,
+            defPropConst "hasStaging"    $ readBool . projectHasStage,
+            defPropConst "hasProd"       $ readBool . projectHasProd
         ]
+
+readBool :: Text -> Bool
+readBool = read . T.unpack
 
 text :: Show a => a -> Text
 text = T.pack . show

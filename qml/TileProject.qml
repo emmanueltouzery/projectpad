@@ -16,22 +16,22 @@ ItemTile {
 
     function getActions(projectModel) {
         var environments = [];
-        if (projectModel.hasDev === "True") {
+        if (projectModel.hasDev) {
             environments.push(["glyphicons-361-bug", function() {
                 loadView("ProjectView.qml", {"project": projectModel, "environment": "EnvDevelopment"})
             }])
         }
-        if (projectModel.hasUat === "True") {
+        if (projectModel.hasUat) {
             environments.push(["glyphicons-534-lab", function() {
                 loadView("ProjectView.qml", {"project": projectModel, "environment": "EnvUat"})
             }])
         }
-        if (projectModel.hasStaging === "True") {
+        if (projectModel.hasStaging) {
             environments.push(["glyphicons-140-adjust-alt", function() {
                 loadView("ProjectView.qml", {"project": projectModel, "environment": "EnvStage"})
             }])
         }
-        if (projectModel.hasProd === "True") {
+        if (projectModel.hasProd) {
             environments.push(["glyphicons-333-certificate", function() {
                 loadView("ProjectView.qml", {"project": projectModel, "environment": "EnvProd"})
             }])
