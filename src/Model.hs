@@ -155,37 +155,37 @@ readT = read . T.unpack
 instance DefaultClass (Entity Server) where
     classMembers = getStandardClassMembers
         [
-            defPropConst "desc" serverDesc,
-            defPropConst "serverIp" serverIp,
-            defPropConst "text" serverText,
-            defPropConst "username" serverUsername,
-            defPropConst "password" serverPassword,
+            defPropConst "desc"            serverDesc,
+            defPropConst "serverIp"        serverIp,
+            defPropConst "text"            serverText,
+            defPropConst "username"        serverUsername,
+            defPropConst "password"        serverPassword,
             defPropConst "authKeyFilename" $ fromMaybe "..." . serverAuthKeyFilename,
-            defPropConst "type" $ text . serverType,
-            defPropConst "accessType" $ text . serverAccessType,
-            defPropConst "environment" $ text . serverEnvironment,
-            defPropConst "groupName" $ fromMaybe "" . serverGroupName,
-            defFk "projectId" $ Just . serverProjectId
+            defPropConst "type"            $ text . serverType,
+            defPropConst "accessType"      $ text . serverAccessType,
+            defPropConst "environment"     $ text . serverEnvironment,
+            defPropConst "groupName"       $ fromMaybe "" . serverGroupName,
+            defFk        "projectId"       $ Just . serverProjectId
         ]
 
 instance DefaultClass (Entity ServerPointOfInterest) where
     classMembers = getStandardClassMembers
         [
-            defPropConst "desc" serverPointOfInterestDesc,
-            defPropConst "path" serverPointOfInterestPath,
-            defPropConst "text" serverPointOfInterestText,
+            defPropConst "desc"         serverPointOfInterestDesc,
+            defPropConst "path"         serverPointOfInterestPath,
+            defPropConst "text"         serverPointOfInterestText,
             defPropConst "interestType" $ text . serverPointOfInterestInterestType,
-            defPropConst "groupName" $ fromMaybe "" . serverPointOfInterestGroupName
+            defPropConst "groupName"    $ fromMaybe "" . serverPointOfInterestGroupName
         ]
 
 instance DefaultClass (Entity ServerWebsite) where
     classMembers = getStandardClassMembers
         [
-            defPropConst "desc" serverWebsiteDesc,
-            defPropConst "url" serverWebsiteUrl,
-            defPropConst "text" serverWebsiteText,
-            defPropConst "username" serverWebsiteUsername,
-            defPropConst "password" serverWebsitePassword,
+            defPropConst "desc"      serverWebsiteDesc,
+            defPropConst "url"       serverWebsiteUrl,
+            defPropConst "text"      serverWebsiteText,
+            defPropConst "username"  serverWebsiteUsername,
+            defPropConst "password"  serverWebsitePassword,
             defPropConst "groupName" $ fromMaybe "" . serverWebsiteGroupName,
             defFk "serverDatabaseId" serverWebsiteServerDatabaseId
         ]
@@ -193,39 +193,39 @@ instance DefaultClass (Entity ServerWebsite) where
 instance DefaultClass (Entity ServerDatabase) where
     classMembers = getStandardClassMembers
         [
-            defPropConst "desc" serverDatabaseDesc,
-            defPropConst "name" serverDatabaseName,
-            defPropConst "text" serverDatabaseText,
-            defPropConst "username" serverDatabaseUsername,
-            defPropConst "password" serverDatabasePassword,
+            defPropConst "desc"      serverDatabaseDesc,
+            defPropConst "name"      serverDatabaseName,
+            defPropConst "text"      serverDatabaseText,
+            defPropConst "username"  serverDatabaseUsername,
+            defPropConst "password"  serverDatabasePassword,
             defPropConst "groupName" $ fromMaybe "" . serverDatabaseGroupName
         ]
 
 instance DefaultClass (Entity ServerExtraUserAccount) where
     classMembers = getStandardClassMembers
         [
-            defPropConst "username" serverExtraUserAccountUsername,
-            defPropConst "password" serverExtraUserAccountPassword,
-            defPropConst "desc" serverExtraUserAccountDesc,
+            defPropConst "username"        serverExtraUserAccountUsername,
+            defPropConst "password"        serverExtraUserAccountPassword,
+            defPropConst "desc"            serverExtraUserAccountDesc,
             defPropConst "authKeyFilename" $ fromMaybe "..." . serverExtraUserAccountAuthKeyFilename,
-            defPropConst "groupName" $ fromMaybe "" . serverExtraUserAccountGroupName
+            defPropConst "groupName"       $ fromMaybe "" . serverExtraUserAccountGroupName
         ]
 
 instance DefaultClass (Entity ProjectPointOfInterest) where
     classMembers = getStandardClassMembers
         [
-            defPropConst "desc" projectPointOfInterestDesc,
-            defPropConst "path" projectPointOfInterestPath,
-            defPropConst "text" projectPointOfInterestText,
+            defPropConst "desc"         projectPointOfInterestDesc,
+            defPropConst "path"         projectPointOfInterestPath,
+            defPropConst "text"         projectPointOfInterestText,
             defPropConst "interestType" $ text . projectPointOfInterestInterestType,
-            defPropConst "groupName" $ fromMaybe "" . projectPointOfInterestGroupName
+            defPropConst "groupName"    $ fromMaybe "" . projectPointOfInterestGroupName
         ]
 
 instance DefaultClass (Entity ProjectNote) where
     classMembers = getStandardClassMembers
         [
-            defPropConst "title" projectNoteTitle,
-            defPropConst "contents" projectNoteContents,
+            defPropConst "title"     projectNoteTitle,
+            defPropConst "contents"  projectNoteContents,
             defPropConst "groupName" $ fromMaybe "" . projectNoteGroupName
         ]
 
