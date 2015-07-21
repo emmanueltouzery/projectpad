@@ -111,18 +111,19 @@ fromSqlKey32 = int64to32 . fromSqlKey . entityKey
 toSqlKey32 :: ToBackendKey SqlBackend record => Int -> Key record
 toSqlKey32 = toSqlKey . fromIntegral
 
-getStandardClassMembers :: (Marshal tr, ToBackendKey SqlBackend record, Typeable record,
-     MarshalMode tr ICanReturnTo () ~ Yes) =>
-    [(String, record -> tr)] -> [(String, ObjRef (Entity record) -> Maybe Int)]
+getStandardClassMembers :: (ToBackendKey SqlBackend record, Typeable record) =>
+     [Member (GetObjType (ObjRef (Entity record)))]
     -> [Member (GetObjType (ObjRef (Entity record)))]
-getStandardClassMembers pairs fkPairs
-    = idProperty:others ++ fks
-    where
-        idProperty = defPropertyConst "id"
-            (return . fromSqlKey32 . fromObjRef)
-        others = fmap (\(name, f) ->
-            defPropertyConst name (return . f . entityVal . fromObjRef)) pairs
-        fks = fmap (\(name, f) -> defPropertyConst name (return . f)) fkPairs
+getStandardClassMembers others = idProperty:others
+  where idProperty = defPropertyConst "id" (return . fromSqlKey32 . fromObjRef)
+
+defPropConst :: (Marshal tr, Typeable b, MarshalMode tr ICanReturnTo () ~ Yes) =>
+    String -> (b -> tr) -> Member (GetObjType (ObjRef (Entity b)))
+defPropConst name f = defPropertyConst name (return . f . entityVal . fromObjRef)
+
+defFk :: (ToBackendKey SqlBackend record1, Typeable record) =>
+          String -> (record -> Maybe (Key record1)) -> Member (GetObjType (ObjRef (Entity record)))
+defFk name f = defPropertyConst name (return . getKeyM f)
 
 getKeyM :: (ToBackendKey SqlBackend record1) =>
     (record -> Maybe (Key record1)) -> ObjRef (Entity record) -> Maybe Int
@@ -134,14 +135,13 @@ getKeyM f (fromObjRef -> entity) = do
 instance DefaultClass (Entity Project) where
     classMembers = getStandardClassMembers
         [
-            ("name", projectName),
-            ("hasCustomIcon", text . not . BS.null . projectIcon),
-            ("hasDev", projectHasDev), -- TODO bool as string, ugly..
-            ("hasUat", projectHasUat),
-            ("hasStaging", projectHasStage),
-            ("hasProd", projectHasProd)
+            defPropConst "name" projectName,
+            defPropConst "hasCustomIcon" $ not . BS.null . projectIcon,
+            defPropConst "hasDev" projectHasDev, -- TODO bool as string, ugly..
+            defPropConst "hasUat" projectHasUat,
+            defPropConst "hasStaging" projectHasStage,
+            defPropConst "hasProd" projectHasProd
         ]
-        []
 
 text :: Show a => a -> Text
 text = T.pack . show
@@ -152,88 +152,79 @@ readT = read . T.unpack
 instance DefaultClass (Entity Server) where
     classMembers = getStandardClassMembers
         [
-            ("desc", serverDesc),
-            ("serverIp", serverIp),
-            ("text", serverText),
-            ("username", serverUsername),
-            ("password", serverPassword),
-            ("authKeyFilename", fromMaybe "..." . serverAuthKeyFilename),
-            ("type", text . serverType),
-            ("accessType", text . serverAccessType),
-            ("environment", text . serverEnvironment),
-            ("groupName", fromMaybe "" . serverGroupName)
-        ]
-        [
-            ("projectId", getKeyM $ Just . serverProjectId)
+            defPropConst "desc" serverDesc,
+            defPropConst "serverIp" serverIp,
+            defPropConst "text" serverText,
+            defPropConst "username" serverUsername,
+            defPropConst "password" serverPassword,
+            defPropConst "authKeyFilename" $ fromMaybe "..." . serverAuthKeyFilename,
+            defPropConst "type" $ text . serverType,
+            defPropConst "accessType" $ text . serverAccessType,
+            defPropConst "environment" $ text . serverEnvironment,
+            defPropConst "groupName" $ fromMaybe "" . serverGroupName,
+            defFk "projectId" $ Just . serverProjectId
         ]
 
 instance DefaultClass (Entity ServerPointOfInterest) where
     classMembers = getStandardClassMembers
         [
-            ("desc", serverPointOfInterestDesc),
-            ("path", serverPointOfInterestPath),
-            ("text", serverPointOfInterestText),
-            ("interestType", text . serverPointOfInterestInterestType),
-            ("groupName", fromMaybe "" . serverPointOfInterestGroupName)
+            defPropConst "desc" serverPointOfInterestDesc,
+            defPropConst "path" serverPointOfInterestPath,
+            defPropConst "text" serverPointOfInterestText,
+            defPropConst "interestType" $ text . serverPointOfInterestInterestType,
+            defPropConst "groupName" $ fromMaybe "" . serverPointOfInterestGroupName
         ]
-        []
 
 instance DefaultClass (Entity ServerWebsite) where
     classMembers = getStandardClassMembers
         [
-            ("desc", serverWebsiteDesc),
-            ("url", serverWebsiteUrl),
-            ("text", serverWebsiteText),
-            ("username", serverWebsiteUsername),
-            ("password", serverWebsitePassword),
-            ("groupName", fromMaybe "" . serverWebsiteGroupName)
-        ]
-        [
-            ("serverDatabaseId", getKeyM serverWebsiteServerDatabaseId)
+            defPropConst "desc" serverWebsiteDesc,
+            defPropConst "url" serverWebsiteUrl,
+            defPropConst "text" serverWebsiteText,
+            defPropConst "username" serverWebsiteUsername,
+            defPropConst "password" serverWebsitePassword,
+            defPropConst "groupName" $ fromMaybe "" . serverWebsiteGroupName,
+            defFk "serverDatabaseId" serverWebsiteServerDatabaseId
         ]
 
 instance DefaultClass (Entity ServerDatabase) where
     classMembers = getStandardClassMembers
         [
-            ("desc", serverDatabaseDesc),
-            ("name", serverDatabaseName),
-            ("text", serverDatabaseText),
-            ("username", serverDatabaseUsername),
-            ("password", serverDatabasePassword),
-            ("groupName", fromMaybe "" . serverDatabaseGroupName)
+            defPropConst "desc" serverDatabaseDesc,
+            defPropConst "name" serverDatabaseName,
+            defPropConst "text" serverDatabaseText,
+            defPropConst "username" serverDatabaseUsername,
+            defPropConst "password" serverDatabasePassword,
+            defPropConst "groupName" $ fromMaybe "" . serverDatabaseGroupName
         ]
-        []
 
 instance DefaultClass (Entity ServerExtraUserAccount) where
     classMembers = getStandardClassMembers
         [
-            ("username", serverExtraUserAccountUsername),
-            ("password", serverExtraUserAccountPassword),
-            ("desc", serverExtraUserAccountDesc),
-            ("authKeyFilename", fromMaybe "..." . serverExtraUserAccountAuthKeyFilename),
-            ("groupName", fromMaybe "" . serverExtraUserAccountGroupName)
+            defPropConst "username" serverExtraUserAccountUsername,
+            defPropConst "password" serverExtraUserAccountPassword,
+            defPropConst "desc" serverExtraUserAccountDesc,
+            defPropConst "authKeyFilename" $ fromMaybe "..." . serverExtraUserAccountAuthKeyFilename,
+            defPropConst "groupName" $ fromMaybe "" . serverExtraUserAccountGroupName
         ]
-        []
 
 instance DefaultClass (Entity ProjectPointOfInterest) where
     classMembers = getStandardClassMembers
         [
-            ("desc", projectPointOfInterestDesc),
-            ("path", projectPointOfInterestPath),
-            ("text", projectPointOfInterestText),
-            ("interestType", text . projectPointOfInterestInterestType),
-            ("groupName", fromMaybe "" . projectPointOfInterestGroupName)
+            defPropConst "desc" projectPointOfInterestDesc,
+            defPropConst "path" projectPointOfInterestPath,
+            defPropConst "text" projectPointOfInterestText,
+            defPropConst "interestType" $ text . projectPointOfInterestInterestType,
+            defPropConst "groupName" $ fromMaybe "" . projectPointOfInterestGroupName
         ]
-        []
 
 instance DefaultClass (Entity ProjectNote) where
     classMembers = getStandardClassMembers
         [
-            ("title", projectNoteTitle),
-            ("contents", projectNoteContents),
-            ("groupName", fromMaybe "" . projectNoteGroupName)
+            defPropConst "title" projectNoteTitle,
+            defPropConst "contents" projectNoteContents,
+            defPropConst "groupName" $ fromMaybe "" . projectNoteGroupName
         ]
-        []
 
 deriving instance Typeable Entity
 deriving instance Typeable Key

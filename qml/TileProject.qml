@@ -7,7 +7,7 @@ ItemTile {
     color: "light blue"
     itemDesc: modelData.name
     icon: {
-        if (modelData.hasCustomIcon === "True") {
+        if (modelData.hasCustomIcon) {
             return Utils.projectGetCustomIcon(modelData)
         } else {
             return "glyphicons-441-folder-closed"

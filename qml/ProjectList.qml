@@ -21,7 +21,7 @@ ScrollView {
                 popup.setContents("Add project", projectEditComponent,
                         function(projectEdit) {
                             popup.implicitClose = false
-                            projectEdit.activate({name: "Project name"})
+                            projectEdit.activate(Utils.deepCopy(projectEdit.basicModel))
                         },
                         function(projectEdit) {
                             projectEdit.onOk()

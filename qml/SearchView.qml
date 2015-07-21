@@ -57,7 +57,7 @@ Rectangle {
                                     mipmap: true
                                     fillMode: Image.PreserveAspectFit
                                     source: {
-                                        if (modelData.project.hasCustomIcon === "True") {
+                                        if (modelData.project.hasCustomIcon) {
                                             return Utils.projectGetCustomIcon(modelData.project)
                                         } else {
                                             return "../glyphicons-free/glyphicons-441-folder-closed.png"

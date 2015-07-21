@@ -12,20 +12,22 @@ Rectangle {
     property variant appContext: null
     property string iconFilePath
 
-    property variant model : {
+    property var basicModel : {
         "name":       "Project name",
         "hasDev":     "False",
         "hasUat":     "False",
         "hasStaging": "False",
-        "hasProd":    "True"
+        "hasProd":    "True",
+        "hasCustomIcon": false
     }
+    property var model: Utils.deepCopy(basicModel)
     property var origModel
 
     function activate(_model) {
         origModel = _model
         projectEdit.model = Utils.deepCopy(_model)
         var iconPath
-        if (projectEdit.model.hasCustomIcon === "True") {
+        if (projectEdit.model.hasCustomIcon) {
             iconPath = Utils.projectGetCustomIcon(projectEdit.model)
         } else {
             iconPath = ""
@@ -86,12 +88,12 @@ Rectangle {
         CheckBox {
             id: customIconCb
             text: "Custom icon"
-            checked: projectEdit.model.hasCustomIcon === "True"
+            checked: projectEdit.model.hasCustomIcon
         }
 
         Button {
             id: projectIconButton
-            text: (projectEdit.model.hasCustomIcon === "True") ? "Change icon" : "Pick icon"
+            text: projectEdit.model.hasCustomIcon ? "Change icon" : "Pick icon"
             enabled: customIconCb.checked
             onClicked: fileDialog.visible = true
         }
