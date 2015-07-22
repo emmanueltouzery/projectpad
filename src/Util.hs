@@ -68,13 +68,17 @@ newtype QmlResult a = QmlResult (Either Text a) deriving (Show, Typeable)
 unQmlResult :: QmlResult a -> Either Text a
 unQmlResult (QmlResult x) = x
 
+defQmlResultProp :: (Typeable a, Marshal b, MarshalMode b ICanReturnTo () ~ Yes) =>
+    String -> (Either Text a -> b) -> Member (GetObjType (ObjRef (QmlResult a)))
+defQmlResultProp name f = defPropertyConst name $ return . f . unQmlResult . fromObjRef
+
 instance (Typeable a, Marshal a, MarshalMode a ICanReturnTo () ~ Yes)
          => DefaultClass (QmlResult a) where
     classMembers =
         [
-            defPropertyConst "success"  $ return . isRight . unQmlResult . fromObjRef,
-            defPropertyConst "value"    $ return . hush . unQmlResult . fromObjRef,
-            defPropertyConst "errorMsg" $ return . (\(Left x) -> x) . unQmlResult . fromObjRef
+            defQmlResultProp "success"  isRight,
+            defQmlResultProp "value"    hush,
+            defQmlResultProp "errorMsg" (\(Left x) -> x)
         ]
 
 liftQmlResult :: (Typeable a, Marshal a, MarshalMode a ICanReturnTo () ~ Yes) =>
