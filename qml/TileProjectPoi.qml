@@ -32,7 +32,7 @@ ItemTile {
                 ["glyphicons-151-edit", function() {editPoi(model)}],
                 ["glyphicons-193-circle-remove", function() {
                     appContext.confirmDelete(function() {
-                        Utils.handleEither(getAppState()
+                        Utils.handleEitherVoid(getAppState()
                                            .projectViewState.deleteProjectPois([model.id]))
                         // force refresh
                         refreshProjectView()

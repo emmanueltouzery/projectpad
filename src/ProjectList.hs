@@ -59,7 +59,8 @@ updateProject sqlBackend changeKey state prj name iconPath hasDev hasUat hasStag
 deleteProject :: Key Project -> SqlPersistM ()
 deleteProject = P.delete
 
-deleteProjects :: SqlBackend -> SignalKey (IO ()) -> ObjRef ProjectListState -> [Int] -> IO [Text]
+deleteProjects :: SqlBackend -> SignalKey (IO ()) -> ObjRef ProjectListState
+    -> [Int] -> IO (ObjRef (QmlResult ()))
 deleteProjects sqlBackend changeKey state projectIds = do
     r <- deleteHelper sqlBackend deleteProject state projectIds
     fireSignal changeKey state

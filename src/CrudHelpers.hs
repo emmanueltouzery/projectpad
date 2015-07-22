@@ -9,7 +9,6 @@ import Control.Applicative
 import qualified Database.Persist as P
 import Data.Traversable (traverse)
 import Control.Exception
-import Data.Text (Text)
 import Control.Error
 
 import Model (runSqlBackend, toSqlKey32)
@@ -42,8 +41,8 @@ readEntityFromDb sqlBackend idKey = do
 -- meant to be called from HSQML. the t parameter
 -- will hold the state of the object, but I don't care for it.
 deleteHelper :: ToBackendKey SqlBackend a =>
-                SqlBackend -> (Key a -> SqlPersistM ()) -> t -> [Int] -> IO [Text]
+                SqlBackend -> (Key a -> SqlPersistM ()) -> t -> [Int] -> IO (ObjRef (QmlResult ()))
 deleteHelper sqlBackend deleter _ keys = wrapEx (mapM_ delKey keys)
     where
-      wrapEx = fmap (serializeEither' <$> fmapL textEx) . try
+      wrapEx = liftQmlResult . fmap (fmapL textEx) . try
       delKey = runSqlBackend sqlBackend . deleter . toSqlKey32

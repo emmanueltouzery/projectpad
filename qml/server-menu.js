@@ -38,7 +38,7 @@ function showSelectMenu(project, server, parnt, desktopSize, refreshAction, menu
                     appContext.errorMessage(msg)
                     return
                 }
-                Utils.handleEither(getAppState().projectViewState.deleteServers([server.id]))
+                Utils.handleEitherVoid(getAppState().projectViewState.deleteServers([server.id]))
                 // force refresh
                 refreshAction()
             })

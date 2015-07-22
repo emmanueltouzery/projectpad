@@ -36,7 +36,7 @@ ItemTile {
                             appContext.errorMessage(msg)
                             return
                         }
-                        Utils.handleEither(getAppState()
+                        Utils.handleEitherVoid(getAppState()
                                            .serverViewState.deleteServerDatabases([model.id]))
                     refreshServerView()
                     })

@@ -20,6 +20,7 @@ import Data.Ord
 import Data.List as L
 
 import ModelBase
+import Util
 
 -- TODO Project hasDev, Uat and so on should be Bool...
 -- but currently fails with PersistMarshalError (persistent 2.1.1.4)
@@ -145,9 +146,6 @@ instance DefaultClass (Entity Project) where
 
 readBool :: Text -> Bool
 readBool = read . T.unpack
-
-text :: Show a => a -> Text
-text = T.pack . show
 
 readT :: Read a => T.Text -> a
 readT = read . T.unpack

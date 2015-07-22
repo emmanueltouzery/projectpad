@@ -30,7 +30,7 @@ ItemTile {
                 ["glyphicons-512-copy", function() { appContext.copyItem(model.path, false) }],
                 ["glyphicons-193-circle-remove", function() {
                     appContext.confirmDelete(function() {
-                        Utils.handleEither(getAppState().
+                        Utils.handleEitherVoid(getAppState().
                                            serverViewState.deleteServerPois([model.id]))
                         refreshServerView()
                     })

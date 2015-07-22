@@ -153,7 +153,7 @@ data AppState = AppState
     {
         projectListState :: ObjRef ProjectListState,
         projectViewState :: ObjRef ProjectViewState,
-        serverViewState :: ObjRef ServerViewState
+        serverViewState  :: ObjRef ServerViewState
     } deriving Typeable
 
 setupContext :: LoginState -> SqlBackend -> IO ()
@@ -169,7 +169,7 @@ setupContext loginState sqlBackend = do
                 $ return . serverViewState . fromObjRef,
             defMethod' "search" (const $ searchText sqlBackend),
             defMethod' "openAssociatedFile" (\_ path ->
-                serializeEither' <$> openAssociatedFile path),
+                liftQmlResult $ openAssociatedFile path),
             defStatic "noteTextToHtml" $ liftQmlResult1 (return . fmapL T.pack
                  . fmap noteDocumentToHtmlText . parseNoteDocument)
         ]

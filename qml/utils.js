@@ -4,24 +4,36 @@ function projectGetCustomIcon(project) {
 }
 
 function runIfSshHostTrusted(server, f) {
-    if (!getAppState().serverViewState.isHostTrusted(server.serverIp)) {
-        var title = "Server '" + server.serverIp + "' is not trusted!"
-        var msg = "Add the key automatically to the trust store?"
-        appContext.confirmDanger(title, msg, "Add", function() {
-            getAppState().serverViewState.addInHostTrustStore(server.serverIp)
-            f();
+    handleEither(
+        getAppState().serverViewState.isHostTrusted(server.serverIp),
+        function(isTrusted) {
+            if (!isTrusted) {
+                var title = "Server '" + server.serverIp + "' is not trusted!"
+                var msg = "Add the key automatically to the trust store?"
+                appContext.confirmDanger(title, msg, "Add", function() {
+                    handleEitherVoid(getAppState().serverViewState.addInHostTrustStore(server.serverIp), function() {
+                        f();
+                    })
+                })
+            } else {
+                f()
+            }
         })
-    } else {
-        f()
+}
+
+function handleEitherVoid(eitherR, okCb) {
+    if (!eitherR.success) {
+        errorMessage(eitherR.errorMsg)
+    } else if (okCb !== undefined) {
+        okCb()
     }
 }
 
 function handleEither(eitherR, okCb) {
-    var value = eitherR[1]
-    if (eitherR[0] === "error") {
-        errorMessage(value)
+    if (!eitherR.success) {
+        errorMessage(eitherR.errorMsg)
     } else if (okCb !== undefined) {
-        okCb(value)
+        okCb(eitherR.value)
     }
 }
 

@@ -116,8 +116,8 @@ getKnownHostsFilename = do
 -- server fingerprint is not known it won't ask to accept it,
 -- since it's not in interactive mode... So I must check myself
 -- beforehand.
-isHostTrusted :: Text -> IO Bool
-isHostTrusted hostname = do
+isHostTrusted :: Text -> IO (Either Text Bool)
+isHostTrusted hostname = tryText $ do
     knownHostsFname <- getKnownHostsFilename
     let readLines = fmap (T.splitOn "\n") . T.hGetContents
     let linesReadHost = fmap (head . T.splitOn " ")
@@ -125,14 +125,15 @@ isHostTrusted hostname = do
     return $ hostname `elem` hosts
 
 getHostKeyDetails :: Text -> IO Text
-getHostKeyDetails hostname = T.pack <$> readProcess "ssh-keyscan" [T.unpack hostname] ""
+getHostKeyDetails hostname = T.pack <$>
+    readProcess "ssh-keyscan" [T.unpack hostname] ""
 
 addInHostTrustStore :: Text -> IO (Either Text ())
-addInHostTrustStore server = fmapL textEx <$> try (do
+addInHostTrustStore server = tryText $ do
     knownHostsFname <- getKnownHostsFilename
     hostKeyDetails <- getHostKeyDetails server
     let addKeyDetails hndl = T.hPutStr hndl ("\n" <> hostKeyDetails)
-    withFile knownHostsFname AppendMode addKeyDetails)
+    withFile knownHostsFname AppendMode addKeyDetails
 
 runSshContents :: FilePath -> Text -> Text -> Text
 runSshContents fname hostname username = T.concat ["#!/usr/bin/sh\n\
@@ -174,9 +175,9 @@ openSshSession server username password command = do
     let params = ["-e", runSshPath]
     sshEnv <- prepareSshPassword password tmpDir
     -- TODO detect other xterm types than gnome-terminal
-    fmapL textEx <$> try (void $
+    tryText $ void $
         createProcess (proc "gnome-terminal" params)
-            { env = Just sshEnv })
+            { env = Just sshEnv }
 
 sshHandlePasswordAndRun :: Text -> [Text] -> (CommandProgress -> IO ()) -> IO ()
 sshHandlePasswordAndRun password sshCommandParams readCallback = do

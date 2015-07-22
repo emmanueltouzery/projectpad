@@ -276,7 +276,7 @@ createServerViewState sqlBackend = do
             defMethod' "deleteServerExtraUserAccounts" (deleteHelper sqlBackend deleteServerExtraUserAccount),
             defStatic  "getServerGroupNames"      (getServerGroupNames sqlBackend),
             defStatic  "saveAuthKey"              (liftQmlResult2 saveExtraUserAuthKey),
-            defStatic  "isHostTrusted"            isHostTrusted,
+            defStatic  "isHostTrusted"            (liftQmlResult1 isHostTrusted),
             defStatic  "addInHostTrustStore"      (liftQmlResult1 addInHostTrustStore),
             defMethod' "executePoiAction"         (liftQmlResult3 executePoiAction),
             defStatic "executePoiSecondaryAction" (liftQmlResult2 executePoiSecondaryAction),

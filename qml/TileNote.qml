@@ -26,7 +26,7 @@ ItemTile {
                 }],
                 ["glyphicons-193-circle-remove", function() {
                     appContext.confirmDelete(function() {
-                        Utils.handleEither(
+                        Utils.handleEitherVoid(
                             getAppState().projectViewState.deleteProjectNotes([model.id]))
                         // force refresh
                         refreshProjectView()

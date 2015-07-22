@@ -22,15 +22,11 @@ getAppDir = (</> projectPadFolder) <$> getHomeDirectory
 -- TODO a more general version is provided by Data.Bifunctor
 -- in base 4.8 (GHC 7.10). Switch when upgrading.
 bimap :: (a -> b) -> (c -> d) -> Either a c -> Either b d
-bimap f _ (Left a) = Left (f a)
+bimap f _ (Left a)  = Left (f a)
 bimap _ g (Right b) = Right (g b)
 
-serializeEither :: Either Text Text -> [Text]
-serializeEither (Left x) = ["error", x]
-serializeEither (Right x) = ["success", x]
-
-serializeEither' :: Either Text () -> [Text]
-serializeEither' = serializeEither . fmapR (const "")
+text :: Show a => a -> Text
+text = T.pack . show
 
 data CommandProgress = CommandOutput Text
     | CommandSucceeded
@@ -38,11 +34,11 @@ data CommandProgress = CommandOutput Text
 
 eitherToCmdProgress :: Either Text b -> CommandProgress
 eitherToCmdProgress (Right _) = CommandSucceeded
-eitherToCmdProgress (Left x) = CommandFailed x
+eitherToCmdProgress (Left x)  = CommandFailed x
 
 cmdProgressToJs :: CommandProgress -> [Text]
 cmdProgressToJs (CommandOutput x) = ["text", x]
-cmdProgressToJs CommandSucceeded = ["succeeded", ""]
+cmdProgressToJs CommandSucceeded  = ["succeeded", ""]
 cmdProgressToJs (CommandFailed x) = ["failed", x]
 
 data SignalOutput deriving Typeable
@@ -55,6 +51,9 @@ processAuthKeyInfo keyPath = traverse getInfo $ T.stripPrefix "file://" keyPath
               contents <- BS.readFile (T.unpack p)
               return (contents, last $ T.splitOn "/" p)
 
+tryText :: IO a -> IO (Either Text a)
+tryText = fmap (fmapL textEx) . try
+
 textEx :: SomeException -> Text
 textEx = T.pack . show
 
@@ -64,24 +63,32 @@ defStatic str cb = defMethod' str (const cb)
 readM :: (a -> b) -> ObjRef a -> IO b
 readM f = return . f . fromObjRef
 
-newtype QmlResult a = QmlResult (Either Text a)
+newtype QmlResult a = QmlResult (Either Text a) deriving (Show, Typeable)
 
-instance Marshal (QmlResult Text) where
-    type MarshalMode (QmlResult Text) c d = ModeTo c
-    marshaller = toMarshaller $ \(QmlResult x) -> serializeEither x
+unQmlResult :: QmlResult a -> Either Text a
+unQmlResult (QmlResult x) = x
 
-instance Marshal (QmlResult ()) where
-    type MarshalMode (QmlResult ()) c d = ModeTo c
-    marshaller = toMarshaller $ \(QmlResult x) -> serializeEither' x
+instance (Typeable a, Marshal a, MarshalMode a ICanReturnTo () ~ Yes)
+         => DefaultClass (QmlResult a) where
+    classMembers =
+        [
+            defPropertyConst "success"  $ return . isRight . unQmlResult . fromObjRef,
+            defPropertyConst "value"    $ return . hush . unQmlResult . fromObjRef,
+            defPropertyConst "errorMsg" $ return . (\(Left x) -> x) . unQmlResult . fromObjRef
+        ]
 
-liftQmlResult :: IO (Either Text a) -> IO (QmlResult a)
-liftQmlResult = fmap QmlResult
+liftQmlResult :: (Typeable a, Marshal a, MarshalMode a ICanReturnTo () ~ Yes) =>
+                 IO (Either Text a) -> IO (ObjRef (QmlResult a))
+liftQmlResult r = newObjectDC =<< (QmlResult <$> r)
 
-liftQmlResult1 :: (x -> IO (Either Text a)) -> (x -> IO (QmlResult a))
-liftQmlResult1 f p =  QmlResult <$> f p
+liftQmlResult1 :: (Typeable a, Marshal a, MarshalMode a ICanReturnTo () ~ Yes) =>
+                  (x -> IO (Either Text a)) -> (x -> IO (ObjRef (QmlResult a)))
+liftQmlResult1 f p = liftQmlResult $ f p
 
-liftQmlResult2 :: (x -> y -> IO (Either Text a)) -> (x -> y -> IO (QmlResult a))
-liftQmlResult2 f p q =  QmlResult <$> f p q
+liftQmlResult2 :: (Typeable a, Marshal a, MarshalMode a ICanReturnTo () ~ Yes) =>
+                  (x -> y -> IO (Either Text a)) -> (x -> y -> IO (ObjRef (QmlResult a)))
+liftQmlResult2 f p q = liftQmlResult $ f p q
 
-liftQmlResult3 :: (x -> y -> z -> IO (Either Text a)) -> (x -> y -> z -> IO (QmlResult a))
-liftQmlResult3 f p q r =  QmlResult <$> f p q r
+liftQmlResult3 :: (Typeable a, Marshal a, MarshalMode a ICanReturnTo () ~ Yes) =>
+                  (x -> y -> z -> IO (Either Text a)) -> (x -> y -> z -> IO (ObjRef (QmlResult a)))
+liftQmlResult3 f p q r = liftQmlResult $ f p q r

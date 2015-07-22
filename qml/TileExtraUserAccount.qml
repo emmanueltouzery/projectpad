@@ -28,7 +28,7 @@ ItemTile {
                 ["glyphicons-512-copy", function() { appContext.copyItem(model.password, true) }],
                 ["glyphicons-193-circle-remove", function() {
                     appContext.confirmDelete(function() {
-                        Utils.handleEither(getAppState().serverViewState
+                        Utils.handleEitherVoid(getAppState().serverViewState
                                            .deleteServerExtraUserAccounts([model.id]))
                         refreshServerView()
                     })
