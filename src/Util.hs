@@ -1,4 +1,5 @@
-{-# LANGUAGE OverloadedStrings, DeriveDataTypeable, TypeFamilies, FlexibleInstances #-}
+{-# LANGUAGE OverloadedStrings, DeriveDataTypeable, TypeFamilies,
+             FlexibleInstances, ConstraintKinds #-}
 module Util where
 
 import Data.Text (Text)
@@ -68,12 +69,13 @@ newtype QmlResult a = QmlResult (Either Text a) deriving (Show, Typeable)
 unQmlResult :: QmlResult a -> Either Text a
 unQmlResult (QmlResult x) = x
 
-defQmlResultProp :: (Typeable a, Marshal b, MarshalMode b ICanReturnTo () ~ Yes) =>
+type QmlReturnable a = (Marshal a, MarshalMode a ICanReturnTo () ~ Yes)
+
+defQmlResultProp :: (Typeable a, QmlReturnable b) =>
     String -> (Either Text a -> b) -> Member (GetObjType (ObjRef (QmlResult a)))
 defQmlResultProp name f = defPropertyConst name $ return . f . unQmlResult . fromObjRef
 
-instance (Typeable a, Marshal a, MarshalMode a ICanReturnTo () ~ Yes)
-         => DefaultClass (QmlResult a) where
+instance (Typeable a, QmlReturnable a) => DefaultClass (QmlResult a) where
     classMembers =
         [
             defQmlResultProp "success"  isRight,
@@ -81,18 +83,18 @@ instance (Typeable a, Marshal a, MarshalMode a ICanReturnTo () ~ Yes)
             defQmlResultProp "errorMsg" (\(Left x) -> x)
         ]
 
-liftQmlResult :: (Typeable a, Marshal a, MarshalMode a ICanReturnTo () ~ Yes) =>
+liftQmlResult :: (Typeable a, QmlReturnable a) =>
                  IO (Either Text a) -> IO (ObjRef (QmlResult a))
 liftQmlResult r = newObjectDC =<< (QmlResult <$> r)
 
-liftQmlResult1 :: (Typeable a, Marshal a, MarshalMode a ICanReturnTo () ~ Yes) =>
+liftQmlResult1 :: (Typeable a, QmlReturnable a) =>
                   (x -> IO (Either Text a)) -> (x -> IO (ObjRef (QmlResult a)))
 liftQmlResult1 f p = liftQmlResult $ f p
 
-liftQmlResult2 :: (Typeable a, Marshal a, MarshalMode a ICanReturnTo () ~ Yes) =>
+liftQmlResult2 :: (Typeable a, QmlReturnable a) =>
                   (x -> y -> IO (Either Text a)) -> (x -> y -> IO (ObjRef (QmlResult a)))
 liftQmlResult2 f p q = liftQmlResult $ f p q
 
-liftQmlResult3 :: (Typeable a, Marshal a, MarshalMode a ICanReturnTo () ~ Yes) =>
+liftQmlResult3 :: (Typeable a, QmlReturnable a) =>
                   (x -> y -> z -> IO (Either Text a)) -> (x -> y -> z -> IO (ObjRef (QmlResult a)))
 liftQmlResult3 f p q r = liftQmlResult $ f p q r

@@ -1,5 +1,5 @@
-{-# LANGUAGE OverloadedStrings, DeriveDataTypeable, TypeFamilies #-}
-{-# LANGUAGE MultiParamTypeClasses, FlexibleContexts, ViewPatterns #-}
+{-# LANGUAGE OverloadedStrings, DeriveDataTypeable, TypeFamilies,
+    MultiParamTypeClasses, FlexibleContexts, ViewPatterns, ConstraintKinds #-}
 module ProjectView where
 
 import Control.Applicative
@@ -221,16 +221,15 @@ instance DefaultClass ServerExtraInfo where
             defPropertyConst "userCount" (readM srvExtraInfoUserCount)
         ]
 
-readServersExtraInfo :: (PersistEntity val,
-    PersistField typ1, PersistField typ, PersistEntityBackend val ~ SqlBackend) =>
+readServersExtraInfo :: (SqlEntity val, PersistField typ1, PersistField typ) =>
     EntityField val typ1 -> EntityField val typ -> [typ] -> SqlPersistM [(Value typ, Value Int)]
 readServersExtraInfo tableId serverFk serverIds = select $ from $ \sp -> do
         groupBy (sp ^. serverFk)
         having (sp ^. serverFk `in_` valList serverIds)
         return (sp ^. serverFk, count (sp ^. tableId))
 
-getInfosVal :: (PersistEntity val, PersistField typ1, PersistEntityBackend val ~ SqlBackend)
-    => SqlBackend -> M.Map (Key Server) a -> EntityField val typ1
+getInfosVal :: (SqlEntity val, PersistField typ1) =>
+    SqlBackend -> M.Map (Key Server) a -> EntityField val typ1
     -> EntityField val (Key Server) -> IO (M.Map (Key Server) Int)
 getInfosVal sqlBackend serversById tableId serverFk = do
     poiInfosVal <- runSqlBackend sqlBackend $ readServersExtraInfo

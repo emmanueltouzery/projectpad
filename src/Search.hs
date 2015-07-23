@@ -1,4 +1,4 @@
-{-# LANGUAGE DeriveDataTypeable, FlexibleContexts, TypeFamilies #-}
+{-# LANGUAGE DeriveDataTypeable, FlexibleContexts, TypeFamilies, ConstraintKinds #-}
 module Search where
 
 import Data.Text (Text)
@@ -14,6 +14,7 @@ import Data.Ord
 import Data.Function
 
 import Model
+import Util
 
 -- I don't know in the QML how to get the current
 -- item of the parent repeater => keep in the info
@@ -45,7 +46,7 @@ data ServerSearchMatch = ServerSearchMatch
         smServerDatabases  :: [ObjRef (ServerChildInfo ServerDatabase)]
     } deriving Typeable
 
-prop :: (Marshal tr, Typeable b, MarshalMode tr ICanReturnTo () ~ Yes) =>
+prop :: (QmlReturnable tr, Typeable b) =>
     String -> (b -> tr) -> Member (GetObjType (ObjRef b))
 prop txt cb = defPropertyConst txt (return . cb . fromObjRef)
 
@@ -129,7 +130,7 @@ filterServerDatabases query = select $ from $ \d -> do
         ||. (d ^. ServerDatabaseText `like` query))
     return d
 
-getByIds :: (PersistEntityBackend a ~ SqlBackend, PersistEntity a) =>
+getByIds :: SqlEntity a =>
     EntityField a (Key a) -> [Key a] -> SqlPersistM [Entity a]
 getByIds keySelector ids = select $ from $ \s -> do
     where_ (s ^. keySelector `in_` valList ids)

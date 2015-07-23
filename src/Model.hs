@@ -1,7 +1,7 @@
-{-# LANGUAGE GADTs, GeneralizedNewtypeDeriving, MultiParamTypeClasses #-}
-{-# LANGUAGE OverloadedStrings, TemplateHaskell, QuasiQuotes, TypeFamilies #-}
-{-# LANGUAGE DeriveDataTypeable, StandaloneDeriving, FlexibleContexts #-}
-{-# LANGUAGE UndecidableInstances, FlexibleInstances, ViewPatterns #-}
+{-# LANGUAGE GADTs, GeneralizedNewtypeDeriving, MultiParamTypeClasses,
+    OverloadedStrings, TemplateHaskell, QuasiQuotes, TypeFamilies,
+    DeriveDataTypeable, StandaloneDeriving, FlexibleContexts,
+    UndecidableInstances, FlexibleInstances, ViewPatterns, ConstraintKinds #-}
 module Model where
 
 import Data.Time.Clock
@@ -118,7 +118,7 @@ getStandardClassMembers :: (ToBackendKey SqlBackend record, Typeable record) =>
 getStandardClassMembers others = idProperty:others
   where idProperty = defPropertyConst "id" (return . fromSqlKey32 . fromObjRef)
 
-defPropConst :: (Marshal tr, Typeable b, MarshalMode tr ICanReturnTo () ~ Yes) =>
+defPropConst :: (QmlReturnable tr, Typeable b) =>
     String -> (b -> tr) -> Member (GetObjType (ObjRef (Entity b)))
 defPropConst name f = defPropertyConst name (return . f . entityVal . fromObjRef)
 
