@@ -9,15 +9,17 @@ import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.ByteString as BS
 import Data.List
-import Data.Maybe
+import Data.Maybe hiding (isNothing)
 import Control.Monad
 import System.FilePath.Posix
 import System.Directory
 import Data.Monoid
 
+import ModelBase
 import Model
 import CrudHelpers
 import Util
+import System
 
 type ProjectListState = ()
 
@@ -81,6 +83,45 @@ copyProjectIcons sqlBackend = do
         targetPath <- getIconPath prj
         BS.writeFile targetPath (projectIcon $ entityVal prj)
 
+getAllSshServers :: SqlBackend -> IO [ObjRef (Entity Server)]
+getAllSshServers sqlBackend = do
+    sshServers <- runSqlBackend sqlBackend (select $ from $ \s -> do
+       where_ (s ^. ServerAccessType `in_` valList [SrvAccessSsh, SrvAccessSshTunnel])
+       orderBy [asc (s ^. ServerDesc)]
+       return s)
+    mapM newObjectDC sshServers
+
+minSshTunnelPort :: Int
+minSshTunnelPort = 1024
+
+-- this function doesn't check if the port is
+-- in fact free. The function doing all is
+-- getNewSshTunnelPort.
+getDbNextFreeSshTunnelPort :: SqlBackend -> IO Int
+getDbNextFreeSshTunnelPort sqlBackend = do
+    sshServerMaxPort <- listToMaybe <$> runSqlBackend sqlBackend (select $ from $ \s -> do
+       where_ (not_ $ isNothing (s ^. ServerSshTunnelPort))
+       orderBy [asc (s ^. ServerSshTunnelPort)]
+       limit 1
+       return s)
+    return $ case sshServerMaxPort of
+       Nothing  -> minSshTunnelPort
+       Just srv -> getPort (serverSshTunnelPort $ entityVal srv) + 1
+                   where getPort = fromMaybe (error "null ssh port?")
+
+getFirstFreePortAfter :: Int -> IO Int
+getFirstFreePortAfter port = do
+    when (port > 65535) $ error "Exhausted all the ports?!?"
+    isFree <- isPortFree port
+    if isFree
+       then return port
+       else getFirstFreePortAfter (port+1)
+
+getNewSshTunnelPort :: SqlBackend -> IO Int
+getNewSshTunnelPort sqlBackend = do
+    firstCandidate <- getDbNextFreeSshTunnelPort sqlBackend
+    getFirstFreePortAfter firstCandidate
+
 createProjectListState :: SqlBackend -> IO (ObjRef ProjectListState, SignalKey (IO ()))
 createProjectListState sqlBackend = do
     changeKey <- newSignalKey
@@ -89,9 +130,11 @@ createProjectListState sqlBackend = do
             defPropertySigRO' "projects" changeKey
                 $ const $ sqlToQml sqlBackend readProjects,
             defPropertyConst' "projectIconsFolder" (const $ T.pack <$> getProjectIconsFolder),
-            defMethod "addProject"       (addProject sqlBackend changeKey),
-            defMethod "updateProject"    (updateProject sqlBackend changeKey),
-            defMethod "deleteProjects"   (deleteProjects sqlBackend changeKey),
-            defStatic "copyProjectIcons" (copyProjectIcons sqlBackend)
+            defMethod "addProject"          (addProject sqlBackend changeKey),
+            defMethod "updateProject"       (updateProject sqlBackend changeKey),
+            defMethod "deleteProjects"      (deleteProjects sqlBackend changeKey),
+            defStatic "getAllSshServers"    (getAllSshServers sqlBackend),
+            defStatic "copyProjectIcons"    (copyProjectIcons sqlBackend),
+            defStatic "getNewSshTunnelPort" (getNewSshTunnelPort sqlBackend)
         ]
     (,) <$> newObject rootClass () <*> return changeKey

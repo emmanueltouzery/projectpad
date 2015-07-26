@@ -32,28 +32,31 @@ readServers projectId = select $ from $ \s -> do
     orderBy [asc (s ^. ServerDesc)]
     return s
 
-addServer :: SqlBackend -> Int
-    -> Text -> IpAddress -> Text -> Text -> Text -> Text
-    -> Text -> Text -> Text -> Maybe Text -> IO ()
+addServer :: SqlBackend -> Int -> Text -> IpAddress -> Text -> Text
+    -> Text -> Text -> Text -> Text -> Maybe Int -> Maybe Int
+    -> Text -> Maybe Text -> IO ()
 addServer sqlBackend projectId sDesc ipAddr txt username password
-        keyPath serverTypeT serverAccessTypeT srvEnvironmentT
-        (groupOrNothing -> groupName) = do
+        keyPath serverTypeT serverAccessTypeT sshTunnelPort sshTunnelThroughServerId
+        srvEnvironmentT (groupOrNothing -> groupName) = do
     let srvType       = readT serverTypeT
     let srvAccessType = readT serverAccessTypeT
     let srvEnv        = readT srvEnvironmentT
+    let mTunnelThroughId = (toSqlKey . fromIntegral) <$> sshTunnelThroughServerId
     authKeyInfo <- processAuthKeyInfo keyPath
     addHelper sqlBackend projectId $ Server sDesc ipAddr txt username password
             (fst <$> authKeyInfo) (snd <$> authKeyInfo)
-            srvType srvAccessType srvEnv groupName
+            srvType srvAccessType sshTunnelPort mTunnelThroughId srvEnv groupName
 
 updateServer :: SqlBackend -> ObjRef (Entity Server)
     -> Text -> IpAddress -> Text -> Text -> Text -> Text -> Text
-    -> Text -> Maybe Text -> IO (ObjRef (Entity Server))
+    -> Text -> Maybe Int -> Maybe Int -> Maybe Text
+    -> IO (ObjRef (Entity Server))
 updateServer sqlBackend serverRef sDesc ipAddr txt
   username password keyPath serverTypeT serverAccessTypeT
-  (groupOrNothing -> groupName) = do
+  sshTunnelPort sshTunnelThroughServerId (groupOrNothing -> groupName) = do
     let srvType       = read $ T.unpack serverTypeT
     let srvAccessType = read $ T.unpack serverAccessTypeT
+    let mTunnelThroughId = (toSqlKey . fromIntegral) <$> sshTunnelThroughServerId
     authKeyInfo <- processAuthKeyInfo keyPath
     updateHelper sqlBackend serverRef
         [
@@ -63,6 +66,8 @@ updateServer sqlBackend serverRef sDesc ipAddr txt
             ServerType P.=. srvType, ServerAccessType P.=. srvAccessType,
             ServerAuthKey P.=. fst <$> authKeyInfo,
             ServerAuthKeyFilename P.=. snd <$> authKeyInfo,
+            ServerSshTunnelPort P.=. sshTunnelPort,
+            ServerSshTunnelThroughServerId P.=. mTunnelThroughId,
             ServerGroupName P.=. groupName
         ]
 

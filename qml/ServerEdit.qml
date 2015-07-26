@@ -7,7 +7,7 @@ import "utils.js" as Utils
 Rectangle {
     id: serverEdit
     color: "light grey"
-    property int preferredHeight: 330
+    property int preferredHeight: isSshTunnelAccess() ? 400 : 330
 
     property variant model: getDefaultModel()
     property var origModel
@@ -38,26 +38,43 @@ Rectangle {
             group.model.append({"text": grp})
         })
         group.currentIndex = groups.indexOf(_model.groupName)
+        var sshServers = getAppState().projectListState.getAllSshServers()
+        sshTunnelThrough.model.clear()
+        sshServers.forEach(function (sshServer) {
+            sshTunnelThrough.model.append({"value": sshServer.id, "text": sshServer.desc})
+        })
+        sshTunnelThrough.currentIndex = Utils.listModelGetValueIndex(
+            sshTunnelThrough.model, _model.sshTunnelThroughServerId)
         serverDescription.selectAll()
         serverDescription.forceActiveFocus()
     }
 
     function onOk(project) {
+        var srvAccessType = serverAccessTypeItems.get(serverAccessType.currentIndex).value
+        var isSshTunnel = srvAccessType === "SrvAccessSshTunnel"
+        var port = isSshTunnel ? sshTunnelPort.value : null
+        var sshTunnelThroughId = isSshTunnel ?
+            sshTunnelThrough.model.get(sshTunnelThrough.currentIndex).value : null
         if (model.id) {
             serverEdit.model = getAppState().projectViewState.updateServer(
                 origModel, serverDescription.text, ipAddress.text, txt.text,
                 username.text, password.text, serverEdit.keyFilepath,
                 serverTypeItems.get(serverType.currentIndex).value,
-                serverAccessTypeItems.get(serverAccessType.currentIndex).value,
+                srvAccessType, sshTunnelPort, sshTunnelThroughId,
                 group.editText);
         } else {
             getAppState().projectViewState.addServer(
                 project.id, serverDescription.text, ipAddress.text,
                 txt.text, username.text, password.text, serverEdit.keyFilepath,
                 serverTypeItems.get(serverType.currentIndex).value,
-                serverAccessTypeItems.get(serverAccessType.currentIndex).value,
+                srvAccessType, sshTunnelPort, sshTunnelThroughId,
                 serverEdit.environment, group.editText)
         }
+    }
+
+    function isSshTunnelAccess() {
+        return serverAccessTypeItems.get(
+            serverAccessType.currentIndex).value === "SrvAccessSshTunnel"
     }
 
     GridLayout {
@@ -159,7 +176,34 @@ Rectangle {
                 ListElement { text: "SSH"; value: "SrvAccessSsh"}
                 ListElement { text: "Remote desktop (RDP)"; value: "SrvAccessRdp"}
                 ListElement { text: "Website"; value: "SrvAccessWww"}
+                ListElement { text: "SSH tunnel"; value: "SrvAccessSshTunnel"}
             }
+        }
+
+        Text {
+            text: "SSH tunnel port:"
+            visible: isSshTunnelAccess()
+        }
+        SpinBox {
+            id: sshTunnelPort
+            Layout.fillWidth: true
+            minimumValue: 1025
+            maximumValue: 65535
+            value: serverEdit.model.sshTunnelPort ||
+                getAppState().projectListState.getNewSshTunnelPort()
+            visible: isSshTunnelAccess()
+        }
+
+        Text {
+            text: "SSH tunnel through:"
+            visible: isSshTunnelAccess()
+        }
+        ComboBox {
+            id: sshTunnelThrough
+            Layout.fillWidth: true
+            textRole: "text"
+            model: ListModel {}
+            visible: isSshTunnelAccess()
         }
     }
 

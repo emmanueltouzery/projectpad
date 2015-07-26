@@ -1,4 +1,4 @@
-{-# LANGUAGE OverloadedStrings, LambdaCase #-}
+{-# LANGUAGE OverloadedStrings, LambdaCase, ScopedTypeVariables #-}
 
 module System where
 
@@ -22,6 +22,7 @@ import Data.Monoid
 import qualified Data.ByteString as BS
 import System.Environment.XDG.UserDir
 import Text.Printf
+import Network.Socket
 
 import Util
 
@@ -207,3 +208,12 @@ saveAuthKeyBytes path bytes  = runExceptT $ do
     key <- hoistEither $ note "No authentication key for that server!" bytes
     bimapExceptT textEx (const "") . ExceptT . try
         $ BS.writeFile (T.unpack targetFile) key
+
+isPortFree :: Int -> IO Bool
+isPortFree port = do
+    s <- socket AF_INET Stream defaultProtocol
+    localhost <- inet_addr "127.0.0.1"
+    portOpen <- try (connect s (SockAddrInet (fromIntegral port) localhost))
+    case portOpen of
+        Left (_ :: SomeException) -> return True
+        Right () -> close s >> return False

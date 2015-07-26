@@ -57,6 +57,8 @@ Server
     authKeyFilename Text Maybe
     type ServerType
     accessType ServerAccessType
+    sshTunnelPort Int Maybe
+    sshTunnelThroughServerId ServerId Maybe
     environment EnvironmentType
     groupName Text Maybe
     projectId ProjectId
@@ -161,6 +163,8 @@ instance DefaultClass (Entity Server) where
             defPropConst "authKeyFilename" $ fromMaybe "..." . serverAuthKeyFilename,
             defPropConst "type"            $ text . serverType,
             defPropConst "accessType"      $ text . serverAccessType,
+            defPropConst "sshTunnelPort"   serverSshTunnelPort,
+            defFk        "sshTunnelThroughServerId" serverSshTunnelThroughServerId,
             defPropConst "environment"     $ text . serverEnvironment,
             defPropConst "groupName"       $ fromMaybe "" . serverGroupName,
             defFk        "projectId"       $ Just . serverProjectId
