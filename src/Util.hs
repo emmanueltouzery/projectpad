@@ -98,3 +98,9 @@ liftQmlResult2 f p q = liftQmlResult $ f p q
 liftQmlResult3 :: (Typeable a, QmlReturnable a) =>
                   (x -> y -> z -> IO (Either Text a)) -> (x -> y -> z -> IO (ObjRef (QmlResult a)))
 liftQmlResult3 f p q r = liftQmlResult $ f p q r
+
+noteET :: Monad m => a -> Maybe b -> ExceptT a m b
+noteET l = hoistEither . note l
+
+tryET :: IO a -> ExceptT Text IO a
+tryET = ExceptT . tryText

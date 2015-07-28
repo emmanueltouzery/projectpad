@@ -198,12 +198,24 @@ saveAuthKey path (entityVal . fromObjRef -> server) =
     saveAuthKeyBytes path (serverAuthKey server)
 
 runServerRdp :: ObjRef (Entity Server) -> Int -> Int -> IO (Either Text Text)
-runServerRdp (entityVal . fromObjRef -> server) =
-    runRdp (serverIp server) (serverUsername server) (serverPassword server)
+runServerRdp (entityVal . fromObjRef -> server) = runRdp (serverToSystemServer server)
 
-openServerSshSession :: ObjRef (Entity Server) -> IO (Either Text Text)
-openServerSshSession (entityVal . fromObjRef -> server) = fmapR (const "") <$>
-    openSshSession (serverIp server) (serverUsername server) (serverPassword server) Nothing
+openServerSshSession :: SqlBackend -> ObjRef (Entity Server) -> IO (Either Text Text)
+openServerSshSession sqlBackend (entityVal . fromObjRef -> server) = fmapR (const "") <$>
+    case serverAccessType server of
+      SrvAccessSsh       -> openSshSession
+                            (serverToSystemServer server) (JustSsh sshDefaultPort)
+      SrvAccessSshTunnel -> openServerSshTunnelSession sqlBackend server
+      _                  -> return $ Left "Server not configured for SSH"
+
+openServerSshTunnelSession :: SqlBackend -> Server -> IO (Either Text ())
+openServerSshTunnelSession sqlBackend server = runExceptT $ do
+    tunnelPort     <- noteET "no tunnel port configured" $ serverSshTunnelPort server
+    intermediateId <- noteET "no intermediate server configured" $ serverSshTunnelThroughServerId server
+    mIntermediate  <- tryET $ runSqlBackend sqlBackend (get intermediateId)
+    intermediate   <- noteET "intermediate server missing from DB" mIntermediate
+    r <- tryET $ openSshTunnelSession tunnelPort (serverToSystemServer intermediate) (serverToSystemServer server)
+    hoistEither r
 
 data ServerExtraInfo = ServerExtraInfo
     {
@@ -307,7 +319,7 @@ createProjectViewState sqlBackend = do
             defMethod' "runPoiAction"      runPoiAction,
             defStatic  "saveAuthKey"       (liftQmlResult2 saveAuthKey),
             defStatic  "runRdp"            (liftQmlResult3 runServerRdp),
-            defStatic  "openSshSession"    (liftQmlResult1 openServerSshSession),
+            defStatic  "openSshSession"    (liftQmlResult1 $ openServerSshSession sqlBackend),
             defSignalNamedParams "gotOutput" (Proxy :: Proxy SignalOutput) $
                                                  fstName "output"
         ]

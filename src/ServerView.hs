@@ -1,5 +1,5 @@
 {-# LANGUAGE OverloadedStrings, DeriveDataTypeable, TypeFamilies #-}
-{-# LANGUAGE MultiParamTypeClasses, ViewPatterns #-}
+{-# LANGUAGE MultiParamTypeClasses, ViewPatterns, RecordWildCards #-}
 module ServerView where
 
 import Control.Applicative
@@ -16,6 +16,13 @@ import ModelBase
 import CrudHelpers
 import System
 import Util
+
+serverToSystemServer :: Server -> System.ServerInfo
+serverToSystemServer Server{..} = ServerInfo {
+        srvAddress  = serverIp,
+        srvUsername = serverUsername,
+        srvPassword = serverPassword
+    }
 
 type ServerViewState = ()
 
@@ -174,22 +181,20 @@ executePoiThirdAction :: ObjRef ServerViewState -> ObjRef (Entity Server)
 executePoiThirdAction srvState (entityVal . fromObjRef -> server)
         (entityVal . fromObjRef -> serverPoi) =
     case serverPointOfInterestInterestType serverPoi of
-        PoiLogFile -> downloadFileSsh (serverIp server) (serverUsername server)
-                      (serverPassword server) (serverPointOfInterestPath serverPoi)
+        PoiLogFile -> downloadFileSsh (serverToSystemServer server) (serverPointOfInterestPath serverPoi)
                       (fireSignal (Proxy :: Proxy SignalOutput) srvState . cmdProgressToJs) >> return (Right ())
         _ -> return $ Right ()
 
 executePoiLogFile :: Server -> ServerPointOfInterest -> Text -> IO (Either Text ())
-executePoiLogFile server serverPoi cmd = openSshSession (serverIp server) (serverUsername server)
-    (serverPassword server) (Just $ cmd `T.append` serverPointOfInterestPath serverPoi)
+executePoiLogFile server serverPoi cmd = openSshSession (serverToSystemServer server)
+    (SshCommand $ cmd `T.append` serverPointOfInterestPath serverPoi)
 
 executePoiCommand :: ObjRef ServerViewState -> Server -> ServerPointOfInterest -> IO (Either Text ())
 executePoiCommand srvState server serverPoi = do
     let workDir = case serverPointOfInterestPath serverPoi of
           "" -> Nothing
           x  -> Just x
-    Right <$> runProgramOverSshAsync (serverIp server)
-        (serverUsername server) (serverPassword server)
+    Right <$> runProgramOverSshAsync (serverToSystemServer server)
         workDir (serverPointOfInterestText serverPoi)
         (fireSignal (Proxy :: Proxy SignalOutput) srvState . cmdProgressToJs)
 

@@ -1,5 +1,6 @@
 import QtQuick 2.2
 import QtQuick.Controls 1.2
+import QtQuick.Controls.Styles 1.3
 import QtQuick.Layouts 1.1
 import QtQuick.Dialogs 1.0
 import "utils.js" as Utils
@@ -7,7 +8,7 @@ import "utils.js" as Utils
 Rectangle {
     id: serverEdit
     color: "light grey"
-    property int preferredHeight: isSshTunnelAccess() ? 400 : 330
+    property int preferredHeight: isSshTunnelAccess() ? 455 : 330
 
     property variant model: getDefaultModel()
     property var origModel
@@ -204,6 +205,21 @@ Rectangle {
             textRole: "text"
             model: ListModel {}
             visible: isSshTunnelAccess()
+        }
+
+        Rectangle {
+            Layout.columnSpan: 2
+            Layout.fillWidth: true
+            visible: isSshTunnelAccess()
+            height: 55
+            TextArea {
+                anchors.fill: parent
+                style: TextAreaStyle {
+                    backgroundColor: "yellow"
+                }
+                text: "SSH tunnels only work if over a single hop and if the login is passwordless from the second host."
+                readOnly: true
+            }
         }
     }
 
