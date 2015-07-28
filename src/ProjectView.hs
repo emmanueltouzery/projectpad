@@ -204,7 +204,7 @@ openServerSshSession :: SqlBackend -> ObjRef (Entity Server) -> IO (Either Text 
 openServerSshSession sqlBackend (entityVal . fromObjRef -> server) = fmapR (const "") <$>
     case serverAccessType server of
       SrvAccessSsh       -> openSshSession
-                            (serverToSystemServer server) (JustSsh sshDefaultPort)
+                            (serverToSystemServer server) (JustSsh True sshDefaultPort)
       SrvAccessSshTunnel -> openServerSshTunnelSession sqlBackend server
       _                  -> return $ Left "Server not configured for SSH"
 

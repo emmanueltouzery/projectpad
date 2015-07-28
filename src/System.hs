@@ -173,7 +173,7 @@ prepareSshPassword password tmpDir = do
     let sysEnv = [("SSH_ASKPASS", echoPassPath)]
     return $ parentEnv ++ sysEnv
 
-data SshCommandOptions = JustSsh Int
+data SshCommandOptions = JustSsh { sshoTerminal :: Bool, sshoPort :: Int }
                        | SshCommand Text
                        | SshTunnel Int
 
@@ -189,15 +189,21 @@ openSshSession ServerInfo{..} sshCommandOptions = do
     -- it is small though and tmpfs will not persist across reboots.
     let runSshPath = tmpDir </> "runssh.sh"
     let scriptContents = case sshCommandOptions of
-         JustSsh port   -> runSshContents runSshPath srvAddress srvUsername port
-         SshCommand cmd -> runSshContentsCommand runSshPath srvAddress srvUsername cmd
-         SshTunnel port -> runSshContentsTunnel runSshPath srvAddress srvUsername port
+         JustSsh _ port  -> runSshContents runSshPath srvAddress srvUsername port
+         SshCommand cmd  -> runSshContentsCommand runSshPath srvAddress srvUsername cmd
+         SshTunnel port  -> runSshContentsTunnel runSshPath srvAddress srvUsername port
     writeTempScript runSshPath scriptContents
-    let params = ["-e", runSshPath]
-    sshEnv <- prepareSshPassword srvPassword tmpDir
+    let openTerminal = case sshCommandOptions of
+            JustSsh True _ -> True
+            SshCommand _   -> True
+            _              -> False
     -- TODO detect other xterm types than gnome-terminal
+    let (cmd, params) = if openTerminal
+                           then ("gnome-terminal", ["-e", runSshPath])
+                           else (runSshPath, [])
+    sshEnv <- prepareSshPassword srvPassword tmpDir
     tryText $ void $
-        createProcess (proc "gnome-terminal" params)
+        createProcess (proc cmd params)
             { env = Just sshEnv }
 
 openSshTunnelSession :: Int -> ServerInfo -> ServerInfo -> IO (Either Text ())
@@ -216,7 +222,7 @@ sshTunnelOpenShellHandler :: Int -> ServerInfo -> CommandProgress -> IO ()
 sshTunnelOpenShellHandler port ServerInfo{..} = \case
     CommandOutput _   -> return ()
     CommandFailed msg -> putStrLn $ "*** failed establishing tunnel:" <> show msg -- should report errors better!
-    CommandSucceeded  -> void $ openSshSession srv (JustSsh port)
+    CommandSucceeded  -> void $ openSshSession srv (JustSsh True port)
                          where
                            srv = ServerInfo "127.0.0.1" srvUsername srvPassword
 
