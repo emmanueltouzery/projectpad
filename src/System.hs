@@ -206,23 +206,37 @@ openSshSession ServerInfo{..} sshCommandOptions = do
         createProcess (proc cmd params)
             { env = Just sshEnv }
 
-openSshTunnelSession :: Int -> ServerInfo -> ServerInfo -> IO (Either Text ())
-openSshTunnelSession portTunnel intermediate final = tryText $ do
-    isTunnelOpen <- not <$> isPortFree portTunnel
-    when (not isTunnelOpen) $ void $ openSshSession intermediate $ SshTunnel portTunnel
-    -- the first tunnel from me to the intermediate
-    -- host is now open. Now open the tunnel from the
-    -- second host to the final host.
-    -- ### TODO try to reuse runSshContentsTunnel
-    let secondTunnelCmd = "ssh -t -t -L " <> text portTunnel <> ":localhost:22 " <> sshUserHost final
-    let finalShellHandler = sshTunnelOpenShellHandler portTunnel final
-    runProgramOverSshAsync intermediate Nothing secondTunnelCmd finalShellHandler
+openSshTunnelTerminal :: Int -> ServerInfo -> ServerInfo -> IO (Either Text ())
+openSshTunnelTerminal portTunnel intermediate final =
+    openSshTunnelSession portTunnel intermediate final $ \port srv ->
+        void $ openSshSession srv (JustSsh True port)
 
-sshTunnelOpenShellHandler :: Int -> ServerInfo -> CommandProgress -> IO ()
-sshTunnelOpenShellHandler port ServerInfo{..} = \case
+openSshTunnelSession :: Int -> ServerInfo -> ServerInfo
+                     -> (Int -> ServerInfo -> IO ())
+                     -> IO (Either Text ())
+openSshTunnelSession portTunnel intermediate final callback = tryText $ do
+    isTunnelOpen <- not <$> isPortFree portTunnel
+    if (not isTunnelOpen)
+       then do
+          void $ openSshSession intermediate $ SshTunnel portTunnel
+          -- the first tunnel from me to the intermediate
+          -- host is now open. Now open the tunnel from the
+          -- second host to the final host.
+          -- ### TODO try to reuse runSshContentsTunnel
+          let secondTunnelCmd = "ssh -t -t -L " <> text portTunnel <> ":localhost:22 " <> sshUserHost final
+          let finalShellHandler = sshTunnelOpenShellHandler portTunnel final callback
+          runProgramOverSshAsync intermediate Nothing secondTunnelCmd finalShellHandler
+       else
+          -- the tunnel is already open
+          callback portTunnel (ServerInfo "127.0.0.1" (srvUsername final) (srvPassword final))
+
+sshTunnelOpenShellHandler :: Int -> ServerInfo
+                          -> (Int -> ServerInfo -> IO ()) -> CommandProgress
+                          -> IO ()
+sshTunnelOpenShellHandler port ServerInfo{..} callback = \case
     CommandOutput _   -> return ()
     CommandFailed msg -> putStrLn $ "*** failed establishing tunnel:" <> show msg -- should report errors better!
-    CommandSucceeded  -> void $ openSshSession srv (JustSsh True port)
+    CommandSucceeded  -> callback port srv
                          where
                            srv = ServerInfo "127.0.0.1" srvUsername srvPassword
 

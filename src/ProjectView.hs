@@ -205,16 +205,16 @@ openServerSshSession sqlBackend (entityVal . fromObjRef -> server) = fmapR (cons
     case serverAccessType server of
       SrvAccessSsh       -> openSshSession
                             (serverToSystemServer server) (JustSsh True sshDefaultPort)
-      SrvAccessSshTunnel -> openServerSshTunnelSession sqlBackend server
+      SrvAccessSshTunnel -> openServerSshTunnelTerminal sqlBackend server
       _                  -> return $ Left "Server not configured for SSH"
 
-openServerSshTunnelSession :: SqlBackend -> Server -> IO (Either Text ())
-openServerSshTunnelSession sqlBackend server = runExceptT $ do
+openServerSshTunnelTerminal :: SqlBackend -> Server -> IO (Either Text ())
+openServerSshTunnelTerminal sqlBackend server = runExceptT $ do
     tunnelPort     <- noteET "no tunnel port configured" $ serverSshTunnelPort server
     intermediateId <- noteET "no intermediate server configured" $ serverSshTunnelThroughServerId server
     mIntermediate  <- tryET $ runSqlBackend sqlBackend (get intermediateId)
     intermediate   <- noteET "intermediate server missing from DB" mIntermediate
-    r <- tryET $ openSshTunnelSession tunnelPort (serverToSystemServer intermediate) (serverToSystemServer server)
+    r <- tryET $ openSshTunnelTerminal tunnelPort (serverToSystemServer intermediate) (serverToSystemServer server)
     hoistEither r
 
 data ServerExtraInfo = ServerExtraInfo
