@@ -64,7 +64,7 @@ function showSelectMenu(project, server, parnt, desktopSize, refreshAction, menu
                 // width by two to compensate.
                 desktopWidth = desktopWidth / 2
             }
-            Utils.handleErrorVoid(
+            Utils.handleEitherVoid(
                 getAppState().projectViewState.runRdp(
                     server,
                     Math.round(desktopWidth * 0.75),
@@ -76,7 +76,7 @@ function showSelectMenu(project, server, parnt, desktopSize, refreshAction, menu
             && server.password.length > 0) {
         options.push(["glyphicons-489-multiple-displays", function() {
             Utils.runIfSshHostTrusted(server, function () {
-                Utils.handleErrorVoid(getAppState().projectViewState.openSshSession(server))
+                Utils.handleEitherVoid(getAppState().projectViewState.openSshSession(server))
             })
         }])
     }
