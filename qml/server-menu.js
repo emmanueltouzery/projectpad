@@ -71,7 +71,7 @@ function showSelectMenu(project, server, parnt, desktopSize, refreshAction, menu
                     Math.round(desktopSize.height * 0.75)))
         }])
     }
-    if (server.accessType === "SrvAccessSsh"
+    if ((server.accessType === "SrvAccessSsh" || server.accessType === "SrvAccessSshTunnel")
             && server.username.length > 0
             && server.password.length > 0) {
         options.push(["glyphicons-489-multiple-displays", function() {
