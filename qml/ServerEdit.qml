@@ -61,14 +61,14 @@ Rectangle {
                 origModel, serverDescription.text, ipAddress.text, txt.text,
                 username.text, password.text, serverEdit.keyFilepath,
                 serverTypeItems.get(serverType.currentIndex).value,
-                srvAccessType, sshTunnelPort, sshTunnelThroughId,
+                srvAccessType, port, sshTunnelThroughId,
                 group.editText);
         } else {
             getAppState().projectViewState.addServer(
                 project.id, serverDescription.text, ipAddress.text,
                 txt.text, username.text, password.text, serverEdit.keyFilepath,
                 serverTypeItems.get(serverType.currentIndex).value,
-                srvAccessType, sshTunnelPort, sshTunnelThroughId,
+                srvAccessType, port, sshTunnelThroughId,
                 serverEdit.environment, group.editText)
         }
     }
