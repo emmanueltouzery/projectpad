@@ -37,6 +37,13 @@ function handleEither(eitherR, okCb) {
     }
 }
 
+function fromEither(defaultValue, eitherR) {
+    if (!eitherR.success) {
+        return defaultValue
+    }
+    return eitherR.value
+}
+
 function findById(list, id) {
     for (var i=0;i<list.length;i++) {
         if (list[i].id === id) {

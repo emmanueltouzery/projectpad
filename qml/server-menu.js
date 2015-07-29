@@ -64,12 +64,11 @@ function showSelectMenu(project, server, parnt, desktopSize, refreshAction, menu
                 // width by two to compensate.
                 desktopWidth = desktopWidth / 2
             }
-            var info = getAppState().projectViewState.runRdp(server,
-                Math.round(desktopWidth * 0.75),
-                Math.round(desktopSize.height * 0.75))
-            if (info[0] === "error") {
-                appContext.errorMessage(info[1])
-            }
+            Utils.handleErrorVoid(
+                getAppState().projectViewState.runRdp(
+                    server,
+                    Math.round(desktopWidth * 0.75),
+                    Math.round(desktopSize.height * 0.75)))
         }])
     }
     if (server.accessType === "SrvAccessSsh"
@@ -77,10 +76,7 @@ function showSelectMenu(project, server, parnt, desktopSize, refreshAction, menu
             && server.password.length > 0) {
         options.push(["glyphicons-489-multiple-displays", function() {
             Utils.runIfSshHostTrusted(server, function () {
-                var info = getAppState().projectViewState.openSshSession(server)
-                    if (info[0] === "error") {
-                        appContext.errorMessage(info[1])
-                    }
+                Utils.handleErrorVoid(getAppState().projectViewState.openSshSession(server))
             })
         }])
     }

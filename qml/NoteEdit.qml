@@ -160,13 +160,9 @@ Rectangle {
     }
 
     function getRichText(rawText) {
-        var parseResult = getAppState().noteTextToHtml(rawText)
-        if (parseResult[0] === "error") {
-            errorMessage("Error: the note text is not properly formatted")
-            return ""
-        } else {
-            return parseResult[1]
-        }
+        return Utils.fromEither(
+            "Error: the note text is not properly formatted",
+            getAppState().noteTextToHtml(rawText))
     }
 
     function replaceSelection(newText) {
