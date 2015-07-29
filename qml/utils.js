@@ -5,7 +5,7 @@ function projectGetCustomIcon(project) {
 
 function runIfSshHostTrusted(server, f) {
     handleEither(
-        getAppState().serverViewState.isHostTrusted(server.serverIp),
+        getAppState().serverViewState.isHostTrusted(server),
         function(isTrusted) {
             if (!isTrusted) {
                 var title = "Server '" + server.serverIp + "' is not trusted!"

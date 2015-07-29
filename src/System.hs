@@ -126,13 +126,16 @@ getKnownHostsFilename = do
 -- server fingerprint is not known it won't ask to accept it,
 -- since it's not in interactive mode... So I must check myself
 -- beforehand.
-isHostTrusted :: Text -> IO (Either Text Bool)
-isHostTrusted hostname = tryText $ do
+isHostTrusted :: Text -> Maybe Int -> IO (Either Text Bool)
+isHostTrusted hostname mPort = tryText $ do
+    let hostSignature = case mPort of
+            Nothing   -> hostname
+            Just port -> T.concat ["[", hostname, "]:", text port]
     knownHostsFname <- getKnownHostsFilename
     let readLines = fmap (T.splitOn "\n") . T.hGetContents
     let linesReadHost = fmap (head . T.splitOn " ")
     hosts <- withFile knownHostsFname ReadMode (fmap linesReadHost . readLines)
-    return $ hostname `elem` hosts
+    return $ hostSignature `elem` hosts
 
 getHostKeyDetails :: Text -> IO Text
 getHostKeyDetails hostname = T.pack <$>
@@ -206,17 +209,12 @@ openSshSession ServerInfo{..} sshCommandOptions = do
         createProcess (proc cmd params)
             { env = Just sshEnv }
 
-openSshTunnelTerminal :: Int -> ServerInfo -> ServerInfo -> IO (Either Text ())
-openSshTunnelTerminal portTunnel intermediate final =
-    openSshTunnelSession portTunnel intermediate final $ \port srv ->
-        void $ openSshSession srv (JustSsh True port)
-
 openSshTunnelSession :: Int -> ServerInfo -> ServerInfo
                      -> (Int -> ServerInfo -> IO ())
                      -> IO (Either Text ())
 openSshTunnelSession portTunnel intermediate final callback = tryText $ do
     isTunnelOpen <- not <$> isPortFree portTunnel
-    if (not isTunnelOpen)
+    if not isTunnelOpen
        then do
           void $ openSshSession intermediate $ SshTunnel portTunnel
           -- the first tunnel from me to the intermediate

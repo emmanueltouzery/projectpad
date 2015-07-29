@@ -13,9 +13,9 @@ import qualified Data.Text as T
 import qualified Data.Map as M
 import Data.Maybe
 import Control.Arrow
-import Control.Error
 import Data.Monoid
 import Data.Attoparsec.Text hiding (count)
+import Control.Monad
 
 import ModelBase
 import Model
@@ -200,22 +200,9 @@ saveAuthKey path (entityVal . fromObjRef -> server) =
 runServerRdp :: ObjRef (Entity Server) -> Int -> Int -> IO (Either Text Text)
 runServerRdp (entityVal . fromObjRef -> server) = runRdp (serverToSystemServer server)
 
-openServerSshSession :: SqlBackend -> ObjRef (Entity Server) -> IO (Either Text Text)
-openServerSshSession sqlBackend (entityVal . fromObjRef -> server) = fmapR (const "") <$>
-    case serverAccessType server of
-      SrvAccessSsh       -> openSshSession
-                            (serverToSystemServer server) (JustSsh True sshDefaultPort)
-      SrvAccessSshTunnel -> openServerSshTunnelTerminal sqlBackend server
-      _                  -> return $ Left "Server not configured for SSH"
-
-openServerSshTunnelTerminal :: SqlBackend -> Server -> IO (Either Text ())
-openServerSshTunnelTerminal sqlBackend server = runExceptT $ do
-    tunnelPort     <- noteET "no tunnel port configured" $ serverSshTunnelPort server
-    intermediateId <- noteET "no intermediate server configured" $ serverSshTunnelThroughServerId server
-    mIntermediate  <- tryET $ runSqlBackend sqlBackend (get intermediateId)
-    intermediate   <- noteET "intermediate server missing from DB" mIntermediate
-    r <- tryET $ openSshTunnelTerminal tunnelPort (serverToSystemServer intermediate) (serverToSystemServer server)
-    hoistEither r
+openServerSshSession :: SqlBackend -> ObjRef (Entity Server) -> IO (Either Text ())
+openServerSshSession sqlBackend server = tryText $ openServerSshAction sqlBackend server $
+    \port srv -> void $ openSshSession srv (JustSsh True port)
 
 data ServerExtraInfo = ServerExtraInfo
     {

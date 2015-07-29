@@ -10,6 +10,9 @@ import Data.Typeable
 import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Database.Persist as P
+import Control.Error
+import Control.Monad
+import Control.Concurrent.MVar
 
 import Model
 import ModelBase
@@ -260,6 +263,35 @@ getServerDisplaySections sqlBackend serverId = do
       runServerQ :: DefaultClass a => (Int -> SqlPersistM [a]) -> IO [ObjRef a]
       runServerQ f = sqlToQml sqlBackend (f serverId)
 
+openServerSshAction :: SqlBackend -> ObjRef (Entity Server)
+                     -> (Int -> ServerInfo -> IO ())
+                     -> IO ()
+openServerSshAction sqlBackend (entityVal . fromObjRef -> server) callback =
+    case serverAccessType server of
+      SrvAccessSsh       -> callback sshDefaultPort (serverToSystemServer server)
+      SrvAccessSshTunnel -> void $ openServerSshTunnelAction sqlBackend server callback
+      _                  -> return ()
+
+openServerSshTunnelAction :: SqlBackend -> Server
+                          -> (Int -> ServerInfo -> IO ())
+                          -> IO (Either Text ())
+openServerSshTunnelAction sqlBackend server callback = runExceptT $ do
+    tunnelPort     <- noteET "no tunnel port configured" $ serverSshTunnelPort server
+    intermediateId <- noteET "no intermediate server configured" $ serverSshTunnelThroughServerId server
+    mIntermediate  <- tryET $ runSqlBackend sqlBackend (get intermediateId)
+    intermediate   <- noteET "intermediate server missing from DB" mIntermediate
+    r <- tryET $ openSshTunnelSession tunnelPort
+         (serverToSystemServer intermediate)
+         (serverToSystemServer server) callback
+    hoistEither r
+
+isSshHostTrusted :: SqlBackend -> ObjRef (Entity Server) -> IO (Either Text Bool)
+isSshHostTrusted sqlBackend server = do
+    isTrusted <- newEmptyMVar
+    openServerSshAction sqlBackend server $
+        \port srv -> isHostTrusted (srvAddress srv) (Just port) >>= putMVar isTrusted
+    readMVar isTrusted
+
 createServerViewState :: SqlBackend -> IO (ObjRef ServerViewState)
 createServerViewState sqlBackend = do
     serverViewClass <- newClass
@@ -281,7 +313,7 @@ createServerViewState sqlBackend = do
             defMethod' "deleteServerExtraUserAccounts" (deleteHelper sqlBackend deleteServerExtraUserAccount),
             defStatic  "getServerGroupNames"      (getServerGroupNames sqlBackend),
             defStatic  "saveAuthKey"              (liftQmlResult2 saveExtraUserAuthKey),
-            defStatic  "isHostTrusted"            (liftQmlResult1 isHostTrusted),
+            defStatic  "isHostTrusted"            (liftQmlResult1 $ isSshHostTrusted sqlBackend),
             defStatic  "addInHostTrustStore"      (liftQmlResult1 addInHostTrustStore),
             defMethod' "executePoiAction"         (liftQmlResult3 executePoiAction),
             defStatic "executePoiSecondaryAction" (liftQmlResult2 executePoiSecondaryAction),
