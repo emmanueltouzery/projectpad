@@ -35,7 +35,7 @@ ItemTile {
                         refreshServerView()
                     })
                 }]]
-            if (server.accessType === "SrvAccessSsh"
+            if ((server.accessType === "SrvAccessSsh" || server.accessType === "SrvAccessSshTunnel")
                 && server.serverIp.length > 0
                 && server.username.length > 0
                 && server.password.length > 0) {

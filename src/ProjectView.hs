@@ -202,7 +202,7 @@ runServerRdp (entityVal . fromObjRef -> server) = runRdp (serverToSystemServer s
 
 openServerSshSession :: SqlBackend -> ObjRef (Entity Server) -> IO (Either Text ())
 openServerSshSession sqlBackend server = tryText $ openServerSshAction sqlBackend server $
-    \port srv -> void $ openSshSession srv (JustSsh True port)
+    \port srv -> void $ openSshSession srv port (JustSsh True)
 
 data ServerExtraInfo = ServerExtraInfo
     {

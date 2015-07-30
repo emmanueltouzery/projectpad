@@ -153,10 +153,11 @@ runSshContents fname hostname username port = T.concat ["#!/usr/bin/sh\n\
     \rm ", T.pack fname, "\n\
     \/usr/bin/setsid /usr/bin/ssh ", username, "@", hostname, " -p ", text port, "\n"]
 
-runSshContentsCommand :: FilePath -> Text -> Text -> Text -> Text
-runSshContentsCommand fname hostname username command = T.concat ["#!/usr/bin/sh\n\
+runSshContentsCommand :: FilePath -> Text -> Text -> Text -> Int -> Text
+runSshContentsCommand fname hostname username command port = T.concat ["#!/usr/bin/sh\n\
     \rm ", T.pack fname, "\n\
-    \/usr/bin/setsid /usr/bin/ssh ", username, "@", hostname, " -t '", command, "; bash -l'"]
+    \/usr/bin/setsid /usr/bin/ssh ", username, "@", hostname,
+    " -p ", text port, " -t '", command, "; bash -l'"]
 
 runSshContentsTunnel :: FilePath -> Int -> ServerInfo -> ServerInfo -> Text
 runSshContentsTunnel fname port intermediate final = T.concat ["#!/usr/bin/sh\n\
@@ -176,31 +177,30 @@ prepareSshPassword password tmpDir = do
     let sysEnv = [("SSH_ASKPASS", echoPassPath)]
     return $ parentEnv ++ sysEnv
 
-data SshCommandOptions = JustSsh { sshoTerminal :: Bool, sshoPort :: Int }
+data SshCommandOptions = JustSsh { sshoTerminal :: Bool }
                        | SshCommand Text
-                       | SshTunnel Int ServerInfo
+                       | SshTunnel ServerInfo
 
 -- I have to jump through several hoops to make this work...
 -- I open in an external terminal so I can't communicate
 -- with the ssh app in the terminal, but environment variables
 -- get propagated. I must use a temporary file to store the
 -- password, but it's quickly deleted and with 700 permissions.
-openSshSession :: ServerInfo -> SshCommandOptions -> IO (Either Text ())
-openSshSession srv@ServerInfo{..} sshCommandOptions = do
+openSshSession :: ServerInfo -> Int -> SshCommandOptions -> IO (Either Text ())
+openSshSession srv@ServerInfo{..} port sshCommandOptions = do
     tmpDir <- getTemporaryDirectory
     -- TODO here I'm creating a temp file but not deleting it..
     -- it is small though and tmpfs will not persist across reboots.
     let runSshPath = tmpDir </> "runssh.sh"
     let scriptContents = case sshCommandOptions of
-         JustSsh _ port  -> runSshContents runSshPath srvAddress srvUsername port
-         SshCommand cmd  -> runSshContentsCommand runSshPath srvAddress srvUsername cmd
-         SshTunnel port intermediate
-                         -> runSshContentsTunnel runSshPath port intermediate srv
+         JustSsh _              -> runSshContents runSshPath srvAddress srvUsername port
+         SshCommand cmd         -> runSshContentsCommand runSshPath srvAddress srvUsername cmd port
+         SshTunnel intermediate -> runSshContentsTunnel runSshPath port intermediate srv
     writeTempScript runSshPath scriptContents
     let openTerminal = case sshCommandOptions of
-            JustSsh True _ -> True
-            SshCommand _   -> True
-            _              -> False
+            JustSsh True  -> True
+            SshCommand _  -> True
+            _             -> False
     -- TODO detect other xterm types than gnome-terminal
     let (cmd, params) = if openTerminal
                            then ("gnome-terminal", ["-e", runSshPath])
@@ -216,7 +216,7 @@ openSshTunnelSession :: Int -> ServerInfo -> ServerInfo
 openSshTunnelSession portTunnel intermediate final callback = tryText $ do
     isTunnelOpen <- not <$> isPortFree portTunnel
     unless isTunnelOpen $ do
-        void $ openSshSession final (SshTunnel portTunnel intermediate)
+        void $ openSshSession final portTunnel (SshTunnel intermediate)
         waitUntilPortIsOpen portTunnel
     -- the tunnel is now open
     callback portTunnel (ServerInfo "localhost" (srvUsername final) (srvPassword final))
@@ -235,20 +235,20 @@ sshHandlePasswordAndRun password sshCommandParams readCallback = do
 sshUserHost :: ServerInfo -> Text
 sshUserHost ServerInfo{..} = srvUsername <> "@" <> srvAddress
 
-runProgramOverSshAsync :: ServerInfo -> Maybe Text -> Text
+runProgramOverSshAsync :: ServerInfo -> Int -> Maybe Text -> Text
     -> (CommandProgress -> IO ()) -> IO ()
-runProgramOverSshAsync srv@ServerInfo{..} workDir program readCallback = do
+runProgramOverSshAsync srv@ServerInfo{..} port workDir program readCallback = do
     let workDirCommand = maybe "" (\dir -> "cd " <> dir <> ";") workDir
     let command = workDirCommand <> program
-    let params = ["/usr/bin/ssh", sshUserHost srv, command]
+    let params = ["/usr/bin/ssh", sshUserHost srv, "-p", text port, command]
     sshHandlePasswordAndRun srvPassword params readCallback
 
-downloadFileSsh :: ServerInfo -> Text -> (CommandProgress -> IO ()) -> IO ()
-downloadFileSsh srv@ServerInfo{..} path readCallback = do
+downloadFileSsh :: ServerInfo -> Int -> Text -> (CommandProgress -> IO ()) -> IO ()
+downloadFileSsh srv@ServerInfo{..} port path readCallback = do
     outputDir <- getUserDir "DOWNLOAD"
     let fname = takeFileName (T.unpack path)
     readCallback $ CommandOutput $ T.pack $ printf "\nStarting download of the file %s to %s..." fname outputDir
-    sshHandlePasswordAndRun srvPassword ["/usr/bin/scp",
+    sshHandlePasswordAndRun srvPassword ["/usr/bin/scp", "-P", text port,
         sshUserHost srv <> ":" <> path, T.pack outputDir] readCallback
 
 -- alternative implementations: http://stackoverflow.com/a/28101291/516188

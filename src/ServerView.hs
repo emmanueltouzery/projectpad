@@ -163,40 +163,43 @@ saveExtraUserAuthKey path (entityVal . fromObjRef -> userAcct) =
 executePoiAction :: ObjRef ServerViewState -> ObjRef (Entity Server)
     -> ObjRef (Entity ServerPointOfInterest) -> IO (Either Text ())
 executePoiAction srvState (entityVal . fromObjRef -> server)
-        (entityVal . fromObjRef -> serverPoi) =
+        (entityVal . fromObjRef -> serverPoi) = do
+    let (eSrv, port) = getHostEffectiveAddressPort server
     case serverPointOfInterestInterestType serverPoi of
-        PoiCommandToRun -> executePoiCommand srvState server serverPoi
-        PoiLogFile      -> executePoiLogFile server serverPoi "tail -f "
-        PoiConfigFile   -> executePoiLogFile server serverPoi "vim "
+        PoiCommandToRun -> executePoiCommand srvState eSrv port serverPoi
+        PoiLogFile      -> executePoiLogFile eSrv port serverPoi "tail -f "
+        PoiConfigFile   -> executePoiLogFile eSrv port serverPoi "vim "
         _               -> return $ Right ()
 
 executePoiSecondaryAction :: ObjRef (Entity Server)
     -> ObjRef (Entity ServerPointOfInterest) -> IO (Either Text ())
 executePoiSecondaryAction (entityVal . fromObjRef -> server)
-        (entityVal . fromObjRef -> serverPoi) =
+        (entityVal . fromObjRef -> serverPoi) = do
+    let (eSrv, port) = getHostEffectiveAddressPort server
     case serverPointOfInterestInterestType serverPoi of
-        PoiLogFile -> executePoiLogFile server serverPoi "less "
+        PoiLogFile -> executePoiLogFile eSrv port serverPoi "less "
         _ -> return $ Right ()
 
 executePoiThirdAction :: ObjRef ServerViewState -> ObjRef (Entity Server)
     -> ObjRef (Entity ServerPointOfInterest) -> IO (Either Text ())
 executePoiThirdAction srvState (entityVal . fromObjRef -> server)
-        (entityVal . fromObjRef -> serverPoi) =
+        (entityVal . fromObjRef -> serverPoi) = do
+    let (eSrv, port) = getHostEffectiveAddressPort server
     case serverPointOfInterestInterestType serverPoi of
-        PoiLogFile -> downloadFileSsh (serverToSystemServer server) (serverPointOfInterestPath serverPoi)
+        PoiLogFile -> downloadFileSsh eSrv port (serverPointOfInterestPath serverPoi)
                       (fireSignal (Proxy :: Proxy SignalOutput) srvState . cmdProgressToJs) >> return (Right ())
         _ -> return $ Right ()
 
-executePoiLogFile :: Server -> ServerPointOfInterest -> Text -> IO (Either Text ())
-executePoiLogFile server serverPoi cmd = openSshSession (serverToSystemServer server)
+executePoiLogFile :: ServerInfo -> Int -> ServerPointOfInterest -> Text -> IO (Either Text ())
+executePoiLogFile eSrv port serverPoi cmd = openSshSession eSrv port
     (SshCommand $ cmd `T.append` serverPointOfInterestPath serverPoi)
 
-executePoiCommand :: ObjRef ServerViewState -> Server -> ServerPointOfInterest -> IO (Either Text ())
-executePoiCommand srvState server serverPoi = do
+executePoiCommand :: ObjRef ServerViewState -> ServerInfo -> Int -> ServerPointOfInterest -> IO (Either Text ())
+executePoiCommand srvState eSrv port serverPoi = do
     let workDir = case serverPointOfInterestPath serverPoi of
           "" -> Nothing
           x  -> Just x
-    Right <$> runProgramOverSshAsync (serverToSystemServer server)
+    Right <$> runProgramOverSshAsync eSrv port
         workDir (serverPointOfInterestText serverPoi)
         (fireSignal (Proxy :: Proxy SignalOutput) srvState . cmdProgressToJs)
 
@@ -284,19 +287,25 @@ openServerSshTunnelAction sqlBackend server callback = runExceptT $ do
          (serverToSystemServer server) callback
     hoistEither r
 
-getHostEffectiveAddressPort :: ObjRef (Entity Server) -> (Text, Int)
-getHostEffectiveAddressPort (entityVal . fromObjRef -> server) =
+getHostEffectiveAddressPort' :: ObjRef (Entity Server) -> (Text, Int)
+getHostEffectiveAddressPort' (entityVal . fromObjRef -> server) = (srvAddress srver, port)
+    where (srver, port) = getHostEffectiveAddressPort server
+
+getHostEffectiveAddressPort :: Server -> (ServerInfo, Int)
+getHostEffectiveAddressPort server =
     case serverAccessType server of
-        SrvAccessSsh       -> (serverIp server, sshDefaultPort)
+        SrvAccessSsh       -> (srv, sshDefaultPort)
         SrvAccessSshTunnel ->
-            ("localhost", fromMaybe sshDefaultPort $ serverSshTunnelPort server)
-        _                  -> ("", -1)
+            (srv { srvAddress = "localhost" },
+             fromMaybe sshDefaultPort $ serverSshTunnelPort server)
+        _                  -> (srv, -1)
+    where srv = serverToSystemServer server
 
 isSshHostTrusted :: ObjRef (Entity Server) -> IO (Either Text Bool)
-isSshHostTrusted = uncurry isHostTrusted . getHostEffectiveAddressPort
+isSshHostTrusted = uncurry isHostTrusted . getHostEffectiveAddressPort'
 
 addInSshHostTrustStore :: ObjRef (Entity Server) -> IO (Either Text ())
-addInSshHostTrustStore = uncurry addInHostTrustStore . getHostEffectiveAddressPort
+addInSshHostTrustStore = uncurry addInHostTrustStore . getHostEffectiveAddressPort'
 
 createServerViewState :: SqlBackend -> IO (ObjRef ServerViewState)
 createServerViewState sqlBackend = do
