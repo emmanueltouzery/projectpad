@@ -226,7 +226,7 @@ openSshTunnelSession portTunnel intermediate final callback = tryText $ do
           runProgramOverSshAsync intermediate Nothing secondTunnelCmd finalShellHandler
        else
           -- the tunnel is already open
-          callback portTunnel (ServerInfo "127.0.0.1" (srvUsername final) (srvPassword final))
+          callback portTunnel (ServerInfo "localhost" (srvUsername final) (srvPassword final))
 
 sshTunnelOpenShellHandler :: Int -> ServerInfo
                           -> (Int -> ServerInfo -> IO ()) -> CommandProgress
