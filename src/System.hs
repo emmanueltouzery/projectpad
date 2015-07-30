@@ -126,11 +126,11 @@ getKnownHostsFilename = do
 -- server fingerprint is not known it won't ask to accept it,
 -- since it's not in interactive mode... So I must check myself
 -- beforehand.
-isHostTrusted :: Text -> Maybe Int -> IO (Either Text Bool)
-isHostTrusted hostname mPort = tryText $ do
-    let hostSignature = case mPort of
-            Nothing   -> hostname
-            Just port -> T.concat ["[", hostname, "]:", text port]
+isHostTrusted :: Text -> Int -> IO (Either Text Bool)
+isHostTrusted hostname port = tryText $ do
+    let hostSignature = if port == sshDefaultPort
+            then hostname
+            else T.concat ["[", hostname, "]:", text port]
     knownHostsFname <- getKnownHostsFilename
     let readLines = fmap (T.splitOn "\n") . T.hGetContents
     let linesReadHost = fmap (head . T.splitOn " ")

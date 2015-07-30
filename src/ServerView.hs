@@ -289,7 +289,7 @@ isSshHostTrusted :: SqlBackend -> ObjRef (Entity Server) -> IO (Either Text Bool
 isSshHostTrusted sqlBackend server = do
     isTrusted <- newEmptyMVar
     openServerSshAction sqlBackend server $
-        \port srv -> isHostTrusted (srvAddress srv) (Just port) >>= putMVar isTrusted
+        \port srv -> isHostTrusted (srvAddress srv) port >>= putMVar isTrusted
     readMVar isTrusted
 
 createServerViewState :: SqlBackend -> IO (ObjRef ServerViewState)
