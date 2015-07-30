@@ -126,11 +126,11 @@ getKnownHostsFilename = do
 -- server fingerprint is not known it won't ask to accept it,
 -- since it's not in interactive mode... So I must check myself
 -- beforehand.
-isHostTrusted :: Text -> Int -> IO (Either Text Bool)
-isHostTrusted hostname port = tryText $ do
+isHostTrusted :: Int -> ServerInfo -> IO (Either Text Bool)
+isHostTrusted port ServerInfo{..} = tryText $ do
     let hostSignature = if port == sshDefaultPort
-            then hostname
-            else T.concat ["[", hostname, "]:", text port]
+            then srvAddress
+            else T.concat ["[", srvAddress, "]:", text port]
     knownHostsFname <- getKnownHostsFilename
     let readLines = fmap (T.splitOn "\n") . T.hGetContents
     let linesReadHost = fmap (head . T.splitOn " ")
@@ -141,10 +141,10 @@ getHostKeyDetails :: Text -> Int -> IO Text
 getHostKeyDetails hostname port = T.pack <$>
     readProcess "ssh-keyscan" ["-p", show port, T.unpack hostname] ""
 
-addInHostTrustStore :: Text -> Int -> IO (Either Text ())
-addInHostTrustStore server port = tryText $ do
+addInHostTrustStore :: Int -> ServerInfo -> IO (Either Text ())
+addInHostTrustStore port ServerInfo{..} = tryText $ do
     knownHostsFname <- getKnownHostsFilename
-    hostKeyDetails <- getHostKeyDetails server port
+    hostKeyDetails <- getHostKeyDetails srvAddress port
     let addKeyDetails hndl = T.hPutStr hndl ("\n" <> hostKeyDetails)
     withFile knownHostsFname AppendMode addKeyDetails
 
@@ -211,9 +211,9 @@ openSshSession srv@ServerInfo{..} port sshCommandOptions = do
             { env = Just sshEnv }
 
 openSshTunnelSession :: Int -> ServerInfo -> ServerInfo
-                     -> (Int -> ServerInfo -> IO ())
-                     -> IO (Either Text ())
-openSshTunnelSession portTunnel intermediate final callback = tryText $ do
+                     -> (Int -> ServerInfo -> IO (Either Text a))
+                     -> IO (Either Text a)
+openSshTunnelSession portTunnel intermediate final callback = do
     isTunnelOpen <- not <$> isPortFree portTunnel
     unless isTunnelOpen $ do
         void $ openSshSession final portTunnel (SshTunnel intermediate)

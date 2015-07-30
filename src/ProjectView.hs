@@ -15,7 +15,6 @@ import Data.Maybe
 import Control.Arrow
 import Data.Monoid
 import Data.Attoparsec.Text hiding (count)
-import Control.Monad
 
 import ModelBase
 import Model
@@ -201,8 +200,8 @@ runServerRdp :: ObjRef (Entity Server) -> Int -> Int -> IO (Either Text Text)
 runServerRdp (entityVal . fromObjRef -> server) = runRdp (serverToSystemServer server)
 
 openServerSshSession :: SqlBackend -> ObjRef (Entity Server) -> IO (Either Text ())
-openServerSshSession sqlBackend server = tryText $ openServerSshAction sqlBackend server $
-    \port srv -> void $ openSshSession srv port (JustSsh True)
+openServerSshSession sqlBackend server = openServerSshAction sqlBackend server $
+    \port srv -> openSshSession srv port (JustSsh True)
 
 data ServerExtraInfo = ServerExtraInfo
     {

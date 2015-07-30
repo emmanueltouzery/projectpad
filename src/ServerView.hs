@@ -11,7 +11,7 @@ import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Database.Persist as P
 import Control.Error
-import Control.Monad
+import Data.Monoid
 
 import Model
 import ModelBase
@@ -160,31 +160,28 @@ saveExtraUserAuthKey :: Text -> ObjRef (Entity ServerExtraUserAccount) -> IO (Ei
 saveExtraUserAuthKey path (entityVal . fromObjRef -> userAcct) =
     saveAuthKeyBytes path (serverExtraUserAccountAuthKey userAcct)
 
-executePoiAction :: ObjRef ServerViewState -> ObjRef (Entity Server)
+executePoiAction :: SqlBackend -> ObjRef ServerViewState -> ObjRef (Entity Server)
     -> ObjRef (Entity ServerPointOfInterest) -> IO (Either Text ())
-executePoiAction srvState (entityVal . fromObjRef -> server)
-        (entityVal . fromObjRef -> serverPoi) = do
-    let (eSrv, port) = getHostEffectiveAddressPort server
+executePoiAction sqlBackend srvState server (entityVal . fromObjRef -> serverPoi) =
+    openServerSshAction sqlBackend server $ \port eSrv ->
     case serverPointOfInterestInterestType serverPoi of
         PoiCommandToRun -> executePoiCommand srvState eSrv port serverPoi
         PoiLogFile      -> executePoiLogFile eSrv port serverPoi "tail -f "
         PoiConfigFile   -> executePoiLogFile eSrv port serverPoi "vim "
         _               -> return $ Right ()
 
-executePoiSecondaryAction :: ObjRef (Entity Server)
+executePoiSecondaryAction :: SqlBackend -> ObjRef (Entity Server)
     -> ObjRef (Entity ServerPointOfInterest) -> IO (Either Text ())
-executePoiSecondaryAction (entityVal . fromObjRef -> server)
-        (entityVal . fromObjRef -> serverPoi) = do
-    let (eSrv, port) = getHostEffectiveAddressPort server
+executePoiSecondaryAction sqlBackend server (entityVal . fromObjRef -> serverPoi) =
+    openServerSshAction sqlBackend server $ \port eSrv ->
     case serverPointOfInterestInterestType serverPoi of
         PoiLogFile -> executePoiLogFile eSrv port serverPoi "less "
         _ -> return $ Right ()
 
-executePoiThirdAction :: ObjRef ServerViewState -> ObjRef (Entity Server)
+executePoiThirdAction :: SqlBackend -> ObjRef ServerViewState -> ObjRef (Entity Server)
     -> ObjRef (Entity ServerPointOfInterest) -> IO (Either Text ())
-executePoiThirdAction srvState (entityVal . fromObjRef -> server)
-        (entityVal . fromObjRef -> serverPoi) = do
-    let (eSrv, port) = getHostEffectiveAddressPort server
+executePoiThirdAction sqlBackend srvState server (entityVal . fromObjRef -> serverPoi) =
+    openServerSshAction sqlBackend server $ \port eSrv ->
     case serverPointOfInterestInterestType serverPoi of
         PoiLogFile -> downloadFileSsh eSrv port (serverPointOfInterestPath serverPoi)
                       (fireSignal (Proxy :: Proxy SignalOutput) srvState . cmdProgressToJs) >> return (Right ())
@@ -266,17 +263,18 @@ getServerDisplaySections sqlBackend serverId = do
       runServerQ f = sqlToQml sqlBackend (f serverId)
 
 openServerSshAction :: SqlBackend -> ObjRef (Entity Server)
-                     -> (Int -> ServerInfo -> IO ())
-                     -> IO ()
+                     -> (Int -> ServerInfo -> IO (Either Text a))
+                     -> IO (Either Text a)
 openServerSshAction sqlBackend (entityVal . fromObjRef -> server) callback =
     case serverAccessType server of
       SrvAccessSsh       -> callback sshDefaultPort (serverToSystemServer server)
-      SrvAccessSshTunnel -> void $ openServerSshTunnelAction sqlBackend server callback
-      _                  -> return ()
+      SrvAccessSshTunnel -> openServerSshTunnelAction sqlBackend server callback
+      _                  -> error $ "called openServerSshAction with "
+                                  <> show (serverAccessType server)
 
 openServerSshTunnelAction :: SqlBackend -> Server
-                          -> (Int -> ServerInfo -> IO ())
-                          -> IO (Either Text ())
+                          -> (Int -> ServerInfo -> IO (Either Text a))
+                          -> IO (Either Text a)
 openServerSshTunnelAction sqlBackend server callback = runExceptT $ do
     tunnelPort     <- noteET "no tunnel port configured" $ serverSshTunnelPort server
     intermediateId <- noteET "no intermediate server configured" $ serverSshTunnelThroughServerId server
@@ -287,25 +285,13 @@ openServerSshTunnelAction sqlBackend server callback = runExceptT $ do
          (serverToSystemServer server) callback
     hoistEither r
 
-getHostEffectiveAddressPort' :: ObjRef (Entity Server) -> (Text, Int)
-getHostEffectiveAddressPort' (entityVal . fromObjRef -> server) = (srvAddress srver, port)
-    where (srver, port) = getHostEffectiveAddressPort server
+isSshHostTrusted :: SqlBackend -> ObjRef (Entity Server) -> IO (Either Text Bool)
+isSshHostTrusted sqlBackend server =
+    openServerSshAction sqlBackend server isHostTrusted
 
-getHostEffectiveAddressPort :: Server -> (ServerInfo, Int)
-getHostEffectiveAddressPort server =
-    case serverAccessType server of
-        SrvAccessSsh       -> (srv, sshDefaultPort)
-        SrvAccessSshTunnel ->
-            (srv { srvAddress = "localhost" },
-             fromMaybe sshDefaultPort $ serverSshTunnelPort server)
-        _                  -> (srv, -1)
-    where srv = serverToSystemServer server
-
-isSshHostTrusted :: ObjRef (Entity Server) -> IO (Either Text Bool)
-isSshHostTrusted = uncurry isHostTrusted . getHostEffectiveAddressPort'
-
-addInSshHostTrustStore :: ObjRef (Entity Server) -> IO (Either Text ())
-addInSshHostTrustStore = uncurry addInHostTrustStore . getHostEffectiveAddressPort'
+addInSshHostTrustStore :: SqlBackend -> ObjRef (Entity Server) -> IO (Either Text ())
+addInSshHostTrustStore sqlBackend server =
+    openServerSshAction sqlBackend server addInHostTrustStore
 
 createServerViewState :: SqlBackend -> IO (ObjRef ServerViewState)
 createServerViewState sqlBackend = do
@@ -328,11 +314,11 @@ createServerViewState sqlBackend = do
             defMethod' "deleteServerExtraUserAccounts" (deleteHelper sqlBackend deleteServerExtraUserAccount),
             defStatic  "getServerGroupNames"      (getServerGroupNames sqlBackend),
             defStatic  "saveAuthKey"              (liftQmlResult2 saveExtraUserAuthKey),
-            defStatic  "isHostTrusted"            (liftQmlResult1 isSshHostTrusted),
-            defStatic  "addInHostTrustStore"      (liftQmlResult1 addInSshHostTrustStore),
-            defMethod' "executePoiAction"         (liftQmlResult3 executePoiAction),
-            defStatic "executePoiSecondaryAction" (liftQmlResult2 executePoiSecondaryAction),
-            defMethod' "executePoiThirdAction"    (liftQmlResult3 executePoiThirdAction),
+            defStatic  "isHostTrusted"            (liftQmlResult1 $ isSshHostTrusted sqlBackend),
+            defStatic  "addInHostTrustStore"      (liftQmlResult1 $ addInSshHostTrustStore sqlBackend),
+            defMethod' "executePoiAction"         (liftQmlResult3 $ executePoiAction sqlBackend),
+            defStatic "executePoiSecondaryAction" (liftQmlResult2 $ executePoiSecondaryAction sqlBackend),
+            defMethod' "executePoiThirdAction"    (liftQmlResult3 $ executePoiThirdAction sqlBackend),
             defSignalNamedParams "gotOutput"      (Proxy :: Proxy SignalOutput) $ fstName "output"
         ]
     newObject serverViewClass ()
