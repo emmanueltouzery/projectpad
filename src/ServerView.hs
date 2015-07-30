@@ -12,7 +12,6 @@ import qualified Data.Text as T
 import qualified Database.Persist as P
 import Control.Error
 import Control.Monad
-import Control.Concurrent.MVar
 
 import Model
 import ModelBase
@@ -285,12 +284,19 @@ openServerSshTunnelAction sqlBackend server callback = runExceptT $ do
          (serverToSystemServer server) callback
     hoistEither r
 
-isSshHostTrusted :: SqlBackend -> ObjRef (Entity Server) -> IO (Either Text Bool)
-isSshHostTrusted sqlBackend server = do
-    isTrusted <- newEmptyMVar
-    openServerSshAction sqlBackend server $
-        \port srv -> isHostTrusted (srvAddress srv) port >>= putMVar isTrusted
-    readMVar isTrusted
+getHostEffectiveAddressPort :: ObjRef (Entity Server) -> (Text, Int)
+getHostEffectiveAddressPort (entityVal . fromObjRef -> server) =
+    case serverAccessType server of
+        SrvAccessSsh       -> (serverIp server, sshDefaultPort)
+        SrvAccessSshTunnel ->
+            ("localhost", fromMaybe sshDefaultPort $ serverSshTunnelPort server)
+        _                  -> ("", -1)
+
+isSshHostTrusted :: ObjRef (Entity Server) -> IO (Either Text Bool)
+isSshHostTrusted = uncurry isHostTrusted . getHostEffectiveAddressPort
+
+addInSshHostTrustStore :: ObjRef (Entity Server) -> IO (Either Text ())
+addInSshHostTrustStore = uncurry addInHostTrustStore . getHostEffectiveAddressPort
 
 createServerViewState :: SqlBackend -> IO (ObjRef ServerViewState)
 createServerViewState sqlBackend = do
@@ -313,8 +319,8 @@ createServerViewState sqlBackend = do
             defMethod' "deleteServerExtraUserAccounts" (deleteHelper sqlBackend deleteServerExtraUserAccount),
             defStatic  "getServerGroupNames"      (getServerGroupNames sqlBackend),
             defStatic  "saveAuthKey"              (liftQmlResult2 saveExtraUserAuthKey),
-            defStatic  "isHostTrusted"            (liftQmlResult1 $ isSshHostTrusted sqlBackend),
-            defStatic  "addInHostTrustStore"      (liftQmlResult1 addInHostTrustStore),
+            defStatic  "isHostTrusted"            (liftQmlResult1 isSshHostTrusted),
+            defStatic  "addInHostTrustStore"      (liftQmlResult1 addInSshHostTrustStore),
             defMethod' "executePoiAction"         (liftQmlResult3 executePoiAction),
             defStatic "executePoiSecondaryAction" (liftQmlResult2 executePoiSecondaryAction),
             defMethod' "executePoiThirdAction"    (liftQmlResult3 executePoiThirdAction),

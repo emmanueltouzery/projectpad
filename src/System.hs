@@ -137,14 +137,14 @@ isHostTrusted hostname port = tryText $ do
     hosts <- withFile knownHostsFname ReadMode (fmap linesReadHost . readLines)
     return $ hostSignature `elem` hosts
 
-getHostKeyDetails :: Text -> IO Text
-getHostKeyDetails hostname = T.pack <$>
-    readProcess "ssh-keyscan" [T.unpack hostname] ""
+getHostKeyDetails :: Text -> Int -> IO Text
+getHostKeyDetails hostname port = T.pack <$>
+    readProcess "ssh-keyscan" ["-p", show port, T.unpack hostname] ""
 
-addInHostTrustStore :: Text -> IO (Either Text ())
-addInHostTrustStore server = tryText $ do
+addInHostTrustStore :: Text -> Int -> IO (Either Text ())
+addInHostTrustStore server port = tryText $ do
     knownHostsFname <- getKnownHostsFilename
-    hostKeyDetails <- getHostKeyDetails server
+    hostKeyDetails <- getHostKeyDetails server port
     let addKeyDetails hndl = T.hPutStr hndl ("\n" <> hostKeyDetails)
     withFile knownHostsFname AppendMode addKeyDetails
 
@@ -158,11 +158,11 @@ runSshContentsCommand fname hostname username command = T.concat ["#!/usr/bin/sh
     \rm ", T.pack fname, "\n\
     \/usr/bin/setsid /usr/bin/ssh ", username, "@", hostname, " -t '", command, "; bash -l'"]
 
-runSshContentsTunnel :: FilePath -> Text -> Text -> Int -> Text
-runSshContentsTunnel fname hostname username port = T.concat ["#!/usr/bin/sh\n\
+runSshContentsTunnel :: FilePath -> Int -> ServerInfo -> ServerInfo -> Text
+runSshContentsTunnel fname port intermediate final = T.concat ["#!/usr/bin/sh\n\
     \rm ", T.pack fname, "\n\
-    \/usr/bin/setsid /usr/bin/ssh -L ", text port, ":localhost:", text port,
-    " ", username, "@", hostname, "\n"]
+    \/usr/bin/setsid /usr/bin/ssh ", sshUserHost intermediate,
+    " -f -L ", text port, ":", srvAddress final, ":22 -N\n"]
 
 echoPassContents :: FilePath -> Text -> Text
 echoPassContents fname password = T.concat ["#!/bin/sh\n",
@@ -178,7 +178,7 @@ prepareSshPassword password tmpDir = do
 
 data SshCommandOptions = JustSsh { sshoTerminal :: Bool, sshoPort :: Int }
                        | SshCommand Text
-                       | SshTunnel Int
+                       | SshTunnel Int ServerInfo
 
 -- I have to jump through several hoops to make this work...
 -- I open in an external terminal so I can't communicate
@@ -186,7 +186,7 @@ data SshCommandOptions = JustSsh { sshoTerminal :: Bool, sshoPort :: Int }
 -- get propagated. I must use a temporary file to store the
 -- password, but it's quickly deleted and with 700 permissions.
 openSshSession :: ServerInfo -> SshCommandOptions -> IO (Either Text ())
-openSshSession ServerInfo{..} sshCommandOptions = do
+openSshSession srv@ServerInfo{..} sshCommandOptions = do
     tmpDir <- getTemporaryDirectory
     -- TODO here I'm creating a temp file but not deleting it..
     -- it is small though and tmpfs will not persist across reboots.
@@ -194,7 +194,8 @@ openSshSession ServerInfo{..} sshCommandOptions = do
     let scriptContents = case sshCommandOptions of
          JustSsh _ port  -> runSshContents runSshPath srvAddress srvUsername port
          SshCommand cmd  -> runSshContentsCommand runSshPath srvAddress srvUsername cmd
-         SshTunnel port  -> runSshContentsTunnel runSshPath srvAddress srvUsername port
+         SshTunnel port intermediate
+                         -> runSshContentsTunnel runSshPath port intermediate srv
     writeTempScript runSshPath scriptContents
     let openTerminal = case sshCommandOptions of
             JustSsh True _ -> True
@@ -214,29 +215,17 @@ openSshTunnelSession :: Int -> ServerInfo -> ServerInfo
                      -> IO (Either Text ())
 openSshTunnelSession portTunnel intermediate final callback = tryText $ do
     isTunnelOpen <- not <$> isPortFree portTunnel
-    if not isTunnelOpen
-       then do
-          void $ openSshSession intermediate $ SshTunnel portTunnel
-          -- the first tunnel from me to the intermediate
-          -- host is now open. Now open the tunnel from the
-          -- second host to the final host.
-          -- ### TODO try to reuse runSshContentsTunnel
-          let secondTunnelCmd = "ssh -t -t -L " <> text portTunnel <> ":localhost:22 " <> sshUserHost final
-          let finalShellHandler = sshTunnelOpenShellHandler portTunnel final callback
-          runProgramOverSshAsync intermediate Nothing secondTunnelCmd finalShellHandler
-       else
-          -- the tunnel is already open
-          callback portTunnel (ServerInfo "localhost" (srvUsername final) (srvPassword final))
+    unless isTunnelOpen $ do
+        void $ openSshSession final (SshTunnel portTunnel intermediate)
+        waitUntilPortIsOpen portTunnel
+    -- the tunnel is now open
+    callback portTunnel (ServerInfo "localhost" (srvUsername final) (srvPassword final))
 
-sshTunnelOpenShellHandler :: Int -> ServerInfo
-                          -> (Int -> ServerInfo -> IO ()) -> CommandProgress
-                          -> IO ()
-sshTunnelOpenShellHandler port ServerInfo{..} callback = \case
-    CommandOutput _   -> return ()
-    CommandFailed msg -> putStrLn $ "*** failed establishing tunnel:" <> show msg -- should report errors better!
-    CommandSucceeded  -> callback port srv
-                         where
-                           srv = ServerInfo "127.0.0.1" srvUsername srvPassword
+waitUntilPortIsOpen :: Int -> IO ()
+waitUntilPortIsOpen port = do
+    isTunnelOpen <- not <$> isPortFree port
+    unless isTunnelOpen $
+        threadDelay 100000 >> waitUntilPortIsOpen port
 
 sshHandlePasswordAndRun :: Text -> [Text] -> (CommandProgress -> IO ()) -> IO ()
 sshHandlePasswordAndRun password sshCommandParams readCallback = do
