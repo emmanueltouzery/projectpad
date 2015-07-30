@@ -165,6 +165,7 @@ Rectangle {
         id: noteEditComponent
         NoteEdit {
             id: noteEdit
+            appContext: searchView.appContext
         }
     }
 }
