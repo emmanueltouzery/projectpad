@@ -264,7 +264,7 @@ isPortFree :: Int -> IO Bool
 isPortFree port = do
     s <- socket AF_INET Stream defaultProtocol
     localhost <- inet_addr "127.0.0.1"
-    portOpen  <- try (connect s (SockAddrInet (fromIntegral port) localhost))
+    portOpen <- try (connect s (SockAddrInet (fromIntegral port) localhost))
     case portOpen of
         Left (_ :: SomeException) -> return True
         Right () -> close s >> return False

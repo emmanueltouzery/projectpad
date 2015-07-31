@@ -106,7 +106,7 @@ getDbNextFreeSshTunnelPort sqlBackend = do
        limit 1
        return (s ^. ServerSshTunnelPort))
     return $ case sshServerMaxPort of
-       Nothing  -> minSshTunnelPort
+       Nothing   -> minSshTunnelPort
        Just port -> fromMaybe (error "null ssh port?") port + 1
 
 getFirstFreePortAfter :: Int -> IO Int
