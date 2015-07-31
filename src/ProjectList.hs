@@ -101,7 +101,7 @@ getDbNextFreeSshTunnelPort :: SqlBackend -> IO Int
 getDbNextFreeSshTunnelPort sqlBackend = do
     sshServerMaxPort <- listToMaybe <$> runSqlBackend sqlBackend (select $ from $ \s -> do
        where_ (not_ $ isNothing (s ^. ServerSshTunnelPort))
-       orderBy [asc (s ^. ServerSshTunnelPort)]
+       orderBy [desc (s ^. ServerSshTunnelPort)]
        limit 1
        return s)
     return $ case sshServerMaxPort of
