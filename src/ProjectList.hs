@@ -99,15 +99,15 @@ minSshTunnelPort = 1024
 -- getNewSshTunnelPort.
 getDbNextFreeSshTunnelPort :: SqlBackend -> IO Int
 getDbNextFreeSshTunnelPort sqlBackend = do
-    sshServerMaxPort <- listToMaybe <$> runSqlBackend sqlBackend (select $ from $ \s -> do
+    sshServerMaxPort <- (fmap unValue . listToMaybe) <$>
+       runSqlBackend sqlBackend (select $ from $ \s -> do
        where_ (not_ $ isNothing (s ^. ServerSshTunnelPort))
        orderBy [desc (s ^. ServerSshTunnelPort)]
        limit 1
-       return s)
+       return (s ^. ServerSshTunnelPort))
     return $ case sshServerMaxPort of
        Nothing  -> minSshTunnelPort
-       Just srv -> getPort (serverSshTunnelPort $ entityVal srv) + 1
-                   where getPort = fromMaybe (error "null ssh port?")
+       Just port -> fromMaybe (error "null ssh port?") port + 1
 
 getFirstFreePortAfter :: Int -> IO Int
 getFirstFreePortAfter port = do
