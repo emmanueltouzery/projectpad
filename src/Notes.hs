@@ -114,6 +114,9 @@ mergePlainTexts = \case
     x:xs -> x:mergePlainTexts xs
     [] -> []
 
+plainTextStopChars :: String
+plainTextStopChars = "*[]\n\\`"
+
 parseLineItem :: Parser LineItem
 parseLineItem = parseEscapedMarkers
     <|> parsePreformatInline
@@ -121,7 +124,7 @@ parseLineItem = parseEscapedMarkers
     <|> parseTextToggle Italics "*"
     <|> parsePassword
     <|> parseLink
-    <|> PlainText <$> takeWhile1 (not . (`elem` "*[]\n\\`"))
+    <|> PlainText <$> takeWhile1 (not . (`elem` plainTextStopChars))
     <|> PlainText <$> choice (string <$> ["[", "]", "*", "`", "\\"])
     <|> PlainText <$> (endOfLine >> return " ")
 

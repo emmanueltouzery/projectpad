@@ -72,7 +72,7 @@ getLogQuery logStr = if "PRAGMA" `isPrefixOf` normalizedQuery
                      else origQuery
     where
       origQuery = BS8.unpack (fromLogStr logStr)
-      normalizedQuery = toUpper <$> dropWhile (`elem` "\" \t") origQuery
+      normalizedQuery = toUpper <$> dropWhile (`elem` ['"', ' ', '\t']) origQuery
 
 -- might fail on windows if sqlite reserves exclusive
 -- access to the file.
