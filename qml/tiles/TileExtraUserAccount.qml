@@ -1,5 +1,6 @@
 import QtQuick 2.0
-import "utils.js" as Utils
+import ".."
+import "../utils.js" as Utils
 
 ItemTile {
     property int modelId: model.id

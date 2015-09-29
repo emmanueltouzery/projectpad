@@ -1,6 +1,7 @@
 import QtQuick 2.0
 import QtQuick.Window 2.2
-import "server-menu.js" as ServerMenu
+import ".."
+import "../server-menu.js" as ServerMenu
 
 ItemTile {
     property int modelId: modelData.server.id
@@ -18,7 +19,7 @@ ItemTile {
             height: 16
             fillMode: Image.PreserveAspectFit
             smooth: true
-            source: '../glyphicons-free/glyphicons-526-user-key.png'
+            source: '../../glyphicons-free/glyphicons-526-user-key.png'
             visible: modelData.userCount > 0
         }
         Text {
@@ -29,7 +30,7 @@ ItemTile {
             height: 16
             fillMode: Image.PreserveAspectFit
             smooth: true
-            source: '../glyphicons-free/glyphicons-372-global.png'
+            source: '../../glyphicons-free/glyphicons-372-global.png'
             visible: modelData.wwwCount > 0
         }
         Text {
@@ -40,7 +41,7 @@ ItemTile {
             height: 16
             fillMode: Image.PreserveAspectFit
             smooth: true
-            source: '../glyphicons-free/glyphicons-528-database.png'
+            source: '../../glyphicons-free/glyphicons-528-database.png'
             visible: modelData.dbCount > 0
         }
         Text {
@@ -51,7 +52,7 @@ ItemTile {
             height: 16
             fillMode: Image.PreserveAspectFit
             smooth: true
-            source: '../glyphicons-free/glyphicons-149-folder-flag.png'
+            source: '../../glyphicons-free/glyphicons-149-folder-flag.png'
             visible: modelData.poiCount > 0
         }
         Text {

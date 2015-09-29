@@ -13,7 +13,7 @@ Button {
     Image {
         x: iconX
         y: (parent.height - iconSize)/2
-        source: '../glyphicons-free/' + parent.iconName + '.png'
+        source: '../../glyphicons-free/' + parent.iconName + '.png'
         height: iconSize
         fillMode: Image.PreserveAspectFit
         smooth: true

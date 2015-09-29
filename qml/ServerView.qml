@@ -2,6 +2,8 @@ import QtQuick 2.0
 import QtQuick.Controls 1.2
 import QtQuick.Layouts 1.1
 import QtQuick.Dialogs 1.0
+import "core"
+import "tiles"
 import "utils.js" as Utils
 import "poiactions.js" as PoiActions
 

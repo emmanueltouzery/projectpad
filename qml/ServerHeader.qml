@@ -1,5 +1,6 @@
 import QtQuick 2.0
 import QtQuick.Window 2.0
+import "core"
 import "server-menu.js" as ServerMenu
 
 Rectangle {

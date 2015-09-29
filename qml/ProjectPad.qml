@@ -4,6 +4,7 @@ import QtQuick.Controls 1.2
 import QtQuick.Layouts 1.1
 import QtQml 2.2
 import QtGraphicalEffects 1.0
+import "core"
 
 Window {
     width: 800; height: 650;

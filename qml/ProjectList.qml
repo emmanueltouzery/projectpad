@@ -1,6 +1,8 @@
 import QtQuick 2.0
 import QtQuick.Controls 1.2
 import "utils.js" as Utils
+import "core"
+import "tiles"
 
 ScrollView {
     id: projectList

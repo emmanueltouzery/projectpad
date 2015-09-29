@@ -1,7 +1,5 @@
 import QtQuick 2.0
 
-import "utils.js" as Utils
-
 Canvas {
     id: canvas
     width: 180

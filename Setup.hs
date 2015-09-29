@@ -21,9 +21,11 @@ doPostBuild _ _ pkg_descr lbi = do
             map (subfolder </>)
                 <$> filter (not . isSuffixOf ".TXT") -- just for the pics license text file
                 <$> filter (not . isPrefixOf ".")
+                <$> filter (`notElem` ["core", "buttonstyles", "tiles"])
                 <$> getDirectoryContents subfolder
     let copyResources subfolder = do
         createDirectoryIfMissing True (appDataDir </> subfolder)
         sourceFiles <- getResourceFiles subfolder
         mapM_ (\s -> copyFile s (appDataDir </> s)) sourceFiles
-    mapM_ copyResources ["qml", "glyphicons-free", "pics"]
+    mapM_ copyResources ["qml", "qml/core", "qml/buttonstyles", "qml/tiles",
+                   "glyphicons-free", "pics"]

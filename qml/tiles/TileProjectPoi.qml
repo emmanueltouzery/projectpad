@@ -1,6 +1,7 @@
 import QtQuick 2.0
-import "poiactions.js" as PoiActions
-import "utils.js" as Utils
+import ".."
+import "../poiactions.js" as PoiActions
+import "../utils.js" as Utils
 
 ItemTile {
     itemDesc: model.desc

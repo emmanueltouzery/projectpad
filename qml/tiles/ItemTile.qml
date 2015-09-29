@@ -34,7 +34,7 @@ Rectangle {
             if (icon.length > 0 && icon.indexOf("/") === 0) {
                 return icon
             } else {
-                return '../glyphicons-free/' + icon + '.png'
+                return '../../glyphicons-free/' + icon + '.png'
             }
         }
     }

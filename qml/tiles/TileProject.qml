@@ -1,5 +1,5 @@
 import QtQuick 2.0
-import "utils.js" as Utils
+import "../utils.js" as Utils
 
 ItemTile {
 
