@@ -23,7 +23,7 @@ Row {
     Repeater {
         model: lineSelectMenuRoot.options
         Image {
-            source: '../glyphicons-free/' + modelData[0] + '.png'
+            source: '../../glyphicons-free/' + modelData[0] + '.png'
             MouseArea {
                 anchors.fill: parent
                 onClicked: {
