@@ -120,6 +120,9 @@ runNotesParsingTests = it "parses notes properly" $ do
                 (Right  [NormalNote (Header3 "header"),
                          NormalNote (PreformatBlock "preformat")])
         $ parseNoteDocument "### header\n\n    preformat"
+    assertEqual "headers"
+                (Right  [NormalNote (Header3 "header")])
+        $ parseNoteDocument "\n### header"
 
 
 runNotesHtmlGenTests :: Spec
