@@ -185,8 +185,9 @@ type HeaderInfo = (Text, Text -> NoteElementNoBlockQuote)
 headerTypes :: [HeaderInfo]
 headerTypes = [("#", Header1), ("##", Header2), ("###", Header3)]
 
+-- eat simple carriage returns after headers.
 parseHeaders :: Parser NoteElementRawBlockQuote
-parseHeaders = choice (parseHeader <$> headerTypes)
+parseHeaders = choice (parseHeader <$> headerTypes) <* many endOfLine
 
 parseHeader :: HeaderInfo -> Parser NoteElementRawBlockQuote
 parseHeader (level, ctr) =

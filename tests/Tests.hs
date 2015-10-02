@@ -112,6 +112,15 @@ runNotesParsingTests = it "parses notes properly" $ do
     assertEqual "hr"
                 (Right [NormalNote HorizontalRule])
         $ parseNoteDocument "* * *"
+    assertEqual "preformat1"
+                (Right  [NormalNote (Header3 "header"),
+                         NormalNote (PreformatBlock "preformat")])
+        $ parseNoteDocument "### header\n    preformat"
+    assertEqual "preformat2"
+                (Right  [NormalNote (Header3 "header"),
+                         NormalNote (PreformatBlock "preformat")])
+        $ parseNoteDocument "### header\n\n    preformat"
+
 
 runNotesHtmlGenTests :: Spec
 runNotesHtmlGenTests = it "generates HTML properly" $ do
