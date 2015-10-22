@@ -26,8 +26,32 @@ Rectangle {
     function refreshProjectView() { refreshSearch() }
     function refreshProjectPois() { refreshSearch() }
 
+    function addTilesToFlow(tileName, items, flow) {
+        var tile = Qt.createComponent("tiles/" + tileName + ".qml")
+        for (var i=0;i<items.length;i++) {
+            var modelData = items[i]
+            tile.createObject(flow, {
+                model: modelData.child,
+                server: modelData,
+                global: rootFlow})
+        }
+    }
+
+    function createRepeaterChildren(serverModel, serverFlow, index, extraUserFlow, websiteFlow,
+                                    databaseFlow, poiFlow) {
+        addTilesToFlow("TileExtraUserAccount",
+                       serverModel[index].extraUsers, extraUserFlow)
+        addTilesToFlow("TileServerWebsite",
+                       serverModel[index].websites, websiteFlow)
+        addTilesToFlow("TileServerDatabase",
+                       serverModel[index].databases, databaseFlow)
+        addTilesToFlow("TileServerPoi",
+                       serverModel[index].pois, poiFlow)
+    }
+
     ScrollView {
         anchors.fill: parent
+
         Flickable {
             id: flickable
             anchors.fill: parent
@@ -108,37 +132,26 @@ Rectangle {
                                         refreshSearch()
                                     }
                                 }
-                                Repeater {
-                                    model: modelData.extraUsers
-                                    TileExtraUserAccount {
-                                        model: modelData.child
-                                        server: modelData
-                                        global: rootFlow
-                                    }
+                                Flow {
+                                    id: extraUserFlow
+                                    spacing: 10
                                 }
-                                Repeater {
-                                    model: modelData.websites
-                                    TileServerWebsite {
-                                        model: modelData.child
-                                        server: modelData
-                                        global: rootFlow
-                                    }
+                                Flow {
+                                    id: websiteFlow
+                                    spacing: 10
                                 }
-                                Repeater {
-                                    model: modelData.databases
-                                    TileServerDatabase {
-                                        model: modelData.child
-                                        server: modelData
-                                        global: rootFlow
-                                    }
+                                Flow {
+                                    id: databaseFlow
+                                    spacing: 10
                                 }
-                                Repeater {
-                                    model: modelData.pois
-                                    TileServerPoi {
-                                        model: modelData.child
-                                        server: modelData.parent
-                                        global: rootFlow
-                                    }
+                                Flow {
+                                    id: poiFlow
+                                    spacing: 10
+                                }
+                                Item {
+                                    Component.onCompleted: createRepeaterChildren(
+                                        serverRepeater.model, serverFlow, index,
+                                        extraUserFlow, websiteFlow, databaseFlow, poiFlow)
                                 }
                             }
                         }
