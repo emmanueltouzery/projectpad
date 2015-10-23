@@ -167,7 +167,7 @@ setupContext loginState sqlBackend = do
                 $ return . projectViewState . fromObjRef,
             defPropertyConst "serverViewState"
                 $ return . serverViewState . fromObjRef,
-            defMethod' "search" (const $ searchText sqlBackend),
+            defStatic "search" (\e t -> searchText sqlBackend (readT e) t),
             defMethod' "openAssociatedFile" (\_ path ->
                 liftQmlResult $ openAssociatedFile path),
             defStatic "noteTextToHtml" $ liftQmlResult1 (return . fmapL T.pack

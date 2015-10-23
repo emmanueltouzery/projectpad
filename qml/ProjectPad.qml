@@ -88,7 +88,7 @@ Window {
             loadViewAction(
                 "SearchView.qml",
                 {
-                    matches: getAppState().search(searchField.text),
+                    matches: getAppState().search("AllEntityTypes", searchField.text),
                     query: searchField.text
                 })
         }

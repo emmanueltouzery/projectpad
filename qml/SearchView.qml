@@ -19,7 +19,7 @@ Rectangle {
 
     function refreshSearch() {
         loadView("SearchView.qml", {
-            matches: getAppState().search(searchView.model.query),
+            matches: getAppState().search("AllEntityTypes", searchView.model.query),
             query: searchView.model.query})
     }
     function refreshServerView() { refreshSearch() }
