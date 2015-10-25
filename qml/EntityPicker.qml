@@ -5,8 +5,11 @@ Rectangle {
     property int preferredHeight: -1
     property bool widthResize: true
 
-    function focusSearch() {
+    function focusSearch(txt) {
         searchText.forceActiveFocus()
+        if (txt) {
+            searchText.text = txt
+        }
     }
 
     function setSelectedItem(item) {
@@ -30,7 +33,11 @@ Rectangle {
         onTextChanged: {
             var item = dbPicker.getSelectedItem()
             dbPicker.model = search()
-            dbPicker.setSelectedItem(item.id)
+            if (item != null) {
+                dbPicker.setSelectedItem(item.id)
+            } else {
+                dbPicker.setSelectedItem(null)
+            }
         }
         Image {
             anchors { top: parent.top; right: parent.right; margins: 7 }

@@ -145,11 +145,17 @@ Rectangle {
         popupDbPicker.setContents(
             "Pick a database", dbPicker,
             function (databasePicker) {
-                databasePicker.focusSearch()
+                databasePicker.focusSearch(
+                    databaseButton.text === "..." ? null : databaseButton.text)
                 databasePicker.setSelectedItem(model.serverDatabaseId)
             },
             function (databasePicker) {
-                model.serverDatabaseId = databasePicker.getSelectedItem().id
+                var selectedDb = databasePicker.getSelectedItem()
+                if (selectedDb) {
+                    model.serverDatabaseId = selectedDb.id
+                } else {
+                    model.serverDatabaseId = null
+                }
                 updateDbButtonText()
             })
     }
