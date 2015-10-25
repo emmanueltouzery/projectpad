@@ -12,6 +12,8 @@ Rectangle {
     signal loadView(string name, variant model)
     property variant model
     property variant appContext: null
+    property bool selectorMode: false
+    property variant allTiles: []
 
     function getBreadCrumbs() {
         return {pathLinks: [], title: 'Search'};
@@ -27,13 +29,58 @@ Rectangle {
     function refreshProjectPois() { refreshSearch() }
 
     function addTilesToFlow(tileName, items, flow) {
-        var tile = Qt.createComponent("tiles/" + tileName + ".qml")
+        var tile = Qt.createComponent("tiles/" + tileOrSelector(tileName) + ".qml")
         for (var i=0;i<items.length;i++) {
             var modelData = items[i]
-            tile.createObject(flow, {
+            var obj = tile.createObject(flow, {
                 model: modelData.child,
                 server: modelData,
                 global: rootFlow})
+            allTiles.push(obj)
+            if (obj.ticked) {
+                // will go here only on picker mode.
+                obj.ticked.connect(function(tilePicker, onOrOff) {
+                    tileTicked(tilePicker)
+                })
+            }
+        }
+    }
+
+    // only makes sense in selector mode.
+    function getSelectedItem() {
+        var selectedItems = allTiles.filter(function(item) { return item.selected });
+        if (selectedItems.length > 1) {
+            console.error("Internal error: several selected items in selector!!")
+            return null
+        }
+        if (selectedItems.length == 1) {
+            return selectedItems[0].model
+        }
+        return null
+    }
+
+    // only makes sense in selector mode.
+    function setSelectedItem(itemId) {
+        for (var i=0;i<allTiles.length;i++) {
+            var curTile = allTiles[i]
+            curTile.selected = curTile.model.id === itemId
+        }
+    }
+
+    function tileTicked(tile) {
+        for (var i=0;i<allTiles.length;i++) {
+            var curTile = allTiles[i]
+            if (curTile.model.id !== tile.model.id) {
+                curTile.selected = false
+            }
+        }
+    }
+
+    function tileOrSelector(tileName) {
+        if (selectorMode) {
+            return "TilePicker"
+        } else {
+            return tileName
         }
     }
 
@@ -134,18 +181,22 @@ Rectangle {
                                 }
                                 Flow {
                                     id: extraUserFlow
+                                    width: rootFlow.width
                                     spacing: 10
                                 }
                                 Flow {
                                     id: websiteFlow
+                                    width: rootFlow.width
                                     spacing: 10
                                 }
                                 Flow {
                                     id: databaseFlow
+                                    width: rootFlow.width
                                     spacing: 10
                                 }
                                 Flow {
                                     id: poiFlow
+                                    width: rootFlow.width
                                     spacing: 10
                                 }
                                 Item {

@@ -2,6 +2,7 @@ import QtQuick 2.0
 import QtQuick.Controls 1.2
 import QtQuick.Layouts 1.1
 import "utils.js" as Utils
+import "core"
 
 Rectangle {
     id: srvWebsiteEdit
@@ -17,6 +18,7 @@ Rectangle {
     }
 
     function activate(server, _model) {
+        popupDbPicker.visible = false
         origModel = _model
         srvWebsiteEdit.model = Utils.deepCopy(_model)
         description.selectAll()
@@ -29,29 +31,24 @@ Rectangle {
         })
         group.currentIndex = groups.indexOf(_model.groupName)
 
+        updateDbButtonText()
+    }
+
+    function updateDbButtonText() {
         var dbs = getAppState().serverViewState.getAllDatabases()
-        database.model.clear()
-        database.model.append({"text": "No database", "value": -1})
-        dbs.forEach(function(db) {
-            database.model.append({"text": db.desc, "value": db.id})
-        })
-        var actualIndex = Utils.listModelGetValueIndex(database.model, _model.serverDatabaseId)
-        database.currentIndex = Math.max(actualIndex, 0) // want "No db" if nothing.
+        var dbsWithId = dbs.filter(function (d) { return d.id == model.serverDatabaseId; });
+        databaseButton.text = dbsWithId.length == 1 ? dbsWithId[0].desc : "..."
     }
 
     function onOk(server) {
-        var dbId = database.model.get(database.currentIndex).value
-        if (dbId === -1) {
-            dbId = null
-        }
         if (model.id) {
             srvWebsiteEdit.model = getAppState().serverViewState.updateServerWebsite(
                 origModel, description.text, url.text, txt.text,
-                username.text, password.text, dbId, group.editText)
+                username.text, password.text, model.serverDatabaseId, group.editText)
         } else {
             getAppState().serverViewState.addServerWebsite(server.id,
                 description.text, url.text, txt.text,
-                username.text, password.text, dbId, group.editText)
+                username.text, password.text, model.serverDatabaseId, group.editText)
         }
     }
 
@@ -121,11 +118,43 @@ Rectangle {
         Text {
             text: "Database:"
         }
-        ComboBox {
-            id: database
+        Button {
+            id: databaseButton
             Layout.fillWidth: true
-            textRole: "text"
-            model: ListModel {}
+            onClicked: {
+                // must init everytime because the OK button gets disconnected after use
+                initDbPickerPopup()
+                popupDbPicker.visible = true
+                popup.shadeHeader()
+            }
         }
+    }
+    Popup {
+        id: popupDbPicker
+        visible: false
+        embedLevel: 1
+    }
+
+    Component {
+        id: dbPicker
+        EntityPicker {
+        }
+    }
+
+    function initDbPickerPopup() {
+        popupDbPicker.setContents(
+            "Pick a database", dbPicker,
+            function (databasePicker) {
+                databasePicker.setSelectedItem(model.serverDatabaseId)
+            },
+            function (databasePicker) {
+                model.serverDatabaseId = databasePicker.getSelectedItem().id
+                updateDbButtonText()
+            })
+    }
+
+    Component.onCompleted: {
+        initDbPickerPopup()
+        popupDbPicker.visible = false
     }
 }

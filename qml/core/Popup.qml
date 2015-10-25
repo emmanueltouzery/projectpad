@@ -10,6 +10,8 @@ Rectangle {
     z: 1
     property var curCallback
     property bool implicitClose: true
+    property int embedLevel: 0
+    width: window.width
     Keys.onReturnPressed: curCallback()
     Keys.onEnterPressed: curCallback()
     Keys.onEscapePressed: {
@@ -29,7 +31,11 @@ Rectangle {
             okCallback(popupContentsLoader.item)
             if (implicitClose) {
                 okButton.clicked.disconnect(curCallback)
-                popup.visible = false
+                popupHost.visible = false
+                if (embedLevel > 0) {
+                    // remove the shade on the header of the parent popup.
+                    popup.unshadeHeader()
+                }
             }
         }
         okButton.clicked.connect(f)
@@ -39,7 +45,7 @@ Rectangle {
         if (!noOpacity) {
             shadeOpacity.start()
         }
-        popup.visible = true
+        popupHost.visible = true
     }
 
     function setContentsDanger(title, contents, btnText, initCallback, okCallback) {
@@ -57,7 +63,20 @@ Rectangle {
 
     function doClose() {
         okButton.clicked.disconnect(curCallback)
-        popup.visible = false
+        popupHost.visible = false
+        if (embedLevel > 0) {
+            // remove the shade on the header of the parent popup.
+            popup.unshadeHeader()
+        }
+    }
+
+    function shadeHeader() {
+        headerShadeOpacity.start()
+        headerShadeMouseArea.visible = headerShade.visible = true
+    }
+
+    function unshadeHeader() {
+        headerShadeMouseArea.visible = headerShade.visible = false
     }
 
     Rectangle {
@@ -65,7 +84,7 @@ Rectangle {
         anchors.horizontalCenter: parent.horizontalCenter
         y: 40
         width: popupContentsLoader.item.widthResize
-            ? parent.width - 220
+            ? window.width - 220
             : 580
         color: Qt.lighter("light gray", 1.15)
         height: popupHeader.height
@@ -114,6 +133,20 @@ Rectangle {
                 style: defaultButtonStyle
                 anchors.verticalCenter: parent.verticalCenter
             }
+
+            Rectangle {
+                id: headerShade
+                anchors.fill: parent
+                color: "#aa000000"
+                visible: false
+            }
+            /* this mouse area catches the clicks outside of the popup,
+             * preventing the user from clicking in the greyed out areas. */
+            MouseArea {
+                id: headerShadeMouseArea
+                anchors.fill: parent
+                visible: false
+            }
         }
 
         Loader {
@@ -121,7 +154,7 @@ Rectangle {
             width: parent.width
             y: popupHeader.height
             height: item.preferredHeight < 0
-               ? popupHost.height - mapToItem(popupHost, 0, 0).y - 60
+               ? window.height - mapToItem(popupHost, 0, 0).y - 60 - embedLevel*60
                : item.preferredHeight
         }
     }
@@ -151,5 +184,14 @@ Rectangle {
         from: "#00000000"
         to: "#aa000000"
         target: popupHost
+    }
+    ColorAnimation {
+        id: headerShadeOpacity
+        property: "color"
+        easing.type: Easing.Linear
+        duration: 500
+        from: "#00000000"
+        to: "#aa000000"
+        target: headerShade
     }
 }
