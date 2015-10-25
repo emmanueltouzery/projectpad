@@ -36,8 +36,8 @@ ItemTile {
                 }]]
             if (model.authKeyFilename !== "...") {
                 options.push(["glyphicons-45-keys", function() {
-                    saveAuthKeyDialog.userAcct = model
-                    saveAuthKeyDialog.visible = true
+                    saveExtraUserAuthKeyDialog.extraUser = model
+                    saveExtraUserAuthKeyDialog.visible = true
                 }])
             }
             selectMenu.options = options

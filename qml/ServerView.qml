@@ -236,19 +236,6 @@ Rectangle {
                     id: srvExtraUserAccountEdit
                 }
             }
-            FileDialog {
-                id: saveAuthKeyDialog
-                title: "Please choose a destination"
-                property variant userAcct
-                visible: false
-                selectFolder: true
-                onAccepted: {
-                    getAppState().serverViewState.saveAuthKey(fileUrls[0]
-                        + "/" + userAcct.authKeyFilename, userAcct)
-                    appContext.successMessage("Saved file to "
-                        + fileUrls[0] + "/" + userAcct.authKeyFilename)
-                }
-            }
             ExclusiveGroup {id: serverOptionsGroup}
             LineSelectMenu {
                 id: lineSelectMenu

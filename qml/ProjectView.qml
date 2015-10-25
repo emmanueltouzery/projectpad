@@ -191,19 +191,6 @@ Rectangle {
                     id: prjAddPopup
                 }
             }
-            FileDialog {
-                id: saveAuthKeyDialog
-                title: "Please choose a destination"
-                property variant server
-                visible: false
-                selectFolder: true
-                onAccepted: {
-                    projectViewState.saveAuthKey(fileUrls[0]
-                        + "/" + server.authKeyFilename, server)
-                    appContext.successMessage("Saved file to "
-                        + fileUrls[0] + "/" + server.authKeyFilename)
-                }
-            }
         }
     }
 }
