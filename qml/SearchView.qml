@@ -29,24 +29,6 @@ Rectangle {
     function refreshProjectView() { refreshSearch() }
     function refreshProjectPois() { refreshSearch() }
 
-    function addTilesToFlow(tileName, items, flow) {
-        var tile = Qt.createComponent("tiles/" + tileOrSelector(tileName) + ".qml")
-        for (var i=0;i<items.length;i++) {
-            var modelData = items[i]
-            var obj = tile.createObject(flow, {
-                model: modelData.child,
-                server: modelData,
-                global: rootFlow})
-            allTiles.push(obj)
-            if (obj.ticked) {
-                // will go here only on picker mode.
-                obj.ticked.connect(function(tilePicker, onOrOff) {
-                    tileTicked(tilePicker)
-                })
-            }
-        }
-    }
-
     // only makes sense in selector mode.
     function getSelectedItem() {
         var selectedItems = allTiles.filter(function(item) { return item.selected });
@@ -73,6 +55,24 @@ Rectangle {
             var curTile = allTiles[i]
             if (curTile.model.id !== tile.model.id) {
                 curTile.selected = false
+            }
+        }
+    }
+
+    function addTilesToFlow(tileName, items, flow) {
+        var tile = Qt.createComponent("tiles/" + tileOrSelector(tileName) + ".qml")
+        for (var i=0;i<items.length;i++) {
+            var modelData = items[i]
+            var obj = tile.createObject(flow, {
+                model: modelData.child,
+                server: modelData,
+                global: rootFlow})
+            allTiles.push(obj)
+            if (obj.ticked) {
+                // will go here only on picker mode.
+                obj.ticked.connect(function(tilePicker, onOrOff) {
+                    tileTicked(tilePicker)
+                })
             }
         }
     }
