@@ -8,7 +8,6 @@ import "utils.js" as Utils
 
 Rectangle {
     id: searchView
-    anchors.fill: parent
     signal loadView(string name, variant model)
     property variant model
     property variant appContext: null
@@ -18,6 +17,8 @@ Rectangle {
     function getBreadCrumbs() {
         return {pathLinks: [], title: 'Search'};
     }
+
+    onModelChanged: { allTiles = [] }
 
     function refreshSearch() {
         loadView("SearchView.qml", {

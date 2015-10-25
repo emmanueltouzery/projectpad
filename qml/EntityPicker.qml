@@ -1,17 +1,52 @@
 import QtQuick 2.0
+import QtQuick.Controls 1.2
 
-SearchView {
-    id: dbPicker
-    selectorMode: true
-    model: search()
-
+Rectangle {
     property int preferredHeight: -1
     property bool widthResize: true
 
+    function focusSearch() {
+        searchText.forceActiveFocus()
+    }
+
+    function setSelectedItem(item) {
+        dbPicker.setSelectedItem(item)
+    }
+
+    function getSelectedItem() {
+        return dbPicker.getSelectedItem()
+    }
+
     function search() {
         return {
-            matches: getAppState().search("DatabaseEntityType", ""),
-            query: ""
+            matches: getAppState().search("DatabaseEntityType", searchText.text),
+            query: searchText.text
         }
+    }
+
+    TextField {
+        id: searchText
+        width: parent.width
+        onTextChanged: {
+            var item = dbPicker.getSelectedItem()
+            dbPicker.model = search()
+            dbPicker.setSelectedItem(item.id)
+        }
+        Image {
+            anchors { top: parent.top; right: parent.right; margins: 7 }
+            source: '../glyphicons-free/glyphicons-28-search.png'
+            fillMode: Image.PreserveAspectFit
+            height: parent.height - 7 * 2
+            width: parent.height - 7 * 2
+        }
+    }
+
+    SearchView {
+        id: dbPicker
+        y: searchText.height
+        width: parent.width
+        height: parent.height - searchText.height
+        selectorMode: true
+        model: search()
     }
 }

@@ -145,6 +145,7 @@ Rectangle {
         popupDbPicker.setContents(
             "Pick a database", dbPicker,
             function (databasePicker) {
+                databasePicker.focusSearch()
                 databasePicker.setSelectedItem(model.serverDatabaseId)
             },
             function (databasePicker) {
