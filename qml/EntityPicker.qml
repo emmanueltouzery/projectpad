@@ -10,6 +10,7 @@ Rectangle {
         if (txt) {
             searchText.text = txt
         }
+        searchText.selectAll()
     }
 
     function setSelectedItem(item) {
