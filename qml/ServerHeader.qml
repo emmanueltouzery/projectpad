@@ -8,6 +8,7 @@ Rectangle {
     property variant server
     property variant rootFlowInParent
     property variant iconType: 'environment'
+    property bool hasOptionMenu: true
     color: "dark gray"
     height: 40
     width: parent.width
@@ -78,5 +79,6 @@ Rectangle {
         }
         height: parent.height
         checkable: true
+        visible: hasOptionMenu
     }
 }

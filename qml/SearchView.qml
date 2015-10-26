@@ -176,6 +176,7 @@ Rectangle {
                                     project: modelData.project
                                     server: modelData.server
                                     rootFlowInParent: rootFlow
+                                    hasOptionMenu: !selectorMode
                                     onShouldRefresh: {
                                         refreshSearch()
                                     }
