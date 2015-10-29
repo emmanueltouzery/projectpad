@@ -35,6 +35,7 @@ ScrollView {
     signal loadView(string name, variant model)
 
     Flickable {
+        id: projectsFlickable
         width: parent.width
         contentHeight: flow.implicitHeight
         pixelAligned: true
@@ -55,6 +56,9 @@ ScrollView {
                 model: getAppState().projectListState.projects
 
                 TileProject {
+                    onActivated: {
+                        Utils.scrollInView(tile, projectList, projectsFlickable)
+                    }
                 }
             }
         }

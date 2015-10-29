@@ -77,3 +77,14 @@ function deepCopy(p) {
     }
     return c;
 }
+
+function scrollInView(tile, scrollView, flickable) {
+    var tileTop = tile.mapToItem(scrollView, 0, 0).y + flickable.contentY
+    if (flickable.contentY > tileTop) {
+        flickable.contentY = tileTop
+    }
+    var positionSoItsAtBottom = tileTop + tile.height - scrollView.height
+    if (flickable.contentY < positionSoItsAtBottom) {
+        flickable.contentY = positionSoItsAtBottom
+    }
+}

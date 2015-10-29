@@ -6,6 +6,7 @@ ItemTile {
     property int modelId: modelData.id
     color: "light blue"
     itemDesc: modelData.name
+    signal activated(variant tile)
     icon: {
         if (modelData.hasCustomIcon) {
             return Utils.projectGetCustomIcon(modelData)
@@ -62,6 +63,7 @@ ItemTile {
         onClicked: {
             selectMenu.options = getActions(modelData)
             selectMenu.show(parent)
+            activated(parent)
         }
     }
 }
