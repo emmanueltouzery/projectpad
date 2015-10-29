@@ -11,6 +11,7 @@ ItemTile {
     property variant server
     icon: "glyphicons-372-global"
     property variant global: undefined
+    signal activated(variant tile)
 
     function editSrvWww(curPoi) {
         popup.setContents("Edit website", editSrvWwwComponent,
@@ -39,6 +40,7 @@ ItemTile {
                     })
                 }]]
             selectMenu.show(parent, global)
+            activated(parent)
         }
     }
     Component {

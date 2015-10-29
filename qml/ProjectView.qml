@@ -90,8 +90,10 @@ Rectangle {
     }
 
     ScrollView {
+        id: projectScrollView
         anchors.fill: parent
         Flickable {
+            id: projectFlickable
             anchors.fill: parent
             contentHeight: flow.implicitHeight
             pixelAligned: true
@@ -128,6 +130,8 @@ Rectangle {
                                 model: modelData
                                 project: pv.model.project
                                 global: parent.parent
+                                onActivated: Utils.scrollInView(
+                                    tile, projectScrollView, projectFlickable)
                             }
                         }
 
@@ -136,6 +140,8 @@ Rectangle {
                             model: modelData.servers
                             TileServer {
                                 global: parent.parent
+                                onActivated: Utils.scrollInView(
+                                    tile, projectScrollView, projectFlickable)
                             }
                         }
 
@@ -147,6 +153,8 @@ Rectangle {
                                 model: modelData
                                 project: pv.model.project
                                 global: parent.parent
+                                onActivated: Utils.scrollInView(
+                                    tile, projectScrollView, projectFlickable)
                             }
                         }
                     }

@@ -11,6 +11,7 @@ ItemTile {
     color: "light gray"
     property variant global: undefined
     property variant project
+    signal activated(variant tile)
 
     function editPoi(curPoi) {
         popup.setContents("Edit point of interest", poiEditComponent,
@@ -40,6 +41,7 @@ ItemTile {
                     })
                 }]]
             selectMenu.show(parent, global)
+            activated(parent)
         }
     }
     Component {

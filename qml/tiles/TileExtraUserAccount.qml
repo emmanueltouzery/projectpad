@@ -10,6 +10,7 @@ ItemTile {
     itemDesc: model.desc
     icon: "glyphicons-526-user-key"
     property variant global: undefined
+    signal activated(variant tile)
 
     function editExtraUserAccount(curUserAcct) {
         popup.setContents("Edit extra user account", editExtraUserAccountComponent,
@@ -42,6 +43,7 @@ ItemTile {
             }
             selectMenu.options = options
             selectMenu.show(parent, global)
+            activated(parent)
         }
     }
     Component {

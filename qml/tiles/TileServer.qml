@@ -9,6 +9,7 @@ ItemTile {
     itemDesc: modelData.server.desc
     icon: ServerMenu.getServerIcon(modelData.server)
     property variant global: undefined
+    signal activated(variant tile)
 
     Flow {
         x: 5
@@ -69,6 +70,7 @@ ItemTile {
             ServerMenu.showSelectMenu(
                 pv.model.project, modelData.server, parent, desktopSize,
                 function() { refreshProjectView() }, selectMenu, global)
+            activated(parent)
         }
     }
     Component {

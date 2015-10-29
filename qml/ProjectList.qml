@@ -56,9 +56,7 @@ ScrollView {
                 model: getAppState().projectListState.projects
 
                 TileProject {
-                    onActivated: {
-                        Utils.scrollInView(tile, projectList, projectsFlickable)
-                    }
+                    onActivated: Utils.scrollInView(tile, projectList, projectsFlickable)
                 }
             }
         }

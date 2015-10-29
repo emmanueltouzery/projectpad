@@ -8,6 +8,7 @@ ItemTile {
     icon: "glyphicons-40-notes"
     itemDesc: model.title
     property variant project
+    signal activated(variant tile)
 
     MouseArea {
         anchors.fill: parent
@@ -33,6 +34,7 @@ ItemTile {
                     })
                 }]]
             selectMenu.show(parent, global)
+            activated(parent)
         }
     }
 }

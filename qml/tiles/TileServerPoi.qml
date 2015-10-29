@@ -11,6 +11,7 @@ ItemTile {
     property variant server
     icon: PoiActions.actions[model.interestType].icon
     property variant global: undefined
+    signal activated(variant tile)
 
     function editPoi(curPoi) {
         popup.setContents("Edit point of interest", editPoiComponent,
@@ -82,6 +83,7 @@ ItemTile {
             }
             selectMenu.options = options
             selectMenu.show(parent, global)
+            activated(parent)
         }
     }
     Component {

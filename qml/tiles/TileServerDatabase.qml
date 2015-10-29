@@ -12,6 +12,7 @@ ItemTile {
     itemDesc: model.desc
     icon: "glyphicons-528-database"
     property variant global: undefined
+    signal activated(variant tile)
 
     function editDb(curDb) {
         popup.setContents("Edit database", editDatabaseComponent,
@@ -43,6 +44,7 @@ ItemTile {
                     })
                 }]]
             selectMenu.show(parent, tileServerDatabase.global)
+            activated(parent)
         }
     }
     Component {
