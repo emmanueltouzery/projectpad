@@ -3,7 +3,6 @@ import QtQuick.Controls 1.2
 import QtQuick.Layouts 1.1
 import "core"
 import "tiles"
-
 import "utils.js" as Utils
 
 Rectangle {
@@ -66,7 +65,8 @@ Rectangle {
             var obj = tile.createObject(flow, {
                 model: modelData.child,
                 server: modelData,
-                global: rootFlow})
+                global: rootFlow
+            })
             allTiles.push(obj)
             if (obj.ticked) {
                 // will go here only on picker mode.
@@ -74,6 +74,9 @@ Rectangle {
                     tileTicked(tilePicker)
                 })
             }
+            obj.activated.connect(function(tile_) {
+                Utils.scrollInView(tile_, scrollView, flickable)
+            })
         }
     }
 
@@ -98,6 +101,7 @@ Rectangle {
     }
 
     ScrollView {
+        id: scrollView
         anchors.fill: parent
 
         Flickable {
@@ -151,6 +155,7 @@ Rectangle {
                                 global: rootFlow
                                 model: modelData.child
                                 project: modelData.parent
+                                onActivated: Utils.scrollInView(tile, scrollView, flickable)
                             }
                         }
                         Repeater {
@@ -159,6 +164,7 @@ Rectangle {
                                 global: rootFlow
                                 model: modelData.child
                                 project: modelData.parent
+                                onActivated: Utils.scrollInView(tile, scrollView, flickable)
                             }
                         }
                         Repeater {

@@ -6,6 +6,7 @@ Rectangle {
     property bool selected: true
     color: "light slate gray"
     signal ticked(variant self, bool onOrOff)
+    signal activated(variant title)
 
     Text {
         text: model.desc
@@ -42,6 +43,7 @@ Rectangle {
         onClicked: {
             parent.selected = !parent.selected
             parent.ticked(parent, parent.selected)
+            activated(parent)
         }
     }
 }
