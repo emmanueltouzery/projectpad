@@ -1,4 +1,5 @@
-{-# LANGUAGE DeriveDataTypeable, FlexibleContexts, TypeFamilies, ConstraintKinds, NoMonoLocalBinds #-}
+{-# LANGUAGE DeriveDataTypeable, FlexibleContexts, TypeFamilies #-}
+{-# LANGUAGE ConstraintKinds, NoMonoLocalBinds, RecordWildCards #-}
 module Search where
 
 import Data.Text (Text)
@@ -150,26 +151,31 @@ makeParentChildInfos parent childrenJoin = do
     children <- filterEntityJoin parentKey childrenJoin
     mapM (newObjectDC . ParentChildInfo parent) children
 
-getServerSearchMatch :: ObjRef (Entity Project) -> ServerJoin ServerWebsite
-    -> ServerJoin ServerExtraUserAccount -> ServerJoin ServerPointOfInterest
-    -> ServerJoin ServerDatabase -> ObjRef (Entity Server) -> IO (ObjRef ServerSearchMatch)
-getServerSearchMatch project serverWebsitesJoin serverExtraUsersJoin
-    serverPoisJoin serverDatabasesJoin server =
+data ServerJoins = ServerJoins
+     {
+         serverWebsitesJoin   :: ServerJoin ServerWebsite,
+         serverExtraUsersJoin :: ServerJoin ServerExtraUserAccount,
+         serverPoisJoin       :: ServerJoin ServerPointOfInterest,
+         serverDatabasesJoin  :: ServerJoin ServerDatabase
+     }
+
+getServerSearchMatch :: ObjRef (Entity Project) -> ServerJoins
+    -> ObjRef (Entity Server) -> IO (ObjRef ServerSearchMatch)
+getServerSearchMatch project ServerJoins{..} server =
     newObjectDC =<< ServerSearchMatch server project
         <$> makeParentChildInfos server serverWebsitesJoin
         <*> makeParentChildInfos server serverExtraUsersJoin
         <*> makeParentChildInfos server serverPoisJoin
         <*> makeParentChildInfos server serverDatabasesJoin
 
-getProjectSearchMatch :: ProjectJoin Server -> ServerJoin ServerWebsite -> ServerJoin ServerExtraUserAccount
-    -> ServerJoin ServerPointOfInterest -> ServerJoin ServerDatabase -> ProjectJoin ProjectPointOfInterest
+getProjectSearchMatch :: ProjectJoin Server -> ServerJoins
+    -> ProjectJoin ProjectPointOfInterest
     -> ProjectJoin ProjectNote -> ObjRef (Entity Project) -> IO (ObjRef ProjectSearchMatch)
-getProjectSearchMatch projectServersJoin serverWebsitesJoin serverExtraUsersJoin
-    serverPoisJoin serverDatabasesJoin projectPoisJoin projectNotesJoin project = do
+getProjectSearchMatch projectServersJoin serverJoins
+    projectPoisJoin projectNotesJoin project = do
     let projectKey = entityKey (fromObjRef project)
     servers <- sortBy compareServerEntities <$> filterEntityJoin projectKey projectServersJoin
-    let serverSearchMatch = mapM (getServerSearchMatch project serverWebsitesJoin serverExtraUsersJoin
-                                  serverPoisJoin serverDatabasesJoin) servers
+    let serverSearchMatch = mapM (getServerSearchMatch project serverJoins) servers
     newObjectDC =<< ProjectSearchMatch project
         <$> makeParentChildInfos project projectNotesJoin
         <*> makeParentChildInfos project projectPoisJoin
@@ -241,8 +247,9 @@ searchText sqlBackend entityType txt = do
     allProjects <- runSqlBackend sqlBackend (getByIds ProjectId $ Set.toList allProjectIds)
     projectRefs <- mapM newObjectDC
         $ sortBy (comparing $ T.toCaseFold . projectName . entityVal) allProjects
-    mapM (getProjectSearchMatch projectServersJoin serverWebsitesJoin
+    let serverJoins = ServerJoins serverWebsitesJoin
           serverExtraUsersJoin serverPoisJoin serverDatabasesJoin
+    mapM (getProjectSearchMatch projectServersJoin serverJoins
           projectPoisJoin projectNotesJoin) projectRefs
     where
         query = (%) ++. val txt ++. (%)
