@@ -185,17 +185,18 @@ compareServerEntities :: ObjRef (Entity Server) -> ObjRef (Entity Server) -> Ord
 compareServerEntities ea eb = if envCompare /= EQ then envCompare else descCompare
     where
         [a, b] = entityVal . fromObjRef <$> [ea, eb]
-        envCompare = (compare `on` serverEnvironment) a b
+        envCompare  = (compare `on` serverEnvironment) a b
         descCompare = (compare `on` T.toCaseFold . serverDesc) a b
 
 -- A Join contains a list of child entities and the function
 -- from entity to parent key.
 data Join a b = Join (a -> Key b) [Entity a]
-type ServerJoin a = Join a Server
+type ServerJoin a  = Join a Server
 type ProjectJoin a = Join a Project
 
 joinGetParentKeys :: Ord (Key b) => Join a b -> Set (Key b)
-joinGetParentKeys (Join parentKeyGetter entities) = Set.fromList $ parentKeyGetter . entityVal <$> entities
+joinGetParentKeys (Join parentKeyGetter entities) =
+    Set.fromList $ parentKeyGetter . entityVal <$> entities
 
 data EntityType = AllEntityTypes
                 | DatabaseEntityType
