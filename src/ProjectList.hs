@@ -141,7 +141,7 @@ getTextToCopyForEntity sqlBackend (readT -> entityType) entKey =
         ServerWebsiteEntityType   -> getP serverWebsitePassword
         ServerEntityType          -> getP serverPassword
         _ -> error ("Don't know what field to copy for entity " ++ show entityType)
-    where getP = readSEntityField sqlBackend entKey
+    where getP = readEntityField sqlBackend entKey
 
 createProjectListState :: SqlBackend -> IO (ObjRef ProjectListState, SignalKey (IO ()))
 createProjectListState sqlBackend = do

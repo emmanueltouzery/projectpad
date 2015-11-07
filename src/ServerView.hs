@@ -1,5 +1,5 @@
-{-# LANGUAGE OverloadedStrings, DeriveDataTypeable, TypeFamilies #-}
-{-# LANGUAGE MultiParamTypeClasses, ViewPatterns, RecordWildCards #-}
+{-# LANGUAGE OverloadedStrings, DeriveDataTypeable, TypeFamilies,
+    MultiParamTypeClasses, ViewPatterns, RecordWildCards, NoMonoLocalBinds #-}
 module ServerView where
 
 import Control.Applicative
@@ -221,8 +221,7 @@ getServerGroupNames sqlBackend serverId = do
     return $ mergeNames $
         poiGroupNames ++ wwwGroupNames ++ dbGroupNames ++ extraAccountGroupNames
     where
-      readEF :: (Int -> SqlPersistM [Entity a]) -> (a -> Maybe Text) -> IO [Maybe Text]
-      readEF f = readEntityField sqlBackend (f serverId)
+      readEF f = readEntityFields sqlBackend (f serverId)
 
 data ServerDisplaySection = ServerDisplaySection
     {

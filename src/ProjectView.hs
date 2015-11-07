@@ -1,4 +1,4 @@
-{-# LANGUAGE OverloadedStrings, DeriveDataTypeable, TypeFamilies,
+{-# LANGUAGE OverloadedStrings, DeriveDataTypeable, TypeFamilies, NoMonoLocalBinds,
     MultiParamTypeClasses, FlexibleContexts, ViewPatterns, ConstraintKinds #-}
 module ProjectView where
 
@@ -125,8 +125,7 @@ getProjectGroupNames sqlBackend projectId = do
     projectPoisGroupNames <- readEF readPois projectPointOfInterestGroupName
     return $ mergeNames $ serverGroupNames ++ projectPoisGroupNames
     where
-      readEF :: (Int -> SqlPersistM [Entity a]) -> (a -> Maybe Text) -> IO [Maybe Text]
-      readEF f = readEntityField sqlBackend (f projectId)
+      readEF f = readEntityFields sqlBackend (f projectId)
 
 data ProjectDisplaySection = ProjectDisplaySection
     {

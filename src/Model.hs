@@ -260,13 +260,13 @@ groupOrNothing :: Maybe Text -> Maybe Text
 groupOrNothing (Just "") = Nothing
 groupOrNothing x@_ = x
 
-readEntityField :: SqlBackend -> SqlPersistM [Entity a] -> (a -> b) -> IO [b]
-readEntityField sqlBackend r f =
+readEntityFields :: SqlBackend -> SqlPersistM [Entity a] -> (a -> b) -> IO [b]
+readEntityFields sqlBackend r f =
     fmap (f . entityVal) <$> runSqlBackend sqlBackend r
 
-readSEntityField :: (ToBackendKey SqlBackend a, SqlEntity a) =>
+readEntityField :: (ToBackendKey SqlBackend a, SqlEntity a) =>
                     SqlBackend -> Int -> (a -> b) -> IO (Maybe b)
-readSEntityField sqlBackend entKey f =
+readEntityField sqlBackend entKey f =
     fmap f <$> runSqlBackend sqlBackend (get $ toSqlKey32 entKey)
 
 mergeNames :: [Maybe Text] -> [Text]
