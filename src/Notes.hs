@@ -149,7 +149,7 @@ parseTextToggle ctr txt =
     ctr <$> (string txt *> manyTill1 parseLineItem (string txt))
 
 manyTill1 :: Alternative f => f a -> f b -> f [a]
-manyTill1 p t = liftA2 (:) p (manyTill p t)
+manyTill1 p t = (:) <$> p <*> manyTill p t
 
 parseLink :: Parser LineItem
 parseLink = do
@@ -158,7 +158,7 @@ parseLink = do
     return $ Link url desc
 
 parseList :: Parser NoteElementRawBlockQuote
-parseList = NormalNoteEltRaw <$> List <$> many1 parseListItem
+parseList = (NormalNoteEltRaw . List) <$> many1 parseListItem
 
 parseListItem :: Parser [LineItem]
 parseListItem = many (string " ") *>
