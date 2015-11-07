@@ -29,8 +29,11 @@ ItemTile {
     MouseArea {
         anchors.fill: parent
         onClicked: {
-            selectMenu.options = [["glyphicons-151-edit", function() { editDb(model)}],
-                ["glyphicons-512-copy", function() { appContext.copyItem(model.password, true) }],
+            selectMenu.options = [
+                ["glyphicons-151-edit", function() { editDb(model)}],
+                ["glyphicons-512-copy", function() {
+                    appContext.copyItemEntity("DatabaseEntityType", model.id, true)
+                }],
                 ["glyphicons-193-circle-remove", function() {
                     appContext.confirmDelete(function() {
                         var msg = getAppState().serverViewState.canDeleteServerDatabase(model)

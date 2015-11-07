@@ -10,6 +10,7 @@ import Database.Persist.TH
 import Data.Typeable
 import Graphics.QML
 import Database.Persist.Sql
+import Database.Esqueleto (SqlEntity)
 import Data.Int
 import Data.Text (Text)
 import qualified Data.Text as T
@@ -21,6 +22,17 @@ import Data.List as L
 
 import ModelBase
 import Util
+
+data EntityType = AllEntityTypes
+                | DatabaseEntityType
+                | ProjectEntityType
+                | ProjectPoiEntityType
+                | ProjectNoteEntityType
+                | ServerEntityType
+                | ServerWebsiteEntityType
+                | ServerExtraUserEntityType
+                | ServerPoiEntityType
+                deriving (Eq, Show, Read, Typeable)
 
 -- TODO Project hasDev, Uat and so on should be Bool...
 -- but currently fails with PersistMarshalError (persistent 2.1.1.4)
@@ -251,6 +263,11 @@ groupOrNothing x@_ = x
 readEntityField :: SqlBackend -> SqlPersistM [Entity a] -> (a -> b) -> IO [b]
 readEntityField sqlBackend r f =
     fmap (f . entityVal) <$> runSqlBackend sqlBackend r
+
+readSEntityField :: (ToBackendKey SqlBackend a, SqlEntity a) =>
+                    SqlBackend -> Int -> (a -> b) -> IO (Maybe b)
+readSEntityField sqlBackend entKey f =
+    fmap f <$> runSqlBackend sqlBackend (get $ toSqlKey32 entKey)
 
 mergeNames :: [Maybe Text] -> [Text]
 mergeNames = nub . sortBy (comparing T.toCaseFold) . catMaybes

@@ -30,7 +30,9 @@ function showSelectMenu(project, server, parnt, desktopSize, refreshAction, menu
     var options = [
         ["glyphicons-145-folder-open", function() { loadView("ServerView.qml", server) }],
         ["glyphicons-151-edit", function() {editServer(project, server, refreshAction)}],
-        ["glyphicons-512-copy", function() { appContext.copyItem(server.password, true) }],
+        ["glyphicons-512-copy", function() {
+            appContext.copyItemEntity("ServerEntityType", server.id, true)
+        }],
         ["glyphicons-193-circle-remove", function() {
             appContext.confirmDelete(function() {
                 var msg = getAppState().projectViewState.canDeleteServer(server)

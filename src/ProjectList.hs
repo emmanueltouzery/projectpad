@@ -1,4 +1,5 @@
-{-# LANGUAGE OverloadedStrings, TypeFamilies #-}
+{-# LANGUAGE OverloadedStrings, TypeFamilies, ViewPatterns,
+    NoMonomorphismRestriction, NoMonoLocalBinds, FlexibleContexts #-}
 module ProjectList where
 
 import Control.Applicative
@@ -122,6 +123,26 @@ getNewSshTunnelPort sqlBackend = do
     firstCandidate <- getDbNextFreeSshTunnelPort sqlBackend
     getFirstFreePortAfter firstCandidate
 
+-- when I want to copy something to the clipboard, I always have the text I want
+-- to copy. The trouble is the feature that we support, to copy again to the
+-- clipboard later.
+-- I don't want to keep the string (which is most likely a password) in memory
+-- the entire time. We are definitely vulnerable to memory dump attacks, but
+-- I don't see the need to make it even worse. I'd still like to have passwords
+-- in memory the shortest possible time.
+-- So by remembering the entity type & entity ID, i can load again the password
+-- should the user want to copy it again, without keeping it in memory.
+getTextToCopyForEntity :: SqlBackend -> Text -> Int -> IO (Maybe Text)
+getTextToCopyForEntity sqlBackend (readT -> entityType) entKey =
+    case entityType of
+        DatabaseEntityType        -> getP serverDatabasePassword
+        ServerPoiEntityType       -> getP serverPointOfInterestPath
+        ServerExtraUserEntityType -> getP serverExtraUserAccountPassword
+        ServerWebsiteEntityType   -> getP serverWebsitePassword
+        ServerEntityType          -> getP serverPassword
+        _ -> error ("Don't know what field to copy for entity " ++ show entityType)
+    where getP = readSEntityField sqlBackend entKey
+
 createProjectListState :: SqlBackend -> IO (ObjRef ProjectListState, SignalKey (IO ()))
 createProjectListState sqlBackend = do
     changeKey <- newSignalKey
@@ -135,6 +156,7 @@ createProjectListState sqlBackend = do
             defMethod "deleteProjects"      (deleteProjects sqlBackend changeKey),
             defStatic "getAllSshServers"    (getAllSshServers sqlBackend),
             defStatic "copyProjectIcons"    (copyProjectIcons sqlBackend),
-            defStatic "getNewSshTunnelPort" (getNewSshTunnelPort sqlBackend)
+            defStatic "getNewSshTunnelPort" (getNewSshTunnelPort sqlBackend),
+            defStatic "getTextToCopyForEntity" (getTextToCopyForEntity sqlBackend)
         ]
     (,) <$> newObject rootClass () <*> return changeKey

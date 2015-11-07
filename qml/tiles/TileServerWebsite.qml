@@ -31,7 +31,10 @@ ItemTile {
             selectMenu.options = [
                 ["glyphicons-151-edit", function() { editSrvWww(model)}],
                 ["glyphicons-372-global", function() { getAppState().openAssociatedFile(model.url)}],
-                ["glyphicons-512-copy", function() { appContext.copyItem(model.password, true) }],
+                ["glyphicons-512-copy", function() {
+                    appContext.copyItemEntity("ServerWebsiteEntityType",
+                                                  model.id, true)
+                }],
                 ["glyphicons-193-circle-remove", function() {
                     appContext.confirmDelete(function() {
                         Utils.handleEitherVoid(getAppState().serverViewState

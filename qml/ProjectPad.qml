@@ -13,6 +13,16 @@ Window {
     visible: true;
     id: window
 
+    // keep around info about the last data that was copied to the clipboard.
+    // We support the feature to repeat a clipboard copy, so we need that.
+    // The info can be entity type+id, or the text that was copied, and we
+    // always remember whether that was a password or not, since we handle those
+    // differently.
+    // In some cases we must store passwords as strings in this variable, which
+    // makes us more vulnerable to memory dump attacks. But we're vulnerable
+    // anyway...
+    property var lastCopyInfo
+
     function loadViewAction(name, model) {
         if (name !== "SearchView.qml") {
             // when we change view from the search view,
@@ -257,8 +267,16 @@ Window {
         passwordCopy.text = ""
     }
 
-    function copyItem(text, isPassword) {
+    // unless called with dontOverwriteCopyInfo, copyItem
+    // will pin the text in memory, because of the "repeat
+    // clipboard copy" feature, which is unfortunate because
+    // of memory dump attacks. Currently only note passwords
+    // are vulnerable.
+    function copyItem(text, isPassword, dontOverwriteCopyInfo) {
         _copyItem(text)
+        if (!dontOverwriteCopyInfo) {
+            lastCopyInfo = { text: text, isPassword: isPassword}
+        }
         if (isPassword) {
             passwordCopyTimer.secondsLeft = 15
             toast.opacity = 1.0
@@ -268,6 +286,22 @@ Window {
             passwordCopyTimer.start()
         } else {
             successMessage("Text copied to the clipboard")
+        }
+    }
+
+    // when copying text repeatedly, i don't want to remember
+    // the text that was copied (often it's passwords and then
+    // i'm more vulnerable to memory dump attacks), but rather
+    // the entity type & item id, then i'll go to fetch the
+    // text again on my own if the user asks to copy again.
+    function copyItemEntity(entityType, itemId, isPassword) {
+        var text = getAppState().projectListState
+            .getTextToCopyForEntity(entityType, itemId)
+        copyItem(text, isPassword, true)
+        lastCopyInfo = {
+            entityType: entityType,
+            itemId: itemId,
+            isPassword: isPassword
         }
     }
 
@@ -293,16 +327,38 @@ Window {
         toastOpacity.running = true
     }
 
+    Action {
+        id: repeatCopyAction
+        shortcut: "Ctrl+y"
+        onTriggered: {
+            if (!lastCopyInfo) {
+                return
+            }
+            if (lastCopyInfo.entityType) {
+                copyItemEntity(lastCopyInfo.entityType,
+                                   lastCopyInfo.itemId, lastCopyInfo.isPassword)
+            } else {
+                copyItem(lastCopyInfo.text, lastCopyInfo.isPassword)
+            }
+        }
+    }
+
     PopupMenu {
         anchors.top: toolbar.bottom
         anchors.right: parent.right
         id: popupMenu
         z: 1
-        menuItems: [["About...", function() {
-            popup.setContentsNoCancel("About", aboutDialogComponent,
-                function (aboutDlg) { },
-                function (aboutDlg) { })
-        }]]
+        menuItems: [
+            ["About...", function() {
+                popup.setContentsNoCancel(
+                    "About", aboutDialogComponent,
+                    function (aboutDlg) { },
+                    function (aboutDlg) { })
+            }],
+            ["Repeat clipboard copy (ctrl-y)", function() {
+                repeatCopyAction.trigger()
+            }]
+        ]
         visible: false
         onVisibleChanged: {
             toolbar.setMenuDisplayed(popupMenu.visible)

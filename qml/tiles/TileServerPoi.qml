@@ -28,8 +28,12 @@ ItemTile {
     MouseArea {
         anchors.fill: parent
         onClicked: {
-            var options = [["glyphicons-151-edit", function() { editPoi(model)}],
-                ["glyphicons-512-copy", function() { appContext.copyItem(model.path, false) }],
+            var options = [
+                ["glyphicons-151-edit", function() { editPoi(model)}],
+                ["glyphicons-512-copy", function() {
+                    appContext.copyItemEntity("ServerPoiEntityType",
+                                                  model.id, false)
+                }],
                 ["glyphicons-193-circle-remove", function() {
                     appContext.confirmDelete(function() {
                         Utils.handleEitherVoid(getAppState().

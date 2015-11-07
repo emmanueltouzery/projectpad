@@ -198,17 +198,6 @@ joinGetParentKeys :: Ord (Key b) => Join a b -> Set (Key b)
 joinGetParentKeys (Join parentKeyGetter entities) =
     Set.fromList $ parentKeyGetter . entityVal <$> entities
 
-data EntityType = AllEntityTypes
-                | DatabaseEntityType
-                | ProjectEntityType
-                | ProjectPoiEntityType
-                | ProjectNoteEntityType
-                | ServerEntityType
-                | ServerWebsiteEntityType
-                | ServerExtraUserEntityType
-                | ServerPoiEntityType
-                deriving (Eq, Show, Read, Typeable)
-
 searchText :: SqlBackend -> EntityType -> Text -> IO [ObjRef ProjectSearchMatch]
 searchText sqlBackend entityType txt = do
     serverWebsitesJoin   <- joinM ServerWebsiteEntityType serverWebsiteServerId filterServerWebsites

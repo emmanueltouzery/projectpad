@@ -3,12 +3,12 @@ import QtQuick.Controls 1.3
 
 Column {
     id: popupMenu
-    width: 150
+    width: 215
     property int cellHeight: 30
     property variant menuItems: []
     Canvas {
         id: canvas
-        width: 150
+        width: popupMenu.width
         height: 10
 
         property variant fontSpec: "14px sans-serif"

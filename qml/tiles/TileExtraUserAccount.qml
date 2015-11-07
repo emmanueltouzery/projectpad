@@ -26,8 +26,12 @@ ItemTile {
     MouseArea {
         anchors.fill: parent
         onClicked: {
-            var options = [["glyphicons-151-edit", function() { editExtraUserAccount(model)}],
-                ["glyphicons-512-copy", function() { appContext.copyItem(model.password, true) }],
+            var options = [
+                ["glyphicons-151-edit", function() { editExtraUserAccount(model)}],
+                ["glyphicons-512-copy", function() {
+                    appContext.copyItemEntity("ServerExtraUserEntityType",
+                                                  model.id, true)
+                }],
                 ["glyphicons-193-circle-remove", function() {
                     appContext.confirmDelete(function() {
                         Utils.handleEitherVoid(getAppState().serverViewState
