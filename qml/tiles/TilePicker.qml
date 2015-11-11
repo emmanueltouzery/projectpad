@@ -15,6 +15,7 @@ Rectangle {
         anchors.right: parent.right
         height: 45
         wrapMode: Text.Wrap
+        elide: Text.ElideRight
         anchors.margins: 5
     }
 
