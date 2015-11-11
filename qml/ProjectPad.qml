@@ -260,12 +260,22 @@ Window {
         visible: false
         readOnly: true
     }
+    TextField {
+        id: passwordPaste
+        visible: false
+    }
 
     function _copyItem(text) {
         passwordCopy.text = text
         passwordCopy.selectAll()
         passwordCopy.copy()
         passwordCopy.text = ""
+    }
+
+    function _getClipboardContents() {
+        passwordPaste.text = ""
+        passwordPaste.paste()
+        return passwordPaste.text
     }
 
     // unless called with dontOverwriteCopyInfo, copyItem
@@ -326,6 +336,15 @@ Window {
         toast.msgText = txt
         toastButton.visible = false
         toastOpacity.running = true
+    }
+
+    function getLastCopiedText() {
+        if (lastCopyInfo.entityType) {
+            return getAppState().projectListState
+                .getTextToCopyForEntity(lastCopyInfo.entityType, lastCopyInfo.itemId)
+        } else {
+            return lastCopyInfo.text
+        }
     }
 
     Action {
@@ -436,7 +455,12 @@ Window {
             toast.color = "green"
             toast.msgText = "Copied password, clipboard will be cleared in " + secondsLeft + "s."
             if (secondsLeft-- <= 0) {
-                _copyItem(".") // doesn't work with ""...
+                // only overwrite the clipboard if the current text in
+                // the clipboard is what we copied previously.
+                // Don't touch it if the clipboard was overwritten since then!
+                if (_getClipboardContents() === getLastCopiedText()) {
+                    _copyItem(".") // doesn't work with ""...
+                }
                 finishPasswordCopy()
             }
         }
