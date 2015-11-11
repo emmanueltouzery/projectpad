@@ -4,6 +4,8 @@ import QtQuick.Controls 1.2
 Rectangle {
     property int preferredHeight: -1
     property bool widthResize: true
+    property string entityType
+    property var extraFilter
 
     function focusSearch(txt) {
         searchText.forceActiveFocus()
@@ -22,8 +24,12 @@ Rectangle {
     }
 
     function search() {
+        var basis = getAppState().search(entityType, searchText.text)
+        var result = extraFilter
+            ? basis.map(extraFilter).filter(function(item) {return item !== null})
+            : basis
         return {
-            matches: getAppState().search("DatabaseEntityType", searchText.text),
+            matches: result,
             query: searchText.text
         }
     }
@@ -55,6 +61,7 @@ Rectangle {
         width: parent.width
         height: parent.height - searchText.height
         selectorMode: true
+        isPickingServers: entityType === "ServerEntityType"
         model: search()
     }
 }

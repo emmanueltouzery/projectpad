@@ -4,6 +4,7 @@ import QtQuick.Controls.Styles 1.3
 import QtQuick.Layouts 1.1
 import QtQuick.Dialogs 1.0
 import "utils.js" as Utils
+import "core"
 
 Rectangle {
     id: serverEdit
@@ -39,36 +40,36 @@ Rectangle {
             group.model.append({"text": grp})
         })
         group.currentIndex = groups.indexOf(_model.groupName)
-        var sshServers = getAppState().projectListState.getAllSshServers()
-        sshTunnelThrough.model.clear()
-        sshServers.forEach(function (sshServer) {
-            sshTunnelThrough.model.append({"value": sshServer.id, "text": sshServer.desc})
-        })
-        sshTunnelThrough.currentIndex = Utils.listModelGetValueIndex(
-            sshTunnelThrough.model, _model.sshTunnelThroughServerId)
+        updateSshServerButtonText()
         serverDescription.selectAll()
         serverDescription.forceActiveFocus()
+    }
+
+    function updateSshServerButtonText() {
+        var sshServers = getAppState().projectListState.getAllSshServers()
+        var serversWithId = sshServers.filter(function (d) {
+            return d.id == model.sshTunnelThroughServerId;
+        });
+        sshTunnelThroughButton.text = serversWithId.length == 1 ? serversWithId[0].desc : "..."
     }
 
     function onOk(project) {
         var srvAccessType = serverAccessTypeItems.get(serverAccessType.currentIndex).value
         var isSshTunnel = srvAccessType === "SrvAccessSshTunnel"
         var port = isSshTunnel ? sshTunnelPort.value : null
-        var sshTunnelThroughId = isSshTunnel ?
-            sshTunnelThrough.model.get(sshTunnelThrough.currentIndex).value : null
         if (model.id) {
             serverEdit.model = getAppState().projectViewState.updateServer(
                 origModel, serverDescription.text, ipAddress.text, txt.text,
                 username.text, password.text, serverEdit.keyFilepath,
                 serverTypeItems.get(serverType.currentIndex).value,
-                srvAccessType, port, sshTunnelThroughId,
+                srvAccessType, port, model.sshTunnelThroughServerId,
                 group.editText);
         } else {
             getAppState().projectViewState.addServer(
                 project.id, serverDescription.text, ipAddress.text,
                 txt.text, username.text, password.text, serverEdit.keyFilepath,
                 serverTypeItems.get(serverType.currentIndex).value,
-                srvAccessType, port, sshTunnelThroughId,
+                srvAccessType, port, model.sshTunnelThroughServerId,
                 serverEdit.environment, group.editText)
         }
     }
@@ -199,12 +200,46 @@ Rectangle {
             text: "SSH tunnel through:"
             visible: isSshTunnelAccess()
         }
-        ComboBox {
-            id: sshTunnelThrough
-            Layout.fillWidth: true
-            textRole: "text"
-            model: ListModel {}
+        Button {
+            id: sshTunnelThroughButton
             visible: isSshTunnelAccess()
+            Layout.fillWidth: true
+            onClicked: {
+                // must init everytime because the OK button gets disconnected after use
+                // and also to update the search view filter text
+                initSshServerPickerPopup()
+                popupSshServerPicker.visible = true
+                popup.shadeHeader()
+            }
+        }
+    }
+    Popup {
+        id: popupSshServerPicker
+        visible: false
+        embedLevel: 1
+    }
+
+    Component {
+        id: sshServerPicker
+        EntityPicker {
+            entityType: "ServerEntityType"
+            extraFilter: function(searchMatch) {
+                var filteredServers = searchMatch.servers.filter(function (srv) {
+                    return srv.server.accessType === "SrvAccessSsh"
+                        || srv.server.accessType === "SrvAccessSshTunnel"
+                })
+                if (filteredServers.length === 0) {
+                    // nothing for this project.
+                    return null
+                } else {
+                    return {
+                        project: searchMatch.project,
+                        notes: [],
+                        pois: [],
+                        servers: filteredServers
+                    }
+                }
+            }
         }
     }
 
@@ -217,5 +252,29 @@ Rectangle {
             authFilename.text = serverEdit.keyFilepath.substring(
                 serverEdit.keyFilepath.lastIndexOf("/")+1, serverEdit.keyFilepath.length)
         }
+    }
+
+    function initSshServerPickerPopup() {
+        popupSshServerPicker.setContents(
+            "Pick an SSH-accessible server", sshServerPicker,
+            function (sshServerPicker) {
+                sshServerPicker.focusSearch(
+                    sshTunnelThroughButton.text === "..." ? null : sshTunnelThroughButton.text)
+                sshServerPicker.setSelectedItem(model.sshTunnelThroughServerId)
+            },
+            function (sshServerPicker) {
+                var selectedServer = sshServerPicker.getSelectedItem()
+                if (selectedServer) {
+                    model.sshTunnelThroughServerId = selectedServer.id
+                } else {
+                    model.sshTunnelThroughServerId = null
+                }
+                updateSshServerButtonText()
+            })
+    }
+
+    Component.onCompleted: {
+        initSshServerPickerPopup()
+        popupSshServerPicker.visible = false
     }
 }

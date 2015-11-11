@@ -123,6 +123,7 @@ Rectangle {
             Layout.fillWidth: true
             onClicked: {
                 // must init everytime because the OK button gets disconnected after use
+                // and also to update the search view filter text
                 initDbPickerPopup()
                 popupDbPicker.visible = true
                 popup.shadeHeader()
@@ -138,6 +139,7 @@ Rectangle {
     Component {
         id: dbPicker
         EntityPicker {
+            entityType: "DatabaseEntityType"
         }
     }
 

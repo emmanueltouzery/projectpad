@@ -11,7 +11,51 @@ Rectangle {
     property variant model
     property variant appContext: null
     property bool selectorMode: false
+    property bool isPickingServers: false
     property variant allTiles: []
+    property variant serverEditComponent
+
+    // shared with SearchServerView
+    function addTilesToFlow(tileName, items, flow) {
+        var tile = Qt.createComponent("tiles/" + tileOrSelector(tileName) + ".qml")
+        for (var i=0;i<items.length;i++) {
+            var modelData = items[i]
+            var obj = tile.createObject(flow, modelData)
+            allTiles.push(obj)
+            if (obj.ticked) {
+                // will go here only on picker mode.
+                obj.ticked.connect(function(tilePicker, onOrOff) {
+                    tileTicked(tilePicker)
+                })
+            }
+            obj.activated.connect(function(tile_) {
+                Utils.scrollInView(tile_, scrollView, flickable)
+            })
+        }
+    }
+
+    function tileOrSelector(tileName) {
+        if (selectorMode) {
+            return "TilePicker"
+        } else {
+            return tileName
+        }
+    }
+
+    function tileTicked(tile) {
+        for (var i=0;i<allTiles.length;i++) {
+            var curTile = allTiles[i]
+            if (curTile.model.id !== tile.model.id) {
+                curTile.selected = false
+            }
+        }
+    }
+
+    Component.onCompleted: {
+        serverEditComponent = selectorMode
+            ? null
+            : Qt.createComponent("ServerEdit.qml")
+    }
 
     function getBreadCrumbs() {
         return {pathLinks: [], title: 'Search'};
@@ -47,57 +91,6 @@ Rectangle {
             var curTile = allTiles[i]
             curTile.selected = curTile.model.id === itemId
         }
-    }
-
-    function tileTicked(tile) {
-        for (var i=0;i<allTiles.length;i++) {
-            var curTile = allTiles[i]
-            if (curTile.model.id !== tile.model.id) {
-                curTile.selected = false
-            }
-        }
-    }
-
-    function addTilesToFlow(tileName, items, flow) {
-        var tile = Qt.createComponent("tiles/" + tileOrSelector(tileName) + ".qml")
-        for (var i=0;i<items.length;i++) {
-            var modelData = items[i]
-            var obj = tile.createObject(flow, {
-                model: modelData.child,
-                server: modelData,
-                global: rootFlow
-            })
-            allTiles.push(obj)
-            if (obj.ticked) {
-                // will go here only on picker mode.
-                obj.ticked.connect(function(tilePicker, onOrOff) {
-                    tileTicked(tilePicker)
-                })
-            }
-            obj.activated.connect(function(tile_) {
-                Utils.scrollInView(tile_, scrollView, flickable)
-            })
-        }
-    }
-
-    function tileOrSelector(tileName) {
-        if (selectorMode) {
-            return "TilePicker"
-        } else {
-            return tileName
-        }
-    }
-
-    function createRepeaterChildren(serverModel, serverFlow, index, extraUserFlow, websiteFlow,
-                                    databaseFlow, poiFlow) {
-        addTilesToFlow("TileExtraUserAccount",
-                       serverModel[index].extraUsers, extraUserFlow)
-        addTilesToFlow("TileServerWebsite",
-                       serverModel[index].websites, websiteFlow)
-        addTilesToFlow("TileServerDatabase",
-                       serverModel[index].databases, databaseFlow)
-        addTilesToFlow("TileServerPoi",
-                       serverModel[index].pois, poiFlow)
     }
 
     ScrollView {
@@ -170,48 +163,27 @@ Rectangle {
                         Repeater {
                             id: serverRepeater
                             model: modelData.servers
-                            Flow {
-                                id: serverFlow
+                            SearchServerView {
+                                visible: !isPickingServers
                                 width: rootFlow.width
-                                spacing: 10
-                                Rectangle {
-                                    height: index > 0 ? 5 : 0
-                                    width: searchView.width
+                            }
+                        }
+                        Flow {
+                            id: serversPickingFlow
+                            width: parent.width
+                            spacing: 10
+                            visible: isPickingServers
+                            Component.onCompleted: {
+                                if (!isPickingServers) {
+                                    return
                                 }
-                                ServerHeader {
-                                    project: modelData.project
-                                    server: modelData.server
-                                    rootFlowInParent: rootFlow
-                                    hasOptionMenu: !selectorMode
-                                    onShouldRefresh: {
-                                        refreshSearch()
-                                    }
+                                var makeSrvTileModel = function (srv) {
+                                    return { model: srv.server }
                                 }
-                                Flow {
-                                    id: extraUserFlow
-                                    width: rootFlow.width
-                                    spacing: 10
-                                }
-                                Flow {
-                                    id: websiteFlow
-                                    width: rootFlow.width
-                                    spacing: 10
-                                }
-                                Flow {
-                                    id: databaseFlow
-                                    width: rootFlow.width
-                                    spacing: 10
-                                }
-                                Flow {
-                                    id: poiFlow
-                                    width: rootFlow.width
-                                    spacing: 10
-                                }
-                                Item {
-                                    Component.onCompleted: createRepeaterChildren(
-                                        serverRepeater.model, serverFlow, index,
-                                        extraUserFlow, websiteFlow, databaseFlow, poiFlow)
-                                }
+                                addTilesToFlow(
+                                    null,
+                                    modelData.servers.map(makeSrvTileModel),
+                                    serversPickingFlow)
                             }
                         }
                     }
@@ -227,12 +199,6 @@ Rectangle {
                 visible: false
                 z: 3
             }
-        }
-    }
-    Component {
-        id: serverEditComponent
-        ServerEdit {
-            id: serverEdit
         }
     }
     Component {

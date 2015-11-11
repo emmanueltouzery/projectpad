@@ -100,7 +100,8 @@ Window {
                 "SearchView.qml",
                 {
                     matches: getAppState().search("AllEntityTypes", searchField.text),
-                    query: searchField.text
+                    query: searchField.text,
+                    isPickingServers: false
                 })
         }
     }
