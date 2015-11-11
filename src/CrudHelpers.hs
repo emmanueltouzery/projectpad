@@ -10,7 +10,7 @@ import Data.Traversable (traverse)
 import Control.Exception
 import Control.Error
 
-import Model (runSqlBackend, toSqlKey32)
+import Model
 import Util
 
 -- helper used when adding an entity to DB.
@@ -21,8 +21,8 @@ addHelper sqlBackend parentId entityGetter = do
     void $ runSqlBackend sqlBackend $ P.insert $ entityGetter pIdKey
 
 updateHelper :: (DefaultClass (Entity b), SqlEntity b) =>
-    SqlBackend -> ObjRef (Entity b)
-    -> [P.Update b] -> IO (ObjRef (Entity b))
+    SqlBackend -> EntityRef b
+    -> [P.Update b] -> IO (EntityRef b)
 updateHelper sqlBackend entityRef updateValues = do
     let idKey = entityKey $ fromObjRef entityRef
     runSqlBackend sqlBackend $ P.update idKey updateValues
@@ -30,7 +30,7 @@ updateHelper sqlBackend entityRef updateValues = do
     return $ fromMaybe (error "update can't find back entity?") mEntity
 
 readEntityFromDb :: (SqlEntity record, DefaultClass (Entity record)) =>
-    SqlBackend -> Key record -> IO (Maybe (ObjRef (Entity record)))
+    SqlBackend -> Key record -> IO (Maybe (EntityRef record))
 readEntityFromDb sqlBackend idKey = do
     entity <- runSqlBackend sqlBackend (P.get idKey)
     traverse (newObjectDC . Entity idKey) entity

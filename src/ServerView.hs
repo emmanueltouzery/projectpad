@@ -41,8 +41,8 @@ addServerPoi sqlBackend serverId pDesc path txt interestTypeT (groupOrNothing ->
     addHelper sqlBackend serverId
         $ ServerPointOfInterest pDesc path txt interestType grpName
 
-updateServerPoi :: SqlBackend -> ObjRef (Entity ServerPointOfInterest)
-    -> Text -> Text -> Text -> Text -> Maybe Text -> IO (ObjRef (Entity ServerPointOfInterest))
+updateServerPoi :: SqlBackend -> EntityRef ServerPointOfInterest
+    -> Text -> Text -> Text -> Text -> Maybe Text -> IO (EntityRef ServerPointOfInterest)
 updateServerPoi sqlBackend poiRef
     pDesc path txt interestTypeT (groupOrNothing -> grpName) = do
     let interestType = read $ T.unpack interestTypeT
@@ -68,9 +68,9 @@ addServerWebsite sqlBackend serverId
     addHelper sqlBackend serverId
         $ ServerWebsite pDesc url txt username password mDatabaseKey grpName
 
-updateServerWebsite :: SqlBackend -> ObjRef (Entity ServerWebsite)
+updateServerWebsite :: SqlBackend -> EntityRef ServerWebsite
     -> Text -> Text -> Text -> Text -> Text
-    -> Maybe Int -> Maybe Text -> IO (ObjRef (Entity ServerWebsite))
+    -> Maybe Int -> Maybe Text -> IO (EntityRef ServerWebsite)
 updateServerWebsite sqlBackend srvWwwRef
     pDesc url txt username password mDatabaseId (groupOrNothing -> grpName) = do
     let mDatabaseKey = toSqlKey32 <$> mDatabaseId
@@ -95,8 +95,8 @@ addServerDatabase sqlBackend serverId pDesc name txt
     username password (groupOrNothing -> grpName) = addHelper sqlBackend serverId
         $ ServerDatabase pDesc name txt username password grpName
 
-updateServerDatabase :: SqlBackend -> ObjRef (Entity ServerDatabase)
-    -> Text -> Text -> Text -> Text -> Text -> Maybe Text -> IO (ObjRef (Entity ServerDatabase))
+updateServerDatabase :: SqlBackend -> EntityRef ServerDatabase
+    -> Text -> Text -> Text -> Text -> Text -> Maybe Text -> IO (EntityRef ServerDatabase)
 updateServerDatabase sqlBackend srvDbRef
     pDesc name txt username password (groupOrNothing -> grpName) = updateHelper sqlBackend srvDbRef
         [
@@ -107,7 +107,8 @@ updateServerDatabase sqlBackend srvDbRef
             ServerDatabaseGroupName P.=. grpName
         ]
 
-canDeleteServerDatabase :: SqlBackend -> (Key Server -> Bool) -> Entity ServerDatabase -> IO (Maybe Text)
+canDeleteServerDatabase :: SqlBackend -> (Key Server -> Bool)
+                        -> Entity ServerDatabase -> IO (Maybe Text)
 canDeleteServerDatabase sqlBackend serverFilter serverDb = do
     websites <- fmap entityVal <$> runSqlBackend sqlBackend
         (select $ from $ \w -> do
@@ -120,13 +121,6 @@ canDeleteServerDatabase sqlBackend serverFilter serverDb = do
             let name = serverDatabaseName $ entityVal serverDb
             let strElts = ["Can't delete ", name, ": it's used by servers ",  serverList]
             return $ Just $ T.concat strElts
-
-getAllDatabases :: SqlBackend -> IO [ObjRef (Entity ServerDatabase)]
-getAllDatabases sqlBackend = do
-    dbs <- runSqlBackend sqlBackend (select $ from $ \p -> do
-        orderBy [asc (p ^. ServerDatabaseDesc)]
-        return p)
-    mapM newObjectDC dbs
 
 readServerExtraUserAccounts :: Int -> SqlPersistM [Entity ServerExtraUserAccount]
 readServerExtraUserAccounts serverId = select $ from $ \p -> do
@@ -142,8 +136,8 @@ addServerExtraUserAccount sqlBackend serverId
     addHelper sqlBackend serverId $ ServerExtraUserAccount username password pDesc
             (fst <$> authKeyInfo) (snd <$> authKeyInfo) grpName
 
-updateServerExtraUserAccount :: SqlBackend -> ObjRef (Entity ServerExtraUserAccount)
-    -> Text -> Text -> Text -> Text -> Maybe Text -> IO (ObjRef (Entity ServerExtraUserAccount))
+updateServerExtraUserAccount :: SqlBackend -> EntityRef ServerExtraUserAccount
+    -> Text -> Text -> Text -> Text -> Maybe Text -> IO (EntityRef ServerExtraUserAccount)
 updateServerExtraUserAccount sqlBackend acctRef
     pDesc username password keyPath (groupOrNothing -> grpName) = do
     authKeyInfo <- processAuthKeyInfo keyPath
@@ -156,12 +150,12 @@ updateServerExtraUserAccount sqlBackend acctRef
             ServerExtraUserAccountGroupName P.=. grpName
         ]
 
-saveExtraUserAuthKey :: Text -> ObjRef (Entity ServerExtraUserAccount) -> IO (Either Text Text)
+saveExtraUserAuthKey :: Text -> EntityRef ServerExtraUserAccount -> IO (Either Text Text)
 saveExtraUserAuthKey path (entityVal . fromObjRef -> userAcct) =
     saveAuthKeyBytes path (serverExtraUserAccountAuthKey userAcct)
 
-executePoiAction :: SqlBackend -> ObjRef ServerViewState -> ObjRef (Entity Server)
-    -> ObjRef (Entity ServerPointOfInterest) -> IO (Either Text ())
+executePoiAction :: SqlBackend -> ObjRef ServerViewState -> EntityRef Server
+    -> EntityRef ServerPointOfInterest -> IO (Either Text ())
 executePoiAction sqlBackend srvState server (entityVal . fromObjRef -> serverPoi) =
     openServerSshAction sqlBackend server $ \port eSrv ->
     case serverPointOfInterestInterestType serverPoi of
@@ -170,16 +164,16 @@ executePoiAction sqlBackend srvState server (entityVal . fromObjRef -> serverPoi
         PoiConfigFile   -> executePoiLogFile eSrv port serverPoi "vim "
         _               -> return $ Right ()
 
-executePoiSecondaryAction :: SqlBackend -> ObjRef (Entity Server)
-    -> ObjRef (Entity ServerPointOfInterest) -> IO (Either Text ())
+executePoiSecondaryAction :: SqlBackend -> EntityRef Server
+    -> EntityRef ServerPointOfInterest -> IO (Either Text ())
 executePoiSecondaryAction sqlBackend server (entityVal . fromObjRef -> serverPoi) =
     openServerSshAction sqlBackend server $ \port eSrv ->
     case serverPointOfInterestInterestType serverPoi of
         PoiLogFile -> executePoiLogFile eSrv port serverPoi "less "
         _ -> return $ Right ()
 
-executePoiThirdAction :: SqlBackend -> ObjRef ServerViewState -> ObjRef (Entity Server)
-    -> ObjRef (Entity ServerPointOfInterest) -> IO (Either Text ())
+executePoiThirdAction :: SqlBackend -> ObjRef ServerViewState -> EntityRef Server
+    -> EntityRef ServerPointOfInterest -> IO (Either Text ())
 executePoiThirdAction sqlBackend srvState server (entityVal . fromObjRef -> serverPoi) =
     openServerSshAction sqlBackend server $ \port eSrv ->
     case serverPointOfInterestInterestType serverPoi of
@@ -226,10 +220,10 @@ getServerGroupNames sqlBackend serverId = do
 data ServerDisplaySection = ServerDisplaySection
     {
         srvSectionGrpName    :: Maybe Text,
-        srvSectionPois       :: [ObjRef (Entity ServerPointOfInterest)],
-        srvSectionWebsites   :: [ObjRef (Entity ServerWebsite)],
-        srvSectionDatabases  :: [ObjRef (Entity ServerDatabase)],
-        srvSectionExtraUsers :: [ObjRef (Entity ServerExtraUserAccount)]
+        srvSectionPois       :: [EntityRef ServerPointOfInterest],
+        srvSectionWebsites   :: [EntityRef ServerWebsite],
+        srvSectionDatabases  :: [EntityRef ServerDatabase],
+        srvSectionExtraUsers :: [EntityRef ServerExtraUserAccount]
     } deriving Typeable
 
 instance DefaultClass ServerDisplaySection where
@@ -261,7 +255,7 @@ getServerDisplaySections sqlBackend serverId = do
       runServerQ :: DefaultClass a => (Int -> SqlPersistM [a]) -> IO [ObjRef a]
       runServerQ f = sqlToQml sqlBackend (f serverId)
 
-openServerSshAction :: SqlBackend -> ObjRef (Entity Server)
+openServerSshAction :: SqlBackend -> EntityRef Server
                      -> (Int -> ServerInfo -> IO (Either Text a))
                      -> IO (Either Text a)
 openServerSshAction sqlBackend (entityVal . fromObjRef -> server) callback =
@@ -284,11 +278,11 @@ openServerSshTunnelAction sqlBackend server callback = runExceptT $ do
          (serverToSystemServer server) callback
     hoistEither r
 
-isSshHostTrusted :: SqlBackend -> ObjRef (Entity Server) -> IO (Either Text Bool)
+isSshHostTrusted :: SqlBackend -> EntityRef Server -> IO (Either Text Bool)
 isSshHostTrusted sqlBackend server =
     openServerSshAction sqlBackend server isHostTrusted
 
-addInSshHostTrustStore :: SqlBackend -> ObjRef (Entity Server) -> IO (Either Text ())
+addInSshHostTrustStore :: SqlBackend -> EntityRef Server -> IO (Either Text ())
 addInSshHostTrustStore sqlBackend server =
     openServerSshAction sqlBackend server addInHostTrustStore
 
@@ -307,7 +301,6 @@ createServerViewState sqlBackend = do
             defStatic  "updateServerDatabase"     (updateServerDatabase sqlBackend),
             defStatic  "canDeleteServerDatabase"  (canDeleteServerDatabase sqlBackend (const True) . fromObjRef),
             defMethod' "deleteServerDatabases"    (deleteHelper sqlBackend deleteServerDatabase),
-            defStatic  "getAllDatabases"          (getAllDatabases sqlBackend),
             defStatic  "addServerExtraUserAccount" (addServerExtraUserAccount sqlBackend),
             defStatic  "updateServerExtraUserAccount" (updateServerExtraUserAccount sqlBackend),
             defMethod' "deleteServerExtraUserAccounts" (deleteHelper sqlBackend deleteServerExtraUserAccount),

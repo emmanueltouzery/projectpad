@@ -46,10 +46,10 @@ addServer sqlBackend projectId sDesc ipAddr txt username password
             (fst <$> authKeyInfo) (snd <$> authKeyInfo)
             srvType srvAccessType sshTunnelPort mTunnelThroughId srvEnv groupName
 
-updateServer :: SqlBackend -> ObjRef (Entity Server)
+updateServer :: SqlBackend -> EntityRef Server
     -> Text -> IpAddress -> Text -> Text -> Text -> Text -> Text
     -> Text -> Maybe Int -> Maybe Int -> Maybe Text
-    -> IO (ObjRef (Entity Server))
+    -> IO (EntityRef Server)
 updateServer sqlBackend serverRef sDesc ipAddr txt
   username password keyPath serverTypeT serverAccessTypeT
   sshTunnelPort sshTunnelThroughServerId (groupOrNothing -> groupName) = do
@@ -84,9 +84,9 @@ addProjectPoi sqlBackend projectId
     addHelper sqlBackend projectId
         $ ProjectPointOfInterest pDesc path txt interestType groupName
 
-updateProjectPoi :: SqlBackend -> ObjRef (Entity ProjectPointOfInterest)
+updateProjectPoi :: SqlBackend -> EntityRef ProjectPointOfInterest
     -> Text -> Text -> Text -> Text -> Maybe Text
-    -> IO (ObjRef (Entity ProjectPointOfInterest))
+    -> IO (EntityRef ProjectPointOfInterest)
 updateProjectPoi sqlBackend poiRef
     pDesc path txt interestTypeT (groupOrNothing -> groupName) = do
     let interestType = read $ T.unpack interestTypeT
@@ -109,9 +109,9 @@ addProjectNote sqlBackend projectId title contents
     (groupOrNothing -> groupName) = addHelper sqlBackend projectId
         $ ProjectNote title contents groupName
 
-updateProjectNote :: SqlBackend -> ObjRef (Entity ProjectNote)
+updateProjectNote :: SqlBackend -> EntityRef ProjectNote
     -> Text -> Text -> Maybe Text
-    -> IO (ObjRef (Entity ProjectNote))
+    -> IO (EntityRef ProjectNote)
 updateProjectNote sqlBackend noteRef title contents
     (groupOrNothing -> groupName) = updateHelper sqlBackend noteRef
         [
@@ -131,8 +131,8 @@ data ProjectDisplaySection = ProjectDisplaySection
     {
         prjSectionGrpName     :: Maybe Text,
         prjSectionServers     :: [ObjRef ServerExtraInfo],
-        prjSectionProjectPois :: [ObjRef (Entity ProjectPointOfInterest)],
-        prjSectionNotes       :: [ObjRef (Entity ProjectNote)]
+        prjSectionProjectPois :: [EntityRef ProjectPointOfInterest],
+        prjSectionNotes       :: [EntityRef ProjectNote]
     } deriving Typeable
 
 instance DefaultClass ProjectDisplaySection where
@@ -172,7 +172,7 @@ splitParams = parseOnly splitParamsParser
         parseParam = takeWhile1 (/= ' ')
 
 runPoiAction :: ObjRef ProjectViewState
-    -> ObjRef (Entity ProjectPointOfInterest) -> IO ()
+    -> EntityRef ProjectPointOfInterest -> IO ()
 runPoiAction prjViewState (entityVal . fromObjRef -> poi)
     | interest == PoiCommandToRun = case splitParams txt of
         Left x -> notify (CommandFailed $ "Error parsing the command: " <> T.pack x)
@@ -191,20 +191,20 @@ runPoiAction prjViewState (entityVal . fromObjRef -> poi)
             x@_ -> Just x
         txt = projectPointOfInterestText poi
 
-saveAuthKey :: Text -> ObjRef (Entity Server) -> IO (Either Text Text)
+saveAuthKey :: Text -> EntityRef Server -> IO (Either Text Text)
 saveAuthKey path (entityVal . fromObjRef -> server) =
     saveAuthKeyBytes path (serverAuthKey server)
 
-runServerRdp :: ObjRef (Entity Server) -> Int -> Int -> IO (Either Text Text)
+runServerRdp :: EntityRef Server -> Int -> Int -> IO (Either Text Text)
 runServerRdp (entityVal . fromObjRef -> server) = runRdp (serverToSystemServer server)
 
-openServerSshSession :: SqlBackend -> ObjRef (Entity Server) -> IO (Either Text ())
+openServerSshSession :: SqlBackend -> EntityRef Server -> IO (Either Text ())
 openServerSshSession sqlBackend server = openServerSshAction sqlBackend server $
     \port srv -> openSshSession srv port (JustSsh True)
 
 data ServerExtraInfo = ServerExtraInfo
     {
-        srvExtraInfoServer    :: ObjRef (Entity Server),
+        srvExtraInfoServer    :: EntityRef Server,
         srvExtraInfoPoiCount  :: Int,
         srvExtraInfoWwwCount  :: Int,
         srvExtraInfoDbCount   :: Int,

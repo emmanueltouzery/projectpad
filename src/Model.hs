@@ -117,6 +117,8 @@ DbVersion
     deriving Show
 |]
 
+type EntityRef a = ObjRef (Entity a)
+
 int64to32 :: Int64 -> Int
 int64to32 = fromIntegral
 
@@ -127,21 +129,21 @@ toSqlKey32 :: ToBackendKey SqlBackend record => Int -> Key record
 toSqlKey32 = toSqlKey . fromIntegral
 
 getStandardClassMembers :: (ToBackendKey SqlBackend record, Typeable record) =>
-     [Member (GetObjType (ObjRef (Entity record)))]
-    -> [Member (GetObjType (ObjRef (Entity record)))]
+     [Member (GetObjType (EntityRef record))]
+    -> [Member (GetObjType (EntityRef record))]
 getStandardClassMembers others = idProperty:others
   where idProperty = defPropertyConst "id" (return . fromSqlKey32 . fromObjRef)
 
 defPropConst :: (QmlReturnable tr, Typeable b) =>
-    String -> (b -> tr) -> Member (GetObjType (ObjRef (Entity b)))
+    String -> (b -> tr) -> Member (GetObjType (EntityRef b))
 defPropConst name f = defPropertyConst name (return . f . entityVal . fromObjRef)
 
 defFk :: (ToBackendKey SqlBackend record1, Typeable record) =>
-          String -> (record -> Maybe (Key record1)) -> Member (GetObjType (ObjRef (Entity record)))
+          String -> (record -> Maybe (Key record1)) -> Member (GetObjType (EntityRef record))
 defFk name f = defPropertyConst name (return . getKeyM f)
 
 getKeyM :: (ToBackendKey SqlBackend record1) =>
-    (record -> Maybe (Key record1)) -> ObjRef (Entity record) -> Maybe Int
+    (record -> Maybe (Key record1)) -> EntityRef record -> Maybe Int
 getKeyM f (fromObjRef -> entity) = do
     fk <- f (entityVal entity)
     return $ int64to32 $ fromSqlKey fk
@@ -272,5 +274,5 @@ readEntityField sqlBackend entKey f =
 mergeNames :: [Maybe Text] -> [Text]
 mergeNames = nub . sortBy (comparing T.toCaseFold) . catMaybes
 
-filterForGroup :: Eq b => b -> (a -> b) -> [ObjRef (Entity a)] -> [ObjRef (Entity a)]
+filterForGroup :: Eq b => b -> (a -> b) -> [EntityRef a] -> [EntityRef a]
 filterForGroup grp grpNameField = L.filter ((==grp) . grpNameField . entityVal . fromObjRef)

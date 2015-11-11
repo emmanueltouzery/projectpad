@@ -46,11 +46,8 @@ Rectangle {
     }
 
     function updateSshServerButtonText() {
-        var sshServers = getAppState().projectListState.getAllSshServers()
-        var serversWithId = sshServers.filter(function (d) {
-            return d.id == model.sshTunnelThroughServerId;
-        });
-        sshTunnelThroughButton.text = serversWithId.length == 1 ? serversWithId[0].desc : "..."
+        var sshServer = getAppState().projectListState.getServerById(model.sshTunnelThroughServerId)
+        sshTunnelThroughButton.text = sshServer ? sshServer.desc : "..."
     }
 
     function onOk(project) {

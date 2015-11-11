@@ -35,9 +35,8 @@ Rectangle {
     }
 
     function updateDbButtonText() {
-        var dbs = getAppState().serverViewState.getAllDatabases()
-        var dbsWithId = dbs.filter(function (d) { return d.id == model.serverDatabaseId; });
-        databaseButton.text = dbsWithId.length == 1 ? dbsWithId[0].desc : "..."
+        var db = getAppState().projectListState.getDatabaseById(model.serverDatabaseId)
+        databaseButton.text = db ? db.desc : "..."
     }
 
     function onOk(server) {

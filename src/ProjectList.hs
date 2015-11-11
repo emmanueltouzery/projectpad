@@ -45,8 +45,8 @@ addProject sqlBackend changeKey state txt iconPath hasDev hasUat hasStage hasPro
     fireSignal changeKey state
 
 updateProject :: SqlBackend -> SignalKey (IO ()) -> ObjRef ProjectListState
-    -> ObjRef (Entity Project) -> Text -> Maybe Text -> Bool -> Bool
-    -> Bool -> Bool -> IO (ObjRef (Entity Project))
+    -> EntityRef Project -> Text -> Maybe Text -> Bool -> Bool
+    -> Bool -> Bool -> IO (EntityRef Project)
 updateProject sqlBackend changeKey state prj name iconPath hasDev hasUat hasStage hasProd = do
     let idKey = entityKey $ fromObjRef prj
     iconBytes <- readIcon iconPath
@@ -83,14 +83,6 @@ copyProjectIcons sqlBackend = do
     forM_ prjWithIcons $ \prj -> do
         targetPath <- getIconPath prj
         BS.writeFile targetPath (projectIcon $ entityVal prj)
-
-getAllSshServers :: SqlBackend -> IO [ObjRef (Entity Server)]
-getAllSshServers sqlBackend = do
-    sshServers <- runSqlBackend sqlBackend (select $ from $ \s -> do
-       where_ (s ^. ServerAccessType `in_` valList [SrvAccessSsh, SrvAccessSshTunnel])
-       orderBy [asc (s ^. ServerDesc)]
-       return s)
-    mapM newObjectDC sshServers
 
 minSshTunnelPort :: Int
 minSshTunnelPort = 1024
@@ -143,6 +135,16 @@ getTextToCopyForEntity sqlBackend (readT -> entityType) entKey =
         _ -> error ("Don't know what field to copy for entity " ++ show entityType)
     where getP = readEntityField sqlBackend entKey
 
+getEntityById :: (DefaultClass (Entity a), ToBackendKey SqlBackend a) =>
+                 SqlBackend -> Int -> IO (Maybe (EntityRef a))
+getEntityById sqlBackend entId = readEntityFromDb sqlBackend (toSqlKey32 entId)
+
+getServerById :: SqlBackend -> Int -> IO (Maybe (EntityRef Server))
+getServerById = getEntityById
+
+getDatabaseById :: SqlBackend -> Int -> IO (Maybe (EntityRef ServerDatabase))
+getDatabaseById = getEntityById
+
 createProjectListState :: SqlBackend -> IO (ObjRef ProjectListState, SignalKey (IO ()))
 createProjectListState sqlBackend = do
     changeKey <- newSignalKey
@@ -154,7 +156,8 @@ createProjectListState sqlBackend = do
             defMethod "addProject"          (addProject sqlBackend changeKey),
             defMethod "updateProject"       (updateProject sqlBackend changeKey),
             defMethod "deleteProjects"      (deleteProjects sqlBackend changeKey),
-            defStatic "getAllSshServers"    (getAllSshServers sqlBackend),
+            defStatic "getServerById"       (getServerById sqlBackend),
+            defStatic "getDatabaseById"     (getDatabaseById sqlBackend),
             defStatic "copyProjectIcons"    (copyProjectIcons sqlBackend),
             defStatic "getNewSshTunnelPort" (getNewSshTunnelPort sqlBackend),
             defStatic "getTextToCopyForEntity" (getTextToCopyForEntity sqlBackend)

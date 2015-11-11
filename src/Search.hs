@@ -23,8 +23,8 @@ import Util
 -- menu actions are activated.
 data ParentChildInfo a b = ParentChildInfo
     {
-        pciParent :: ObjRef (Entity a),
-        pciChild  :: ObjRef (Entity b)
+        pciParent :: EntityRef a,
+        pciChild  :: EntityRef b
     } deriving Typeable
 
 type ServerChildInfo a = ParentChildInfo Server a
@@ -39,8 +39,8 @@ instance (Typeable a, Typeable b) => DefaultClass (ParentChildInfo a b) where
 
 data ServerSearchMatch = ServerSearchMatch
     {
-        smServer           :: ObjRef (Entity Server),
-        smServerProject    :: ObjRef (Entity Project),
+        smServer           :: EntityRef Server,
+        smServerProject    :: EntityRef Project,
         smServerWebsites   :: [ObjRef (ServerChildInfo ServerWebsite)],
         smServerExtraUsers :: [ObjRef (ServerChildInfo ServerExtraUserAccount)],
         smServerPois       :: [ObjRef (ServerChildInfo ServerPointOfInterest)],
@@ -64,7 +64,7 @@ instance DefaultClass ServerSearchMatch where
 
 data ProjectSearchMatch = ProjectSearchMatch
     {
-        smProject        :: ObjRef (Entity Project),
+        smProject        :: EntityRef Project,
         smProjectNotes   :: [ObjRef (ProjectChildInfo ProjectNote)],
         smProjectPois    :: [ObjRef (ProjectChildInfo ProjectPointOfInterest)],
         smProjectServers :: [ObjRef ServerSearchMatch]
@@ -140,12 +140,12 @@ getByIds keySelector ids = select $ from $ \s -> do
 -- filter a list of entities from a child table to get only those
 -- matching a FK from the parent table and serialize them to ObjRef for QML.
 filterEntityJoin :: (DefaultClass (Entity a), Eq (Key b)) =>
-    Key b -> Join a b -> IO [ObjRef (Entity a)]
+    Key b -> Join a b -> IO [EntityRef a]
 filterEntityJoin parentKey (Join parentKeyGetter entities) = mapM newObjectDC $
     filter (\e -> parentKeyGetter (entityVal e) == parentKey) entities
 
 makeParentChildInfos :: (DefaultClass (Entity b), Typeable b, Typeable a, Eq (Key a)) =>
-    ObjRef (Entity a) -> Join b a -> IO [ObjRef (ParentChildInfo a b)]
+    EntityRef a -> Join b a -> IO [ObjRef (ParentChildInfo a b)]
 makeParentChildInfos parent childrenJoin = do
     let parentKey = entityKey (fromObjRef parent)
     children <- filterEntityJoin parentKey childrenJoin
@@ -159,8 +159,8 @@ data ServerJoins = ServerJoins
          serverDatabasesJoin  :: ServerJoin ServerDatabase
      }
 
-getServerSearchMatch :: ObjRef (Entity Project) -> ServerJoins
-    -> ObjRef (Entity Server) -> IO (ObjRef ServerSearchMatch)
+getServerSearchMatch :: EntityRef Project -> ServerJoins
+    -> EntityRef Server -> IO (ObjRef ServerSearchMatch)
 getServerSearchMatch project ServerJoins{..} server =
     newObjectDC =<< ServerSearchMatch server project
         <$> makeParentChildInfos server serverWebsitesJoin
@@ -170,7 +170,7 @@ getServerSearchMatch project ServerJoins{..} server =
 
 getProjectSearchMatch :: ProjectJoin Server -> ServerJoins
     -> ProjectJoin ProjectPointOfInterest
-    -> ProjectJoin ProjectNote -> ObjRef (Entity Project) -> IO (ObjRef ProjectSearchMatch)
+    -> ProjectJoin ProjectNote -> EntityRef Project -> IO (ObjRef ProjectSearchMatch)
 getProjectSearchMatch projectServersJoin serverJoins
     projectPoisJoin projectNotesJoin project = do
     let projectKey = entityKey (fromObjRef project)
@@ -181,7 +181,7 @@ getProjectSearchMatch projectServersJoin serverJoins
         <*> makeParentChildInfos project projectPoisJoin
         <*> serverSearchMatch
 
-compareServerEntities :: ObjRef (Entity Server) -> ObjRef (Entity Server) -> Ordering
+compareServerEntities :: EntityRef Server -> EntityRef Server -> Ordering
 compareServerEntities ea eb = if envCompare /= EQ then envCompare else descCompare
     where
         [a, b] = entityVal . fromObjRef <$> [ea, eb]
