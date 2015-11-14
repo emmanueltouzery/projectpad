@@ -142,11 +142,24 @@ Rectangle {
         Text {
             text: "Authentication key:"
         }
-        Button {
-            id: authFilename
+        Row {
             Layout.fillWidth: true
-            text: "..."
-            onClicked: fileDialog.visible = true
+            Button {
+                id: authFilename
+                width: parent.width - (removeButton.visible ? removeButton.width : 0)
+                text: "..."
+                onClicked: fileDialog.visible = true
+            }
+            IconButton {
+                id: removeButton
+                iconName: "glyphicons-193-circle-remove"
+                iconX: 5
+                visible: authFilename.text !== "..."
+                onClicked: {
+                    serverEdit.keyFilepath = ""
+                    authFilename.text = "..."
+                }
+            }
         }
 
         Text {
