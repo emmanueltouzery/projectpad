@@ -12,12 +12,22 @@ Rectangle {
     property bool implicitClose: true
     property int embedLevel: 0
     width: window.width
-    Keys.onReturnPressed: curCallback()
-    Keys.onEnterPressed: curCallback()
-    Keys.onEscapePressed: {
+
+    function escPressedCallback() {
         if (cancelButton.visible) {
             doClose()
         }
+    }
+
+    function initCallbacks() {
+        Keys.returnPressed.connect(curCallback)
+        Keys.enterPressed.connect(curCallback)
+        Keys.escapePressed.connect(escPressedCallback)
+    }
+    function dropCallbacks() {
+        Keys.returnPressed.disconnect(curCallback)
+        Keys.enterPressed.disconnect(curCallback)
+        Keys.escapePressed.disconnect(escPressedCallback)
     }
 
     function setContents(title, contents, initCallback, okCallback, options) {
@@ -35,11 +45,14 @@ Rectangle {
                 if (embedLevel > 0) {
                     // remove the shade on the header of the parent popup.
                     popup.unshadeHeader()
+                    // restore the focus on the parent popup so the ESC key can work.
+                    popup.forceActiveFocus()
                 }
             }
         }
         okButton.clicked.connect(f)
         curCallback = f
+        initCallbacks()
         cancelButton.visible = true
         var noOpacity = options && options.noOpacity
         if (!noOpacity) {
@@ -64,9 +77,12 @@ Rectangle {
     function doClose() {
         okButton.clicked.disconnect(curCallback)
         popupHost.visible = false
+        dropCallbacks()
         if (embedLevel > 0) {
             // remove the shade on the header of the parent popup.
             popup.unshadeHeader()
+            // restore the focus on the parent popup so the ESC key can work.
+            popup.forceActiveFocus()
         }
     }
 
