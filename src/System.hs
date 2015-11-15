@@ -228,6 +228,15 @@ waitUntilPortIsOpen port = do
     unless isTunnelOpen $
         threadDelay 100000 >> waitUntilPortIsOpen port
 
+isPortFree :: Int -> IO Bool
+isPortFree port = do
+    s <- socket AF_INET Stream defaultProtocol
+    localhost <- inet_addr "127.0.0.1"
+    portOpen  <- try (connect s (SockAddrInet (fromIntegral port) localhost))
+    case portOpen of
+        Left (_ :: SomeException) -> return True
+        Right () -> close s >> return False
+
 sshHandlePasswordAndRun :: Text -> [Text] -> (CommandProgress -> IO ()) -> IO ()
 sshHandlePasswordAndRun password sshCommandParams readCallback = do
     sshEnv <- getTemporaryDirectory >>= prepareSshPassword password
@@ -273,12 +282,3 @@ generateNames base = base : gen (1::Int) base
 
 openInFileBrowser :: FilePath -> IO ()
 openInFileBrowser fname = void $ createProcess (proc "nautilus" [fname])
-
-isPortFree :: Int -> IO Bool
-isPortFree port = do
-    s <- socket AF_INET Stream defaultProtocol
-    localhost <- inet_addr "127.0.0.1"
-    portOpen  <- try (connect s (SockAddrInet (fromIntegral port) localhost))
-    case portOpen of
-        Left (_ :: SomeException) -> return True
-        Right () -> close s >> return False
