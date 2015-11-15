@@ -9,9 +9,11 @@ import Database.Esqueleto
 import Data.Typeable
 import Data.Text (Text)
 import qualified Data.Text as T
+import qualified Data.ByteString as BS
 import qualified Database.Persist as P
 import Control.Error
 import Data.Monoid
+import Control.Monad.Trans
 
 import Model
 import ModelBase
@@ -150,9 +152,21 @@ updateServerExtraUserAccount sqlBackend acctRef
             ServerExtraUserAccountGroupName P.=. grpName
         ]
 
-saveExtraUserAuthKey :: Text -> EntityRef ServerExtraUserAccount -> IO (Either Text Text)
-saveExtraUserAuthKey path (entityVal . fromObjRef -> userAcct) =
-    saveAuthKeyBytes path (serverExtraUserAccountAuthKey userAcct)
+saveExtraUserAuthKey :: EntityRef ServerExtraUserAccount -> IO (Either Text Text)
+saveExtraUserAuthKey =
+    saveAuthKey serverExtraUserAccountAuthKeyFilename serverExtraUserAccountAuthKey
+
+saveAuthKey :: (a -> Maybe Text) -> (a -> Maybe BS.ByteString) -> EntityRef a
+            -> IO (Either Text Text)
+saveAuthKey getKeyFilename getKey (entityVal . fromObjRef -> entity) = do
+    r <- tryText $ runMaybeT $ do
+        fname <- hoistMaybe (getKeyFilename entity)
+        key   <- hoistMaybe (getKey entity)
+        lift (exportBytesToFile fname key)
+    return $ case r of
+        Left x         -> Left x
+        Right Nothing  -> Left "No key info"
+        Right (Just x) -> Right x
 
 executePoiAction :: SqlBackend -> ObjRef ServerViewState -> EntityRef Server
     -> EntityRef ServerPointOfInterest -> IO (Either Text ())
@@ -305,7 +319,7 @@ createServerViewState sqlBackend = do
             defStatic  "updateServerExtraUserAccount" (updateServerExtraUserAccount sqlBackend),
             defMethod' "deleteServerExtraUserAccounts" (deleteHelper sqlBackend deleteServerExtraUserAccount),
             defStatic  "getServerGroupNames"      (getServerGroupNames sqlBackend),
-            defStatic  "saveAuthKey"              (liftQmlResult2 saveExtraUserAuthKey),
+            defStatic  "saveAuthKey"              (liftQmlResult1 saveExtraUserAuthKey),
             defStatic  "isHostTrusted"            (liftQmlResult1 $ isSshHostTrusted sqlBackend),
             defStatic  "addInHostTrustStore"      (liftQmlResult1 $ addInSshHostTrustStore sqlBackend),
             defMethod' "executePoiAction"         (liftQmlResult3 $ executePoiAction sqlBackend),

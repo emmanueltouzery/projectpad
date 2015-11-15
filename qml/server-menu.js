@@ -52,8 +52,9 @@ function showSelectMenu(project, server, parnt, desktopSize, refreshAction, menu
     }
     if (server.authKeyFilename !== "...") {
         options.push(["glyphicons-45-keys", function() {
-            saveServerAuthKeyDialog.server = server
-            saveServerAuthKeyDialog.visible = true
+            Utils.handleEither(
+                getAppState().projectViewState.saveAuthKey(server),
+                function(location) { successMessage("Saved file to " + location) })
         }])
     }
     if (server.accessType === "SrvAccessRdp"

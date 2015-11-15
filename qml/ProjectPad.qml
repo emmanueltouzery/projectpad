@@ -487,38 +487,6 @@ Window {
         }
     }
 
-    // the file dialog is reachable from search view, project, server...
-    // put it here so it works from everywhere.
-    FileDialog {
-        id: saveExtraUserAuthKeyDialog
-        title: "Please choose a destination"
-        property variant extraUser
-        visible: false
-        selectFolder: true
-        onAccepted: {
-            getAppState().serverViewState.saveAuthKey(
-                fileUrls[0] + "/" + extraUser.authKeyFilename, extraUser)
-            successMessage(
-                "Saved file to " + fileUrls[0] + "/" + extraUser.authKeyFilename)
-        }
-    }
-
-    // the file dialog is reachable from search view, project, server...
-    // put it here so it works from everywhere.
-    FileDialog {
-        id: saveServerAuthKeyDialog
-        title: "Please choose a destination"
-        property variant server
-        visible: false
-        selectFolder: true
-        onAccepted: {
-            getAppState().projectViewState.saveAuthKey(
-                fileUrls[0] + "/" + server.authKeyFilename, server)
-            successMessage(
-                "Saved file to " + fileUrls[0] + "/" + server.authKeyFilename)
-        }
-    }
-
     Component {
         id: aboutDialogComponent
         Rectangle {

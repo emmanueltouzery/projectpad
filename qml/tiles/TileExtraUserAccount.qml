@@ -41,8 +41,9 @@ ItemTile {
                 }]]
             if (model.authKeyFilename !== "...") {
                 options.push(["glyphicons-45-keys", function() {
-                    saveExtraUserAuthKeyDialog.extraUser = model
-                    saveExtraUserAuthKeyDialog.visible = true
+                    Utils.handleEither(
+                        getAppState().serverViewState.saveAuthKey(model),
+                        function(location) {successMessage("Saved file to " + location)});
                 }])
             }
             selectMenu.options = options

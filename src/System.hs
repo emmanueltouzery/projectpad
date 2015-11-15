@@ -23,6 +23,7 @@ import qualified Data.ByteString as BS
 import System.Environment.XDG.UserDir
 import Text.Printf
 import Network.Socket
+import Data.Maybe
 
 import Util
 
@@ -251,14 +252,27 @@ downloadFileSsh srv@ServerInfo{..} port path readCallback = do
     sshHandlePasswordAndRun srvPassword ["/usr/bin/scp", "-P", text port,
         sshUserHost srv <> ":" <> path, T.pack outputDir] readCallback
 
--- alternative implementations: http://stackoverflow.com/a/28101291/516188
-saveAuthKeyBytes ::Text -> Maybe BS.ByteString -> IO (Either Text Text)
-saveAuthKeyBytes path bytes  = runExceptT $ do
-    targetFile <- hoistEither $ note "Invalid target file name"
-        $ T.stripPrefix "file://" path
-    key <- hoistEither $ note "No authentication key for that server!" bytes
-    bimapExceptT textEx (const "") . ExceptT . try
-        $ BS.writeFile (T.unpack targetFile) key
+exportBytesToFile :: Text -> BS.ByteString -> IO Text
+exportBytesToFile filename bytes = do
+    outputDir <- getUserDir "DOCUMENTS"
+    let (name, ext) = splitExtension (T.unpack filename)
+    let getFullPath n = outputDir </> n <> ext
+    let candidates = getFullPath <$> generateNames name
+    firstFreeFname <- fromJust <$> findM (fmap not . doesFileExist) candidates
+    BS.writeFile firstFreeFname bytes
+    openInFileBrowser firstFreeFname
+    return (T.pack firstFreeFname)
+
+findM :: Monad m => (a -> m Bool) -> [a] -> m (Maybe a)
+findM _ []     = return Nothing
+findM f (x:xs) = f x >>= bool (findM f xs) (return $ Just x)
+
+generateNames :: String -> [String]
+generateNames base = base : gen (1::Int) base
+    where gen n name = printf "%s (%d)" name n : gen (n+1) name
+
+openInFileBrowser :: FilePath -> IO ()
+openInFileBrowser fname = void $ createProcess (proc "nautilus" [fname])
 
 isPortFree :: Int -> IO Bool
 isPortFree port = do

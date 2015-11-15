@@ -191,9 +191,8 @@ runPoiAction prjViewState (entityVal . fromObjRef -> poi)
             x@_ -> Just x
         txt = projectPointOfInterestText poi
 
-saveAuthKey :: Text -> EntityRef Server -> IO (Either Text Text)
-saveAuthKey path (entityVal . fromObjRef -> server) =
-    saveAuthKeyBytes path (serverAuthKey server)
+saveServerAuthKey :: EntityRef Server -> IO (Either Text Text)
+saveServerAuthKey = saveAuthKey serverAuthKeyFilename serverAuthKey
 
 runServerRdp :: EntityRef Server -> Int -> Int -> IO (Either Text Text)
 runServerRdp (entityVal . fromObjRef -> server) = runRdp (serverToSystemServer server)
@@ -302,7 +301,7 @@ createProjectViewState sqlBackend = do
             defStatic  "updateProjectNote" (updateProjectNote sqlBackend),
             defMethod' "deleteProjectNotes" (deleteHelper sqlBackend deleteProjectNote),
             defMethod' "runPoiAction"      runPoiAction,
-            defStatic  "saveAuthKey"       (liftQmlResult2 saveAuthKey),
+            defStatic  "saveAuthKey"       (liftQmlResult1 saveServerAuthKey),
             defStatic  "runRdp"            (liftQmlResult3 runServerRdp),
             defStatic  "openSshSession"    (liftQmlResult1 $ openServerSshSession sqlBackend),
             defSignalNamedParams "gotOutput" (Proxy :: Proxy SignalOutput) $

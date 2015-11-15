@@ -16,7 +16,6 @@ import System.FilePath.Posix
 import System.Directory
 import Data.Monoid
 
-import ModelBase
 import Model
 import CrudHelpers
 import Util
