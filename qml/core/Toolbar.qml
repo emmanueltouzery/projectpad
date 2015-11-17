@@ -13,7 +13,7 @@ Rectangle {
     signal loadView(string name, variant model)
 
     signal toggleMenu()
-    signal toggleSearch()
+    signal searchTrigger(bool isSearchActive)
 
     /**
      * actions to display in the toolbar
@@ -33,8 +33,6 @@ Rectangle {
 
     function disableSearch() {
         searchBtn.checked = false
-        searchField.text = ""
-        searchField.visible = false
     }
 
     signal actionTriggered(string name);
@@ -97,7 +95,7 @@ Rectangle {
             iconName: 'glyphicons-28-search'
             iconSize: 20
             iconX: 5
-            onClicked: toggleSearch()
+            onClicked: searchTrigger(searchBtn.checked)
             height: parent.height
             checkable: true
             tooltip: 'Search (ctrl-s)'
@@ -118,7 +116,7 @@ Rectangle {
     Action {
         id: searchAction
         shortcut: "Ctrl+s"
-        onTriggered: { searchBtn.checked = !searchBtn.checked; toggleSearch() }
+        onTriggered: { searchBtn.checked = true; searchTrigger(searchBtn.checked) }
     }
 
     Component {

@@ -59,6 +59,22 @@ Window {
         toastButton.visible = false
     }
 
+    function searchTriggered(isSearchActive) {
+        if (isSearchActive) {
+            if (searchField.visible) {
+                searchField.selectAll()
+            } else {
+                searchField.text = ""
+                searchField.visible = true
+            }
+            searchField.forceActiveFocus()
+        } else {
+            searchField.visible = false
+            searchField.text = ""
+            loadViewAction("ProjectList.qml", null)
+        }
+    }
+
     Toolbar {
         id: toolbar
         onLoadView: loadViewAction(name, model)
@@ -67,15 +83,7 @@ Window {
             popupMenu.visible = !popupMenu.visible
             toolbar.setMenuDisplayed(popupMenu.visible)
         }
-        onToggleSearch: {
-            searchField.text = ""
-            searchField.visible = !searchField.visible
-            if (!searchField.visible) {
-                loadView("ProjectList.qml", null)
-            } else {
-                searchField.forceActiveFocus()
-            }
-        }
+        onSearchTrigger: searchTriggered(isSearchActive)
     }
 
     TextField {
@@ -83,6 +91,10 @@ Window {
         id: searchField
         visible: false
         width: parent.width
+        Keys.onEscapePressed: {
+            toolbar.disableSearch()
+            searchTriggered(false)
+        }
         Image {
             anchors { top: parent.top; right: parent.right; margins: 7 }
             source: '../glyphicons-free/glyphicons-28-search.png'
