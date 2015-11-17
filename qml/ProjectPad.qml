@@ -39,11 +39,10 @@ Window {
     }
 
     function confirmDanger(title, contents, btnText, callback) {
-        popup.setContentsDanger(title, confirmComponent, btnText,
-                                function (deleteDialog) {
-                                    deleteDialog.setContents(contents)
-                                },
-                                function (deleteDialog) { callback() })
+        popup.setContentsDanger(
+            title, confirmComponent, btnText,
+            function (deleteDialog) {deleteDialog.setContents(contents)},
+            function (deleteDialog) { callback() })
     }
 
     function searchFieldHeight() {
