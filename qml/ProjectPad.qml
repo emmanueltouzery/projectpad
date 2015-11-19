@@ -30,6 +30,8 @@ Window {
             // display of a server we open that server,
             // go out of search mode.
             toolbar.disableSearch()
+            searchField.visible = false
+            searchField.text = ""
         }
         loader.setSource(name, {"model": model})
     }
