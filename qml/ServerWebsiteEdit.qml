@@ -14,7 +14,7 @@ Rectangle {
 
     function getDefaultModel() {
         return {"desc": "New server website", "url": "", "text": "",
-            "username": "", "password": "", "serverDatabaseId": -1}
+            "username": "", "password": "", "serverDatabaseId": null}
     }
 
     function activate(server, _model) {

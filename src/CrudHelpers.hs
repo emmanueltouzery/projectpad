@@ -18,7 +18,10 @@ addHelper :: (ToBackendKey SqlBackend record, SqlEntity s) =>
     SqlBackend -> Int -> (Key record -> s) -> IO ()
 addHelper sqlBackend parentId entityGetter = do
     let pIdKey = toSqlKey $ fromIntegral parentId
-    void $ runSqlBackend sqlBackend $ P.insert $ entityGetter pIdKey
+    r <- try $ runSqlBackend sqlBackend $ P.insert $ entityGetter pIdKey
+    case r of
+        Left ex -> print (ex :: SomeException)
+        Right _ -> return ()
 
 updateHelper :: (DefaultClass (Entity b), SqlEntity b) =>
     SqlBackend -> EntityRef b
