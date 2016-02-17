@@ -38,26 +38,13 @@ Let's now cover installation from source...
 You must first install sqlcipher itself. If your distribution doesn't have packages, you'll have to compile it:
 https://github.com/sqlcipher/sqlcipher#compiling
 (dynamic linking worked best for me)
+If you have packages, you'll need the -dev or -devel version.
 
-Then you'll need the persistent-sqlcipher haskell package. That package however doesn't really exist. You'll have to fetch the
-persistent-sqlite package source, and modify the cabal file. Simply open the persistent-sqlite.cabal and change the name from
-persistent-sqlite to persistent-sqlcipher, and the extra-libraries section:
+Then you need to [install stack][], and to build you can use simply:
 
-    -    if flag(systemlib)
-    -        extra-libraries: sqlite3
-    -    else
-    -        c-sources:   cbits/sqlite3.c
-    -        cc-options:  -fPIC
-    +    extra-libraries: sqlcipher
+    stack install
 
-To install persistent-sqlcipher only to the projectpad sandbox you can install it from the persistent checkout folder running:
+Add `~/.local/bin` to your `PATH` then you can run the app simply with the `projectpad` command.
 
-    cabal --sandbox-config-file=<projectpad dir>/cabal.sandbox.config install
-
-You can also compile and run against a sqlcipher that was not installed globably on the computer using LD_LIBRARY_PATH:
-
-    LD_LIBRARY_PATH=$LD_LIBRARY_PATH:<sqlcipher install dir>/lib/ cabal build
-
-The same to run the application.
-
+[install stack]: http://docs.haskellstack.org/en/stable/README.html#how-to-install
 [SQLcipher]: https://www.zetetic.net/sqlcipher/

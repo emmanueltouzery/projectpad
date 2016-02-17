@@ -17,7 +17,19 @@ cabal-version:       >=1.10
 
 executable projectpad
   main-is:             Main.hs
-  -- other-modules:
+  other-modules:
+    CrudHelpers
+    Model
+    ModelBase
+    Notes
+    Paths_projectpad
+    ProjectList
+    ProjectView
+    Schema
+    Search
+    ServerView
+    System
+    Util
   -- other-extensions:
   build-depends:       base >=4.7 && <5,
                        -- need 2.1.1.2 due to https://github.com/yesodweb/persistent/issues/328
