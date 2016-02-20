@@ -39,7 +39,7 @@ If you have packages, you'll need the -dev or -devel version.
 
 Then you need to [install stack][], and to build you can use simply:
 
-    stack install
+    bash install.sh
 
 Add `~/.local/bin` to your `PATH` then you can run the app simply with the `projectpad` command.
 
