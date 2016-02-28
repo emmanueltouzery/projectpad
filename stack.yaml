@@ -19,6 +19,7 @@ packages:
 extra-deps:
 - hsqml-0.3.3.0
 - xdg-userdirs-0.1.0.2
+- th-printf-0.3.1
 
 # Override default flag values for local packages and extra-deps
 flags: {}

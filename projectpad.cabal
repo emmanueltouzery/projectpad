@@ -55,7 +55,8 @@ executable projectpad
                        attoparsec >= 0.13,
                        xdg-userdirs,
                        lucid >= 2.9.2,
-                       network
+                       network,
+                       th-printf
   hs-source-dirs:      src
   ghc-options:         -Wall -threaded -fno-warn-unused-do-bind
   default-language:    Haskell2010

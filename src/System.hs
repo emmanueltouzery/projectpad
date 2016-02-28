@@ -1,4 +1,4 @@
-{-# LANGUAGE OverloadedStrings, LambdaCase, ScopedTypeVariables, RecordWildCards #-}
+{-# LANGUAGE OverloadedStrings, LambdaCase, ScopedTypeVariables, RecordWildCards, QuasiQuotes #-}
 
 module System where
 
@@ -21,7 +21,7 @@ import Control.Concurrent
 import Data.Monoid
 import qualified Data.ByteString as BS
 import System.Environment.XDG.UserDir
-import Text.Printf
+import Text.Printf.TH
 import Network.Socket
 import Data.Maybe
 
@@ -41,8 +41,8 @@ runRdp ServerInfo{..} width height = do
     homeDir <- T.pack <$> getHomeDirectory
     let params = T.unpack <$> [srvAddress,
                                "-u", srvUsername,
-                               "-g", T.concat $ T.pack <$> [show width, "x", show height],
-                               "-r", T.concat ["disk:mydisk=", homeDir],
+                               "-g", T.pack $ show width <> "x" <> show height,
+                               "-r", "disk:mydisk=" <> homeDir,
                                "-p", "-"]
     r <- try (createProcess (proc "rdesktop" params) { std_in = CreatePipe})
     case r of
@@ -257,7 +257,7 @@ downloadFileSsh :: ServerInfo -> Int -> Text -> (CommandProgress -> IO ()) -> IO
 downloadFileSsh srv@ServerInfo{..} port path readCallback = do
     outputDir <- getUserDir "DOWNLOAD"
     let fname = takeFileName (T.unpack path)
-    readCallback $ CommandOutput $ T.pack $ printf "\nStarting download of the file %s to %s..." fname outputDir
+    readCallback $ CommandOutput $ [st|\nStarting download of the file %s to %s...|] fname outputDir
     sshHandlePasswordAndRun srvPassword ["/usr/bin/scp", "-P", text port,
         sshUserHost srv <> ":" <> path, T.pack outputDir] readCallback
 
@@ -278,7 +278,7 @@ findM f (x:xs) = f x >>= bool (findM f xs) (return $ Just x)
 
 generateNames :: String -> [String]
 generateNames base = base : gen (1::Int) base
-    where gen n name = printf "%s (%d)" name n : gen (n+1) name
+    where gen n name = [s|%s (%d)|] name n : gen (n+1) name
 
 openInFileBrowser :: FilePath -> IO ()
 openInFileBrowser fname = void $ createProcess (proc "nautilus" [fname])
