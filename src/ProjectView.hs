@@ -119,6 +119,28 @@ updateProjectNote sqlBackend noteRef title contents
             ProjectNoteGroupName P.=. groupName
         ]
 
+readServerLinks :: Int -> SqlPersistM [Entity ServerLink]
+readServerLinks projectId = select $ from $ \nte -> do
+    where_ (nte ^. ServerLinkProjectId ==. val (toSqlKey32 projectId))
+    orderBy [asc (nte ^. ServerLinkDesc)]
+    return nte
+
+addServerLink :: SqlBackend -> Text -> Int -> Maybe Text -> Int -> IO ()
+addServerLink sqlBackend lnkDesc linkedServerIntId (groupOrNothing -> groupName) projectId = do
+    let linkedServerId = toSqlKey $ fromIntegral linkedServerIntId
+    addHelper sqlBackend projectId $ ServerLink lnkDesc linkedServerId groupName
+
+updateServerLink :: SqlBackend -> EntityRef ServerLink
+    -> Text -> Int -> Maybe Text -> IO (EntityRef ServerLink)
+updateServerLink sqlBackend serverLinkRef lnkDesc
+    linkedServerIntId (groupOrNothing -> groupName) =
+    updateHelper sqlBackend serverLinkRef
+        [
+            ServerLinkDesc P.=. lnkDesc,
+            ServerLinkLinkedServerId P.=. toSqlKey (fromIntegral linkedServerIntId),
+            ServerLinkGroupName P.=. groupName
+        ]
+
 getProjectGroupNames :: SqlBackend -> Int -> IO [Text]
 getProjectGroupNames sqlBackend projectId = do
     serverGroupNames      <- readEF readServers serverGroupName
@@ -129,31 +151,35 @@ getProjectGroupNames sqlBackend projectId = do
 
 data ProjectDisplaySection = ProjectDisplaySection
     {
-        prjSectionGrpName     :: Maybe Text,
-        prjSectionServers     :: [ObjRef ServerExtraInfo],
-        prjSectionProjectPois :: [EntityRef ProjectPointOfInterest],
-        prjSectionNotes       :: [EntityRef ProjectNote]
+        prjSectionGrpName       :: Maybe Text,
+        prjSectionServers       :: [ObjRef ServerExtraInfo],
+        prjSectionLinkedServers :: [EntityRef ServerLink],
+        prjSectionProjectPois   :: [EntityRef ProjectPointOfInterest],
+        prjSectionNotes         :: [EntityRef ProjectNote]
     } deriving Typeable
 
 instance DefaultClass ProjectDisplaySection where
     classMembers =
         [
-            defPropertyConst "groupName" (readM prjSectionGrpName),
-            defPropertyConst "servers"   (readM prjSectionServers),
-            defPropertyConst "pois"      (readM prjSectionProjectPois),
-            defPropertyConst "notes"     (readM prjSectionNotes)
+            defPropertyConst "groupName"     (readM prjSectionGrpName),
+            defPropertyConst "servers"       (readM prjSectionServers),
+            defPropertyConst "linkedServers" (readM prjSectionLinkedServers),
+            defPropertyConst "pois"          (readM prjSectionProjectPois),
+            defPropertyConst "notes"         (readM prjSectionNotes)
         ]
 
 getProjectDisplaySections :: SqlBackend -> Int -> Text -> IO [ObjRef ProjectDisplaySection]
 getProjectDisplaySections sqlBackend projectId environment = do
-    groupNames <- getProjectGroupNames sqlBackend projectId
-    servers    <- getServersExtraInfo sqlBackend environment projectId
-    pois       <- runServerQ readPois
-    notes      <- runServerQ readNotes
+    groupNames    <- getProjectGroupNames sqlBackend projectId
+    servers       <- getServersExtraInfo sqlBackend environment projectId
+    linkedServers <- runServerQ readServerLinks
+    pois          <- runServerQ readPois
+    notes         <- runServerQ readNotes
     let sectionForGroup grp = ProjectDisplaySection {
-            prjSectionGrpName     = grp,
-            prjSectionServers     =
+            prjSectionGrpName = grp,
+            prjSectionServers =
                 filter ((== grp) . serverGroupName . srvExtraInfoRefGetServer) servers,
+            prjSectionLinkedServers = filterForGroup grp serverLinkGroupName linkedServers,
             prjSectionProjectPois =
                 filterForGroup grp projectPointOfInterestGroupName pois,
             prjSectionNotes = filterForGroup grp projectNoteGroupName notes

@@ -15,6 +15,8 @@ Rectangle {
             return 2
         } else if (addNote.checked) {
             return 3
+        } else if (addServerLink.checked) {
+            return 4
         }
     }
 
@@ -30,6 +32,11 @@ Rectangle {
             text: "Add server"
             exclusiveGroup: addGroup
             checked: true
+        }
+        RadioButton {
+            id: addServerLink
+            text: "Add link to server"
+            exclusiveGroup: addGroup
         }
         RadioButton {
             id: addPointOfInterest

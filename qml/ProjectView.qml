@@ -44,6 +44,19 @@ Rectangle {
                     refreshProjectView()
                 })
             break;
+        case "addsrvlink":
+            popup.setContents(
+                "Add link to server", serverLinkEditComponent,
+                function (serverLinkEdit) {
+                    serverLinkEdit.activate(
+                        pv.model.project, serverLinkEdit.getDefaultModel(),
+                        model.environment)
+                },
+                function (serverLinkEdit) {
+                    serverLinkEdit.onOk(pv.model.project)
+                    refreshProjectView()
+                });
+            break;
         case "addpoi":
             popup.setContents(
                 "Add point of interest", poiEditComponent,
@@ -73,7 +86,12 @@ Rectangle {
                                   prjAdd.init()
                               },
                               function (prjAdd) {
-                                  var matches = {1: "addsrv", 2: "addpoi", 3: "addnote"}
+                                  var matches = {
+                                      1: "addsrv",
+                                      2: "addpoi",
+                                      3: "addnote",
+                                      4: "addsrvlink"
+                                  }
                                   _popupToDisplay = matches[prjAdd.next()]
                                   displayPopupTimer.start()
                               }, {okBtnText: "Next"})
@@ -146,6 +164,16 @@ Rectangle {
                         }
 
                         Repeater {
+                            id: serverlinksrepeater
+                            model: modelData.linkedServers
+                            TileServerLink {
+                                global: parent.parent
+                                onActivated: Utils.scrollInView(
+                                    tile, projectScrollView, projectFlickable)
+                            }
+                        }
+
+                        Repeater {
                             id: poisrepeater
                             model: modelData.pois
 
@@ -177,6 +205,12 @@ Rectangle {
                 id: serverEditComponent
                 ServerEdit {
                     id: serverEdit
+                }
+            }
+            Component {
+                id: serverLinkEditComponent
+                ServerLinkEdit {
+                    id: serverLinkEdit
                 }
             }
             Component {

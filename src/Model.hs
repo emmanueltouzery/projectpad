@@ -75,6 +75,12 @@ Server
     groupName Text Maybe
     projectId ProjectId
     deriving Show Typeable
+ServerLink
+    desc Text
+    linkedServerId ServerId
+    groupName Text Maybe
+    projectId ProjectId
+    deriving Show Typeable
 ServerWebsite
     desc Text
     url Text
@@ -182,6 +188,15 @@ instance DefaultClass (Entity Server) where
             defPropConst "environment"     $ text . serverEnvironment,
             defPropConst "groupName"       $ fromMaybe "" . serverGroupName,
             defFk        "projectId"       $ Just . serverProjectId
+        ]
+
+instance DefaultClass (Entity ServerLink) where
+    classMembers = getStandardClassMembers
+        [
+            defPropConst "desc"            serverLinkDesc,
+            defPropConst "groupName"       $ fromMaybe "" . serverLinkGroupName,
+            defFk        "linkedServerId"  $ Just . serverLinkLinkedServerId,
+            defFk        "projectId"       $ Just . serverLinkProjectId
         ]
 
 instance DefaultClass (Entity ServerPointOfInterest) where
