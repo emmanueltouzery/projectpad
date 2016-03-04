@@ -119,6 +119,15 @@ updateProjectNote sqlBackend noteRef title contents
             ProjectNoteGroupName P.=. groupName
         ]
 
+readServerForLink :: SqlBackend -> ServerLink -> IO (Entity Server)
+readServerForLink sqlBackend serverLink = fromMaybe (error "no server for serverlink?") .
+    listToMaybe <$> runSqlBackend sqlBackend q
+    where
+      q = select $ from $ \s -> do
+              where_ (s ^. ServerId ==. val (serverLinkLinkedServerId serverLink))
+              limit 1
+              return s
+
 readServerLinks :: Int -> SqlPersistM [Entity ServerLink]
 readServerLinks projectId = select $ from $ \nte -> do
     where_ (nte ^. ServerLinkProjectId ==. val (toSqlKey32 projectId))
@@ -155,7 +164,7 @@ data ProjectDisplaySection = ProjectDisplaySection
     {
         prjSectionGrpName       :: Maybe Text,
         prjSectionServers       :: [ObjRef ServerExtraInfo],
-        prjSectionLinkedServers :: [EntityRef ServerLink],
+        prjSectionLinkedServers :: [ObjRef ServerLinkInfo],
         prjSectionProjectPois   :: [EntityRef ProjectPointOfInterest],
         prjSectionNotes         :: [EntityRef ProjectNote]
     } deriving Typeable
@@ -173,24 +182,25 @@ instance DefaultClass ProjectDisplaySection where
 getProjectDisplaySections :: SqlBackend -> Int -> Text -> IO [ObjRef ProjectDisplaySection]
 getProjectDisplaySections sqlBackend projectId environment = do
     groupNames    <- getProjectGroupNames sqlBackend projectId
-    servers       <- getServersExtraInfo sqlBackend environment projectId
-    linkedServers <- runServerQ readServerLinks
+    servers       <- getProjectServersExtraInfo sqlBackend environment projectId
+    linkedServers <- getProjectServerLinks sqlBackend environment projectId
     pois          <- runServerQ readPois
     notes         <- runServerQ readNotes
     let sectionForGroup grp = ProjectDisplaySection {
             prjSectionGrpName = grp,
             prjSectionServers =
-                filter ((== grp) . serverGroupName . srvExtraInfoRefGetServer) servers,
-            prjSectionLinkedServers = filterForGroup grp serverLinkGroupName linkedServers,
+                  filter ((== grp) . serverGroupName . fromEntRef srvExtraInfoServer) servers,
+            prjSectionLinkedServers =
+                  filter ((==grp) . serverLinkGroupName . fromEntRef srvLinkInfoServerLink) linkedServers,
             prjSectionProjectPois =
-                filterForGroup grp projectPointOfInterestGroupName pois,
+                  filterForGroup grp projectPointOfInterestGroupName pois,
             prjSectionNotes = filterForGroup grp projectNoteGroupName notes
         }
     mapM newObjectDC $ sectionForGroup Nothing : (sectionForGroup . Just <$> groupNames)
     where
       runServerQ :: DefaultClass a => (Int -> SqlPersistM [a]) -> IO [ObjRef a]
       runServerQ f = sqlToQml sqlBackend (f projectId)
-      srvExtraInfoRefGetServer = entityVal . fromObjRef . srvExtraInfoServer . fromObjRef
+      fromEntRef f = entityVal . fromObjRef . f . fromObjRef
 
 splitParams :: Text -> Either String [Text]
 splitParams = parseOnly splitParamsParser
@@ -250,35 +260,51 @@ instance DefaultClass ServerExtraInfo where
             defPropertyConst "userCount" (readM srvExtraInfoUserCount)
         ]
 
+data ServerLinkInfo = ServerLinkInfo
+    {
+        srvLinkInfoServerLink :: EntityRef ServerLink,
+        srvLinkInfoServer     :: EntityRef Server
+    }
+
+instance DefaultClass ServerLinkInfo where
+    classMembers =
+        [
+            defPropertyConst "server"     (readM srvLinkInfoServer),
+            defPropertyConst "serverLink" (readM srvLinkInfoServerLink)
+        ]
+
 readServersExtraInfo :: (SqlEntity val, PersistField typ1, PersistField typ) =>
     EntityField val typ1 -> EntityField val typ -> [typ] -> SqlPersistM [(Value typ, Value Int)]
 readServersExtraInfo tableId serverFk serverIds = select $ from $ \sp -> do
         groupBy (sp ^. serverFk)
-        having (sp ^. serverFk `in_` valList serverIds)
-        return (sp ^. serverFk, count (sp ^. tableId))
+        having  (sp ^. serverFk `in_` valList serverIds)
+        return  (sp ^. serverFk, count (sp ^. tableId))
 
 getInfosVal :: (SqlEntity val, PersistField typ1) =>
-    SqlBackend -> M.Map (Key Server) a -> EntityField val typ1
+    SqlBackend -> [Key Server] -> EntityField val typ1
     -> EntityField val (Key Server) -> IO (M.Map (Key Server) Int)
-getInfosVal sqlBackend serversById tableId serverFk = do
+getInfosVal sqlBackend serverIds tableId serverFk = do
     poiInfosVal <- runSqlBackend sqlBackend $ readServersExtraInfo
-        tableId serverFk $ M.keys serversById
+        tableId serverFk serverIds
     return $ M.fromList $ fmap (unValue *** unValue) poiInfosVal
 
-getServersExtraInfo :: SqlBackend -> Text -> Int -> IO [ObjRef ServerExtraInfo]
-getServersExtraInfo sqlBackend environment projectId = do
+getProjectServersExtraInfo :: SqlBackend -> Text -> Int -> IO [ObjRef ServerExtraInfo]
+getProjectServersExtraInfo sqlBackend environment projectId = do
     let environmentType = readT environment
     prjServers <- runSqlBackend sqlBackend $ readServers projectId
     let envServers = filter ((==environmentType) . serverEnvironment . entityVal) prjServers
-    let serversById = M.fromList $ fmap (\s -> (entityKey s, s)) envServers
+    getServersExtraInfo sqlBackend envServers
 
-    poiInfos <- getInfosVal sqlBackend serversById
+getServersExtraInfo :: SqlBackend -> [Entity Server] -> IO [ObjRef ServerExtraInfo]
+getServersExtraInfo sqlBackend servers = do
+    let serverIds = entityKey <$> servers
+    poiInfos <- getInfosVal sqlBackend serverIds
         ServerPointOfInterestId ServerPointOfInterestServerId
-    wwwInfos <- getInfosVal sqlBackend serversById
+    wwwInfos <- getInfosVal sqlBackend serverIds
         ServerWebsiteId ServerWebsiteServerId
-    dbInfos <- getInfosVal sqlBackend serversById
+    dbInfos <- getInfosVal sqlBackend serverIds
         ServerDatabaseId ServerDatabaseServerId
-    userInfos <- getInfosVal sqlBackend serversById
+    userInfos <- getInfosVal sqlBackend serverIds
         ServerExtraUserAccountId ServerExtraUserAccountServerId
 
     mapM (\s -> do
@@ -287,9 +313,19 @@ getServersExtraInfo sqlBackend environment projectId = do
                    (getServerCount s poiInfos)
                    (getServerCount s wwwInfos)
                    (getServerCount s dbInfos)
-                   (getServerCount s userInfos)) envServers
+                   (getServerCount s userInfos)) servers
     where
         getServerCount s = fromMaybe 0 . M.lookup (entityKey s)
+
+getProjectServerLinks :: SqlBackend -> Text -> Int -> IO [ObjRef ServerLinkInfo]
+getProjectServerLinks sqlBackend environment projectId = do
+    let envType = readT environment
+    serverLinks <- runSqlBackend sqlBackend (readServerLinks projectId)
+    let envServerLinks = filter ((==envType) . serverLinkEnvironment . entityVal) serverLinks
+    linkedServers <- mapM (readServerForLink sqlBackend) (entityVal <$> envServerLinks)
+    mapM newObjectDC =<< (zipWith ServerLinkInfo
+                          <$> mapM newObjectDC envServerLinks
+                          <*> mapM newObjectDC linkedServers)
 
 canDeleteServer :: SqlBackend -> Entity Server -> IO (Maybe Text)
 canDeleteServer sqlBackend server = do
@@ -319,7 +355,7 @@ createProjectViewState sqlBackend = do
     projectViewClass <- newClass
         [
             defStatic  "getProjectDisplaySections" (getProjectDisplaySections sqlBackend),
-            defStatic  "getServers"        (getServersExtraInfo sqlBackend),
+            defStatic  "getServers"        (getProjectServersExtraInfo sqlBackend),
             defStatic  "getProjectGroupNames" (getProjectGroupNames sqlBackend),
             defStatic  "addServer"         (addServer sqlBackend),
             defStatic  "updateServer"      (updateServer sqlBackend),
