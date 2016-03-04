@@ -1,6 +1,7 @@
 import QtQuick 2.2
 import QtQuick.Controls 1.2
 import QtQuick.Layouts 1.1
+import "utils.js" as Utils
 import "core"
 
 Rectangle {
@@ -8,9 +9,43 @@ Rectangle {
     color: "light grey"
     property int preferredHeight: 130
 
+    property variant model: getDefaultModel()
+    property var origModel
+    property string environment
+
+    function getDefaultModel() {
+        return {"desc": "New server link"}
+    }
+
+    function activate(parent, _model, _environment) {
+        origModel = _model
+        serverLinkEdit.model = Utils.deepCopy(_model)
+        serverLinkEdit.environment = _environment
+        var groups = getAppState().projectViewState.getProjectGroupNames(parent.id)
+        group.model.clear()
+        groups.forEach(function (grp) {
+            group.model.append({"text": grp})
+        })
+        group.currentIndex = groups.indexOf(_model.groupName)
+        updateServerButtonText()
+        serverLnkDescription.selectAll()
+        serverLnkDescription.forceActiveFocus()
+    }
+
     function updateServerButtonText() {
         var server = getAppState().projectListState.getServerById(model.serverId)
         serverButton.text = server ? server.desc : "..."
+    }
+
+    function onOk(project) {
+        if (model.id) {
+            serverLinkEdit.model = getAppState().projectViewState.updateServerLink(
+                origModel, serverLnkDescription.text, model.serverId, group.editText);
+        } else {
+            getAppState().projectViewState.addServerLink(
+                project.id, serverLnkDescription.text, model.serverId,
+                serverLinkEdit.environment, group.editText)
+        }
     }
 
     GridLayout {
@@ -24,9 +59,9 @@ Rectangle {
             text: "Description:"
         }
         TextField {
-            id: txt
+            id: serverLnkDescription
             Layout.fillWidth: true
-            text: serverLinkEdit.model.description
+            text: serverLinkEdit.model.desc
         }
 
         Text {
@@ -42,6 +77,17 @@ Rectangle {
                 popupServerPicker.visible = true
                 popup.shadeHeader()
             }
+        }
+
+        Text {
+            text: "Group:"
+        }
+        ComboBox {
+            id: group
+            Layout.fillWidth: true
+            textRole: "text"
+            model: ListModel {}
+            editable: true
         }
     }
 

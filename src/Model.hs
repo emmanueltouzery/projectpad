@@ -78,6 +78,7 @@ Server
 ServerLink
     desc Text
     linkedServerId ServerId
+    environment EnvironmentType
     groupName Text Maybe
     projectId ProjectId
     deriving Show Typeable
@@ -194,8 +195,9 @@ instance DefaultClass (Entity ServerLink) where
     classMembers = getStandardClassMembers
         [
             defPropConst "desc"            serverLinkDesc,
-            defPropConst "groupName"       $ fromMaybe "" . serverLinkGroupName,
             defFk        "linkedServerId"  $ Just . serverLinkLinkedServerId,
+            defPropConst "environment"     $ text . serverLinkEnvironment,
+            defPropConst "groupName"       $ fromMaybe "" . serverLinkGroupName,
             defFk        "projectId"       $ Just . serverLinkProjectId
         ]
 

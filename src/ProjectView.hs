@@ -125,10 +125,12 @@ readServerLinks projectId = select $ from $ \nte -> do
     orderBy [asc (nte ^. ServerLinkDesc)]
     return nte
 
-addServerLink :: SqlBackend -> Text -> Int -> Maybe Text -> Int -> IO ()
-addServerLink sqlBackend lnkDesc linkedServerIntId (groupOrNothing -> groupName) projectId = do
+addServerLink :: SqlBackend -> Int -> Text -> Int -> Text -> Maybe Text -> IO ()
+addServerLink sqlBackend projectId lnkDesc linkedServerIntId
+    srvEnvironmentT (groupOrNothing -> groupName) = do
+    let srvEnv        = readT srvEnvironmentT
     let linkedServerId = toSqlKey $ fromIntegral linkedServerIntId
-    addHelper sqlBackend projectId $ ServerLink lnkDesc linkedServerId groupName
+    addHelper sqlBackend projectId $ ServerLink lnkDesc linkedServerId srvEnv groupName
 
 updateServerLink :: SqlBackend -> EntityRef ServerLink
     -> Text -> Int -> Maybe Text -> IO (EntityRef ServerLink)
@@ -309,6 +311,9 @@ deleteProjectPoi = P.delete
 deleteProjectNote :: Key ProjectNote -> SqlPersistM ()
 deleteProjectNote = P.delete
 
+deleteServerLink :: Key ServerLink -> SqlPersistM ()
+deleteServerLink = P.delete
+
 createProjectViewState :: SqlBackend -> IO (ObjRef ProjectViewState)
 createProjectViewState sqlBackend = do
     projectViewClass <- newClass
@@ -326,6 +331,9 @@ createProjectViewState sqlBackend = do
             defStatic  "addProjectNote"    (addProjectNote sqlBackend),
             defStatic  "updateProjectNote" (updateProjectNote sqlBackend),
             defMethod' "deleteProjectNotes" (deleteHelper sqlBackend deleteProjectNote),
+            defStatic  "addServerLink"     (addServerLink sqlBackend),
+            defStatic  "updateServerLink"  (updateServerLink sqlBackend),
+            defMethod' "deleteServerLinks" (deleteHelper sqlBackend deleteServerLink),
             defMethod' "runPoiAction"      runPoiAction,
             defStatic  "saveAuthKey"       (liftQmlResult1 saveServerAuthKey),
             defStatic  "runRdp"            (liftQmlResult3 runServerRdp),
