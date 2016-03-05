@@ -7,13 +7,19 @@ import "../utils.js" as Utils
 ItemTile {
     property int modelId: model.serverLink.id
     property variant model
-    color: "light blue"
+    color: "#e0e8ef"
     itemDesc: model.serverLink.desc
-    icon: "glyphicons-152-new-window"
+    icon: ServerMenu.getServerIcon(model.server)
     property variant global: undefined
     signal activated(variant tile)
     property var serverLinkEditComponent
     property variant project
+
+    Image {
+        x: 5
+        y: 145
+        source: '../../glyphicons-free/glyphicons-152-new-window.png'
+    }
 
     MouseArea {
         anchors.fill: parent
