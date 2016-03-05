@@ -3,7 +3,6 @@
 module Schema (upgradeSchema, getDbVersion) where
 
 import Control.Error
-import Control.Applicative
 import Control.Monad.Trans
 import qualified Data.Text.Encoding as TE
 import Data.Text (Text)

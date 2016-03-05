@@ -200,7 +200,7 @@ getProjectDisplaySections sqlBackend projectId environment = do
     where
       runServerQ :: DefaultClass a => (Int -> SqlPersistM [a]) -> IO [ObjRef a]
       runServerQ f = sqlToQml sqlBackend (f projectId)
-      fromEntRef f = entityVal . fromObjRef . f . fromObjRef
+      fromEntRef f = fromEntityRef . f . fromObjRef
 
 splitParams :: Text -> Either String [Text]
 splitParams = parseOnly splitParamsParser
@@ -211,7 +211,7 @@ splitParams = parseOnly splitParamsParser
 
 runPoiAction :: ObjRef ProjectViewState
     -> EntityRef ProjectPointOfInterest -> IO ()
-runPoiAction prjViewState (entityVal . fromObjRef -> poi)
+runPoiAction prjViewState (fromEntityRef -> poi)
     | interest == PoiCommandToRun = case splitParams txt of
         Left x -> notify (CommandFailed $ "Error parsing the command: " <> T.pack x)
         Right [] -> notify (CommandFailed "Incomplete command line")
@@ -233,7 +233,7 @@ saveServerAuthKey :: EntityRef Server -> IO (Either Text Text)
 saveServerAuthKey = saveAuthKey serverAuthKeyFilename serverAuthKey
 
 runServerRdp :: EntityRef Server -> Int -> Int -> IO (Either Text Text)
-runServerRdp (entityVal . fromObjRef -> server) = runRdp (serverToSystemServer server)
+runServerRdp (fromEntityRef -> server) = runRdp (serverToSystemServer server)
 
 openServerSshSession :: SqlBackend -> EntityRef Server -> IO (Either Text ())
 openServerSshSession sqlBackend server = openServerSshAction sqlBackend server $
@@ -317,15 +317,19 @@ getServersExtraInfo sqlBackend servers = do
     where
         getServerCount s = fromMaybe 0 . M.lookup (entityKey s)
 
+serverLinksGetInfo :: SqlBackend -> [Entity ServerLink] -> IO [ObjRef ServerLinkInfo]
+serverLinksGetInfo sqlBackend serverLinks = do
+    linkedServers <- mapM (readServerForLink sqlBackend) (entityVal <$> serverLinks)
+    mapM newObjectDC =<< (zipWith ServerLinkInfo
+                          <$> mapM newObjectDC serverLinks
+                          <*> mapM newObjectDC linkedServers)
+
 getProjectServerLinks :: SqlBackend -> Text -> Int -> IO [ObjRef ServerLinkInfo]
 getProjectServerLinks sqlBackend environment projectId = do
     let envType = readT environment
     serverLinks <- runSqlBackend sqlBackend (readServerLinks projectId)
     let envServerLinks = filter ((==envType) . serverLinkEnvironment . entityVal) serverLinks
-    linkedServers <- mapM (readServerForLink sqlBackend) (entityVal <$> envServerLinks)
-    mapM newObjectDC =<< (zipWith ServerLinkInfo
-                          <$> mapM newObjectDC envServerLinks
-                          <*> mapM newObjectDC linkedServers)
+    serverLinksGetInfo sqlBackend envServerLinks
 
 canDeleteServer :: SqlBackend -> Entity Server -> IO (Maybe Text)
 canDeleteServer sqlBackend server = do

@@ -167,6 +167,8 @@ Rectangle {
                             id: serverlinksrepeater
                             model: modelData.linkedServers
                             TileServerLink {
+                                model: modelData
+                                project: pv.model.project
                                 global: parent.parent
                                 onActivated: Utils.scrollInView(
                                     tile, projectScrollView, projectFlickable)

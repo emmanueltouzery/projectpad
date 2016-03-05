@@ -16,7 +16,6 @@ import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.ByteString as BS
 import Data.Maybe
-import Control.Applicative
 import Data.Ord
 import Data.List as L
 
@@ -29,6 +28,7 @@ data EntityType = AllEntityTypes
                 | ProjectPoiEntityType
                 | ProjectNoteEntityType
                 | ServerEntityType
+                | ServerLinkEntityType
                 | ServerWebsiteEntityType
                 | ServerExtraUserEntityType
                 | ServerPoiEntityType
@@ -126,6 +126,9 @@ DbVersion
 
 type EntityRef a = ObjRef (Entity a)
 
+fromEntityRef :: EntityRef a -> a
+fromEntityRef = entityVal . fromObjRef
+
 int64to32 :: Int64 -> Int
 int64to32 = fromIntegral
 
@@ -143,7 +146,7 @@ getStandardClassMembers others = idProperty:others
 
 defPropConst :: (QmlReturnable tr, Typeable b) =>
     String -> (b -> tr) -> Member (GetObjType (EntityRef b))
-defPropConst name f = defPropertyConst name (return . f . entityVal . fromObjRef)
+defPropConst name f = defPropertyConst name (return . f . fromEntityRef)
 
 defFk :: (ToBackendKey SqlBackend record1, Typeable record) =>
           String -> (record -> Maybe (Key record1)) -> Member (GetObjType (EntityRef record))
@@ -292,4 +295,4 @@ mergeNames :: [Maybe Text] -> [Text]
 mergeNames = nub . sortBy (comparing T.toCaseFold) . catMaybes
 
 filterForGroup :: Eq b => b -> (a -> b) -> [EntityRef a] -> [EntityRef a]
-filterForGroup grp grpNameField = L.filter ((==grp) . grpNameField . entityVal . fromObjRef)
+filterForGroup grp grpNameField = L.filter ((==grp) . grpNameField . fromEntityRef)

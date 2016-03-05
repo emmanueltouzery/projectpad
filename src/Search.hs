@@ -7,15 +7,17 @@ import qualified Data.Text as T
 import Data.Typeable
 import Database.Esqueleto hiding (on)
 import Graphics.QML
-import Control.Applicative
 import qualified Data.Set as Set
 import Data.Set (Set)
 import Data.List
 import Data.Ord
 import Data.Function
+import Data.Maybe
+import Control.Error
 
 import Model
 import Util
+import ProjectView
 
 -- I don't know in the QML how to get the current
 -- item of the parent repeater => keep in the info
@@ -27,7 +29,7 @@ data ParentChildInfo a b = ParentChildInfo
         pciChild  :: EntityRef b
     } deriving Typeable
 
-type ServerChildInfo a = ParentChildInfo Server a
+type ServerChildInfo a  = ParentChildInfo Server a
 type ProjectChildInfo a = ParentChildInfo Project a
 
 instance (Typeable a, Typeable b) => DefaultClass (ParentChildInfo a b) where
@@ -35,6 +37,18 @@ instance (Typeable a, Typeable b) => DefaultClass (ParentChildInfo a b) where
         [
             prop "parent" pciParent,
             prop "child"  pciChild
+        ]
+
+data NoEntityParentChildInfo a b = NoEntityParentChildInfo
+    {
+        niPciParent :: EntityRef a,
+        niPciChild  :: ObjRef b
+    } deriving Typeable
+instance (Typeable a, Typeable b) => DefaultClass (NoEntityParentChildInfo a b) where
+    classMembers =
+        [
+            prop "parent" niPciParent,
+            prop "child"  niPciChild
         ]
 
 data ServerSearchMatch = ServerSearchMatch
@@ -64,19 +78,21 @@ instance DefaultClass ServerSearchMatch where
 
 data ProjectSearchMatch = ProjectSearchMatch
     {
-        smProject        :: EntityRef Project,
-        smProjectNotes   :: [ObjRef (ProjectChildInfo ProjectNote)],
-        smProjectPois    :: [ObjRef (ProjectChildInfo ProjectPointOfInterest)],
-        smProjectServers :: [ObjRef ServerSearchMatch]
+        smProject         :: EntityRef Project,
+        smProjectNotes    :: [ObjRef (ProjectChildInfo ProjectNote)],
+        smProjectPois     :: [ObjRef (ProjectChildInfo ProjectPointOfInterest)],
+        smProjectServers  :: [ObjRef ServerSearchMatch],
+        smProjectSrvLinks :: [ObjRef (NoEntityParentChildInfo Project ServerLinkInfo)]
     } deriving Typeable
 
 instance DefaultClass ProjectSearchMatch where
     classMembers =
         [
-            prop "project" smProject,
-            prop "notes"   smProjectNotes,
-            prop "pois"    smProjectPois,
-            prop "servers" smProjectServers
+            prop "project"  smProject,
+            prop "notes"    smProjectNotes,
+            prop "pois"     smProjectPois,
+            prop "servers"  smProjectServers,
+            prop "srvLinks" smProjectSrvLinks
         ]
 
 filterProjects :: SqlExpr (Value Text) -> SqlPersistM [Entity Project]
@@ -96,6 +112,11 @@ filterProjectNotes :: SqlExpr (Value Text) -> SqlPersistM [Entity ProjectNote]
 filterProjectNotes query = select $ from $ \n -> do
     where_ ((n ^. ProjectNoteTitle `like` query)
         ||. (n ^. ProjectNoteContents `like` query))
+    return n
+
+filterServerLinks :: SqlExpr (Value Text) -> SqlPersistM [Entity ServerLink]
+filterServerLinks query = select $ from $ \n -> do
+    where_ (n ^. ServerLinkDesc `like` query)
     return n
 
 filterServers :: SqlExpr (Value Text) -> SqlPersistM [Entity Server]
@@ -168,23 +189,34 @@ getServerSearchMatch project ServerJoins{..} server =
         <*> makeParentChildInfos server serverPoisJoin
         <*> makeParentChildInfos server serverDatabasesJoin
 
-getProjectSearchMatch :: ProjectJoin Server -> ServerJoins
+getProjectSearchMatch :: SqlBackend -> ProjectJoin Server -> ServerJoins
     -> ProjectJoin ProjectPointOfInterest
-    -> ProjectJoin ProjectNote -> EntityRef Project -> IO (ObjRef ProjectSearchMatch)
-getProjectSearchMatch projectServersJoin serverJoins
-    projectPoisJoin projectNotesJoin project = do
+    -> ProjectJoin ProjectNote
+    -> ProjectJoin ServerLink
+    -> EntityRef Project -> IO (ObjRef ProjectSearchMatch)
+getProjectSearchMatch sqlBackend projectServersJoin serverJoins
+    projectPoisJoin projectNotesJoin projectSrvLinksJoin project = do
     let projectKey = entityKey (fromObjRef project)
     servers <- sortBy compareServerEntities <$> filterEntityJoin projectKey projectServersJoin
     let serverSearchMatch = mapM (getServerSearchMatch project serverJoins) servers
+    serverLinkMatches <- makeParentChildInfos project projectSrvLinksJoin
     newObjectDC =<< ProjectSearchMatch project
         <$> makeParentChildInfos project projectNotesJoin
         <*> makeParentChildInfos project projectPoisJoin
         <*> serverSearchMatch
+        <*> mapM (srvLinksToSrvLinkInfos sqlBackend . fromObjRef) serverLinkMatches
+
+srvLinksToSrvLinkInfos :: SqlBackend -> ProjectChildInfo ServerLink
+                       -> IO (ObjRef (NoEntityParentChildInfo Project ServerLinkInfo))
+srvLinksToSrvLinkInfos sqlBackend childInfo = do
+    serverLinkInfoRefs <- serverLinksGetInfo sqlBackend [fromObjRef $ pciChild childInfo]
+    let serverLinkInfoRef = fromMaybe (error "srvLinksInfo returns empty list??") $ headZ serverLinkInfoRefs
+    newObjectDC $ NoEntityParentChildInfo (pciParent childInfo) serverLinkInfoRef
 
 compareServerEntities :: EntityRef Server -> EntityRef Server -> Ordering
 compareServerEntities ea eb = if envCompare /= EQ then envCompare else descCompare
     where
-        [a, b] = entityVal . fromObjRef <$> [ea, eb]
+        [a, b] = fromEntityRef <$> [ea, eb]
         envCompare  = (compare `on` serverEnvironment) a b
         descCompare = (compare `on` T.toCaseFold . serverDesc) a b
 
@@ -198,6 +230,7 @@ joinGetParentKeys :: Ord (Key b) => Join a b -> Set (Key b)
 joinGetParentKeys (Join parentKeyGetter entities) =
     Set.fromList $ parentKeyGetter . entityVal <$> entities
 
+-- that's the entry point for search
 searchText :: SqlBackend -> EntityType -> Text -> IO [ObjRef ProjectSearchMatch]
 searchText sqlBackend entityType txt = do
     serverWebsitesJoin   <- joinM ServerWebsiteEntityType serverWebsiteServerId filterServerWebsites
@@ -224,6 +257,7 @@ searchText sqlBackend entityType txt = do
 
     projectPoisJoin  <- joinM ProjectPoiEntityType projectPointOfInterestProjectId filterProjectPois
     projectNotesJoin <- joinM ProjectNoteEntityType projectNoteProjectId filterProjectNotes
+    projectSrvLinksJoin <- joinM ServerLinkEntityType serverLinkProjectId filterServerLinks
 
     projectProjectIds <- fmap entityKey <$> fetchM ProjectEntityType filterProjects
 
@@ -232,15 +266,16 @@ searchText sqlBackend entityType txt = do
                             serverProjectIds,
                             Set.fromList projectProjectIds,
                             joinGetParentKeys projectPoisJoin,
-                            joinGetParentKeys projectNotesJoin
+                            joinGetParentKeys projectNotesJoin,
+                            joinGetParentKeys projectSrvLinksJoin
                         ]
     allProjects <- runSqlBackend sqlBackend (getByIds ProjectId $ Set.toList allProjectIds)
     projectRefs <- mapM newObjectDC
         $ sortBy (comparing $ T.toCaseFold . projectName . entityVal) allProjects
     let serverJoins = ServerJoins serverWebsitesJoin
           serverExtraUsersJoin serverPoisJoin serverDatabasesJoin
-    mapM (getProjectSearchMatch projectServersJoin serverJoins
-          projectPoisJoin projectNotesJoin) projectRefs
+    mapM (getProjectSearchMatch sqlBackend projectServersJoin serverJoins
+          projectPoisJoin projectNotesJoin projectSrvLinksJoin) projectRefs
     where
         query = (%) ++. val txt ++. (%)
         runQ f = runSqlBackend sqlBackend (f query)

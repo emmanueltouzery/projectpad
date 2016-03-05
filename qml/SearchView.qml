@@ -168,6 +168,16 @@ Rectangle {
                                 width: rootFlow.width
                             }
                         }
+                        Repeater {
+                            id: srvLinkRepeater
+                            model: modelData.srvLinks
+                            TileServerLink {
+                                global: rootFlow
+                                project: modelData.parent
+                                model: modelData.child
+                                onActivated: Utils.scrollInView(tile, scrollView, flickable)
+                            }
+                        }
                         Flow {
                             id: serversPickingFlow
                             width: parent.width
