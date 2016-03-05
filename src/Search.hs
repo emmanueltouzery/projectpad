@@ -23,32 +23,21 @@ import ProjectView
 -- item of the parent repeater => keep in the info
 -- at the child level because I need it when some
 -- menu actions are activated.
+type EntityParentChildInfo a b = ParentChildInfo a (Entity b)
+
+type ServerChildInfo a  = EntityParentChildInfo Server a
+type ProjectChildInfo a = EntityParentChildInfo Project a
+
 data ParentChildInfo a b = ParentChildInfo
     {
         pciParent :: EntityRef a,
-        pciChild  :: EntityRef b
+        pciChild  :: ObjRef b
     } deriving Typeable
-
-type ServerChildInfo a  = ParentChildInfo Server a
-type ProjectChildInfo a = ParentChildInfo Project a
-
 instance (Typeable a, Typeable b) => DefaultClass (ParentChildInfo a b) where
     classMembers =
         [
             prop "parent" pciParent,
             prop "child"  pciChild
-        ]
-
-data NoEntityParentChildInfo a b = NoEntityParentChildInfo
-    {
-        niPciParent :: EntityRef a,
-        niPciChild  :: ObjRef b
-    } deriving Typeable
-instance (Typeable a, Typeable b) => DefaultClass (NoEntityParentChildInfo a b) where
-    classMembers =
-        [
-            prop "parent" niPciParent,
-            prop "child"  niPciChild
         ]
 
 data ServerSearchMatch = ServerSearchMatch
@@ -82,7 +71,7 @@ data ProjectSearchMatch = ProjectSearchMatch
         smProjectNotes    :: [ObjRef (ProjectChildInfo ProjectNote)],
         smProjectPois     :: [ObjRef (ProjectChildInfo ProjectPointOfInterest)],
         smProjectServers  :: [ObjRef ServerSearchMatch],
-        smProjectSrvLinks :: [ObjRef (NoEntityParentChildInfo Project ServerLinkInfo)]
+        smProjectSrvLinks :: [ObjRef (ParentChildInfo Project ServerLinkInfo)]
     } deriving Typeable
 
 instance DefaultClass ProjectSearchMatch where
@@ -166,7 +155,7 @@ filterEntityJoin parentKey (Join parentKeyGetter entities) = mapM newObjectDC $
     filter (\e -> parentKeyGetter (entityVal e) == parentKey) entities
 
 makeParentChildInfos :: (DefaultClass (Entity b), Typeable b, Typeable a, Eq (Key a)) =>
-    EntityRef a -> Join b a -> IO [ObjRef (ParentChildInfo a b)]
+    EntityRef a -> Join b a -> IO [ObjRef (EntityParentChildInfo a b)]
 makeParentChildInfos parent childrenJoin = do
     let parentKey = entityKey (fromObjRef parent)
     children <- filterEntityJoin parentKey childrenJoin
@@ -207,11 +196,11 @@ getProjectSearchMatch sqlBackend projectServersJoin serverJoins
         <*> mapM (srvLinksToSrvLinkInfos sqlBackend . fromObjRef) serverLinkMatches
 
 srvLinksToSrvLinkInfos :: SqlBackend -> ProjectChildInfo ServerLink
-                       -> IO (ObjRef (NoEntityParentChildInfo Project ServerLinkInfo))
+                       -> IO (ObjRef (ParentChildInfo Project ServerLinkInfo))
 srvLinksToSrvLinkInfos sqlBackend childInfo = do
     serverLinkInfoRefs <- serverLinksGetInfo sqlBackend [fromObjRef $ pciChild childInfo]
     let serverLinkInfoRef = fromMaybe (error "srvLinksInfo returns empty list??") $ headZ serverLinkInfoRefs
-    newObjectDC $ NoEntityParentChildInfo (pciParent childInfo) serverLinkInfoRef
+    newObjectDC $ ParentChildInfo (pciParent childInfo) serverLinkInfoRef
 
 compareServerEntities :: EntityRef Server -> EntityRef Server -> Ordering
 compareServerEntities ea eb = if envCompare /= EQ then envCompare else descCompare
