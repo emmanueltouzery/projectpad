@@ -27,14 +27,20 @@ function editServer(project, curServer, refreshAction) {
 }
 
 function showSelectMenu(project, server, parnt, desktopSize,
-                        refreshAction, menu, global, customEdit) {
+                        refreshAction, menu, global, overrides) {
+    var customEdit = null
+    var customDelete = null
+    if (overrides) {
+        customEdit = overrides.edit
+        customDelete = overrides.delete
+    }
     var options = [
         ["glyphicons-145-folder-open", function() { loadView("ServerView.qml", server) }],
         ["glyphicons-151-edit", customEdit || function() {editServer(project, server, refreshAction)}],
         ["glyphicons-512-copy", function() {
             appContext.copyItemEntity("ServerEntityType", server.id, true)
         }],
-        ["glyphicons-193-circle-remove", function() {
+        ["glyphicons-193-circle-remove", customDelete || function() {
             appContext.confirmDelete(function() {
                 var msg = getAppState().projectViewState.canDeleteServer(server)
                 if (msg !== null) {

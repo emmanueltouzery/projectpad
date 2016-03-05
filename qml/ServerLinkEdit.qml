@@ -33,17 +33,17 @@ Rectangle {
     }
 
     function updateServerButtonText() {
-        var server = getAppState().projectListState.getServerById(model.serverId)
+        var server = getAppState().projectListState.getServerById(model.linkedServerId)
         serverButton.text = server ? server.desc : "..."
     }
 
     function onOk(project) {
         if (model.id) {
             serverLinkEdit.model = getAppState().projectViewState.updateServerLink(
-                origModel, serverLnkDescription.text, model.serverId, group.editText);
+                origModel, serverLnkDescription.text, model.linkedServerId, group.editText);
         } else {
             getAppState().projectViewState.addServerLink(
-                project.id, serverLnkDescription.text, model.serverId,
+                project.id, serverLnkDescription.text, model.linkedServerId,
                 serverLinkEdit.environment, group.editText)
         }
     }
@@ -109,14 +109,14 @@ Rectangle {
             function (serverPicker) {
                 serverPicker.focusSearch(
                     serverButton.text === "..." ? null : serverButton.text)
-                serverPicker.setSelectedItem(model.serverId)
+                serverPicker.setSelectedItem(model.linkedServerId)
             },
             function (serverPicker) {
                 var selectedServer = serverPicker.getSelectedItem()
                 if (selectedServer) {
-                    model.serverId = selectedServer.id
+                    model.linkedServerId = selectedServer.id
                 } else {
-                    model.serverId = null
+                    model.linkedServerId = null
                 }
                 updateServerButtonText()
             })

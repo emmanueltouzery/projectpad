@@ -2,6 +2,7 @@ import QtQuick 2.0
 import QtQuick.Window 2.2
 import ".."
 import "../server-menu.js" as ServerMenu
+import "../utils.js" as Utils
 
 ItemTile {
     property int modelId: modelData.serverLink.id
@@ -26,12 +27,23 @@ ItemTile {
                     },
                     function (serverLinkEdit) {
                         serverLinkEdit.onOk(pv.model.project)
-                        refreshAction()
+                        refreshProjectView()
                     });
             }
+            var customDelete = function() {
+                appContext.confirmDelete(function() {
+                    Utils.handleEitherVoid(getAppState().projectViewState.deleteServerLinks([modelData.serverLink.id]))
+                    // force refresh
+                    refreshProjectView()
+                })
+            }
+            var overrides = {
+                edit: customEdit,
+                delete: customDelete
+            };
             ServerMenu.showSelectMenu(
                 pv.model.project, modelData.server, parent, desktopSize,
-                function() { refreshProjectView() }, selectMenu, global, customEdit)
+                function() { refreshProjectView() }, selectMenu, global, overrides)
             activated(parent)
         }
     }
