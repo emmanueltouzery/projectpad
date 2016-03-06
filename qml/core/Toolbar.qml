@@ -15,6 +15,9 @@ Rectangle {
     signal toggleMenu()
     signal searchTrigger(bool isSearchActive)
 
+    signal backAction()
+    signal forwardAction()
+
     /**
      * actions to display in the toolbar
      * each action is [name, icon, text]
@@ -35,6 +38,13 @@ Rectangle {
         searchBtn.checked = false
     }
 
+    function setBackActive(isActive) {
+        backBtn.enabled = isActive
+    }
+    function setForwardActive(isActive) {
+        fwdBtn.enabled = isActive
+    }
+
     signal actionTriggered(string name);
 
     Flow {
@@ -42,6 +52,28 @@ Rectangle {
         x: toolbarPadding
         width: parent.width-x-toolbarPadding*2
         height: parent.height-toolbarPadding*2
+
+        IconButton {
+            id: backBtn
+            btnText: ''
+            iconName: 'glyphicons-217-circle-arrow-left'
+            iconSize: 22
+            style: menuButton
+            width: 30
+            height: parent.height
+            onClicked: backAction()
+        }
+
+        IconButton {
+            id: fwdBtn
+            btnText: ''
+            iconName: 'glyphicons-218-circle-arrow-right'
+            iconSize: 22
+            style: menuButton
+            width: 30
+            height: parent.height
+            onClicked: forwardAction()
+        }
 
         IconButton {
             btnText: 'home'

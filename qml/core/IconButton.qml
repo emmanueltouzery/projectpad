@@ -18,6 +18,7 @@ Button {
         fillMode: Image.PreserveAspectFit
         smooth: true
         id: image
+        opacity: enabled ? 1 : 0.7
     }
 
     Text {

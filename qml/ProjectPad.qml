@@ -23,7 +23,36 @@ Window {
     // anyway...
     property var lastCopyInfo
 
+    property var history: []
+    property int historyFromLast: 1
+
     function loadViewAction(name, model) {
+        loadViewActionEx(name, model, false)
+    }
+
+    // TODO the history doesn't really behave well
+    // when something is deleted... Should be removed
+    // from history I guess.
+    function loadViewActionEx(name, model, isBackFwd) {
+        if (!isBackFwd) {
+            // during a search session we overwrite the history
+            // each time, to avoid having in the history:
+            // [search "", search "t", search "te", ..., search "test"]
+            if (history.length > 0 &&
+                history[history.length-1][0] === "SearchView.qml" &&
+                name === "SearchView.qml") {
+                history[history.length-1] = [name, model]
+            } else {
+                history.push([name, model])
+            }
+        }
+        if (isBackFwd && name === "SearchView.qml") {
+            searchTriggered(true)
+            searchField.visible = true
+            searchField.text = model.query
+        }
+        toolbar.setBackActive(history.length > historyFromLast)
+        toolbar.setForwardActive(historyFromLast > 1)
         if (name !== "SearchView.qml") {
             // when we change view from the search view,
             // that would mean for instance from search
@@ -31,7 +60,6 @@ Window {
             // go out of search mode.
             toolbar.disableSearch()
             searchField.visible = false
-            searchField.text = ""
         }
         loader.setSource(name, {"model": model})
     }
@@ -71,8 +99,6 @@ Window {
             }
             searchField.forceActiveFocus()
         } else {
-            searchField.visible = false
-            searchField.text = ""
             loadViewAction("ProjectList.qml", null)
         }
     }
@@ -86,6 +112,20 @@ Window {
             toolbar.setMenuDisplayed(popupMenu.visible)
         }
         onSearchTrigger: searchTriggered(isSearchActive)
+        onBackAction: {
+            if (history.length > historyFromLast) {
+                ++historyFromLast
+                var toGo = history[history.length-historyFromLast]
+                loadViewActionEx(toGo[0], toGo[1], true)
+            }
+        }
+        onForwardAction: {
+            if (historyFromLast > 1) {
+                --historyFromLast
+                var toGo = history[history.length-historyFromLast]
+                loadViewActionEx(toGo[0], toGo[1], true)
+            }
+        }
     }
 
     TextField {
@@ -234,6 +274,7 @@ Window {
     }
 
     Component.onCompleted: {
+        toolbar.setBackActive(false)
         var popupComponent;
         if (isDbInitialized()) {
             popupComponent = enterPasswordComponent
