@@ -34,7 +34,7 @@ data ServerInfo = ServerInfo {
         srvAddress  :: Text,
         srvUsername :: Text,
         srvPassword :: Text
-    }
+    } deriving Show
 
 runRdp :: ServerInfo -> Int -> Int -> IO (Either Text Text)
 runRdp ServerInfo{..} width height = do
@@ -149,22 +149,32 @@ addInHostTrustStore port ServerInfo{..} = tryText $ do
     let addKeyDetails hndl = T.hPutStr hndl ("\n" <> hostKeyDetails)
     withFile knownHostsFname AppendMode addKeyDetails
 
-runSshContents :: FilePath -> Text -> Text -> Int -> Text
-runSshContents fname hostname username port = T.concat ["#!/usr/bin/sh\n\
-    \rm ", T.pack fname, "\n\
-    \/usr/bin/setsid /usr/bin/ssh ", username, "@", hostname, " -p ", text port, "\n"]
+-- pretty sophisticated system, see http://unix.stackexchange.com/a/272524/36566
+-- the basis is that we need setsid & SSH_ASKPASS to be able to save the
+-- user from the need to enter the password.
+-- The issue though is that setsid makes resizing the terminal work poorly.
+-- let's say if you open a 'less' in the terminal it won't resize, and things
+-- like that. So we take another approach. Use the SSH control master feature.
+-- have SSH within setsid to establish the connection... Then we start a
+-- second ssh without setsid, that one will reuse the existing connection.
+runSshContents :: Text -> Text -> Int -> Text
+runSshContents hostname username port = T.concat [
+    "sh -c \"setsid ssh -o ControlPersist=30s -o ControlMaster=auto -nNS ", controlPath,
+    " ", remoteDetails, ";",
+    "ssh -S ", controlPath, " ", remoteDetails, "\""]
+    where
+      controlPath = "~/.ssh/%C"
+      remoteDetails = T.concat [username, "@", hostname, " -p ", text port]
 
-runSshContentsCommand :: FilePath -> Text -> Text -> Text -> Int -> Text
-runSshContentsCommand fname hostname username command port = T.concat ["#!/usr/bin/sh\n\
-    \rm ", T.pack fname, "\n\
-    \/usr/bin/setsid /usr/bin/ssh ", username, "@", hostname,
+runSshContentsCommand :: Text -> Text -> Text -> Int -> Text
+runSshContentsCommand hostname username command port = T.concat [
+    "/usr/bin/setsid -w /usr/bin/ssh ", username, "@", hostname,
     " -p ", text port, " -t '", command, "; bash -l'"]
 
-runSshContentsTunnel :: FilePath -> Int -> ServerInfo -> ServerInfo -> Text
-runSshContentsTunnel fname port intermediate final = T.concat ["#!/usr/bin/sh\n\
-    \rm ", T.pack fname, "\n\
-    \/usr/bin/setsid /usr/bin/ssh ", sshUserHost intermediate,
-    " -f -L ", text port, ":", srvAddress final, ":22 -N\n"]
+runSshContentsTunnel :: Int -> ServerInfo -> ServerInfo -> Text
+runSshContentsTunnel port intermediate final = T.concat [
+    "/usr/bin/setsid -w /usr/bin/ssh ", sshUserHost intermediate,
+    " -f -L ", text port, ":", srvAddress final, ":22 -N"]
 
 echoPassContents :: FilePath -> Text -> Text
 echoPassContents fname password = T.concat ["#!/bin/sh\n",
@@ -181,6 +191,7 @@ prepareSshPassword password tmpDir = do
 data SshCommandOptions = JustSsh { sshoTerminal :: Bool }
                        | SshCommand Text
                        | SshTunnel ServerInfo
+                       deriving Show
 
 -- I have to jump through several hoops to make this work...
 -- I open in an external terminal so I can't communicate
@@ -189,24 +200,19 @@ data SshCommandOptions = JustSsh { sshoTerminal :: Bool }
 -- password, but it's quickly deleted and with 700 permissions.
 openSshSession :: ServerInfo -> Int -> SshCommandOptions -> IO (Either Text ())
 openSshSession srv@ServerInfo{..} port sshCommandOptions = do
-    tmpDir <- getTemporaryDirectory
-    -- TODO here I'm creating a temp file but not deleting it..
-    -- it is small though and tmpfs will not persist across reboots.
-    let runSshPath = tmpDir </> "runssh.sh"
-    let scriptContents = case sshCommandOptions of
-         JustSsh _              -> runSshContents runSshPath srvAddress srvUsername port
-         SshCommand cmd         -> runSshContentsCommand runSshPath srvAddress srvUsername cmd port
-         SshTunnel intermediate -> runSshContentsTunnel runSshPath port intermediate srv
-    writeTempScript runSshPath scriptContents
+    let scriptContents = T.unpack $ case sshCommandOptions of
+         JustSsh _              -> runSshContents srvAddress srvUsername port
+         SshCommand cmd         -> runSshContentsCommand srvAddress srvUsername cmd port
+         SshTunnel intermediate -> runSshContentsTunnel port intermediate srv
     let openTerminal = case sshCommandOptions of
             JustSsh True  -> True
             SshCommand _  -> True
             _             -> False
     -- TODO detect other xterm types than gnome-terminal
     let (cmd, params) = if openTerminal
-                           then ("gnome-terminal", ["-e", runSshPath])
-                           else (runSshPath, [])
-    sshEnv <- prepareSshPassword srvPassword tmpDir
+                           then ("gnome-terminal", ["-e", scriptContents])
+                           else ("/usr/bin/sh", ["-c", scriptContents])
+    sshEnv <- prepareSshPassword srvPassword =<< getTemporaryDirectory
     tryText $ void $
         createProcess (proc cmd params)
             { env = Just sshEnv }
