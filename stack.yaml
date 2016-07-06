@@ -8,11 +8,10 @@ packages:
 - '.'
 # persistent-sqlite, patched to become persistent-sqlcipher
 - persistent-sqlcipher-2.2/
-# need hsqml newer than 0.3.3.0 due to http://trac.gekkou.co.uk/hsqml/ticket/34
-# and also transitive dependencies versions.
+# need hsqml newer than 0.3.4.0 due to C++11 changes in Qt 5.7
 - location:
     git: https://github.com/komadori/HsQML.git
-    commit: 7b77fcb9d6394a623adf7c88fe9e83cab41eb36f
+    commit: b8fd3736b8fb795467a7d0709a40bb3e6d87e8c0
   extra-dep: true
 
 # Packages to be pulled from upstream that are not in the resolver (e.g., acme-missiles-0.3)
