@@ -16,7 +16,7 @@ ItemTile {
     function editSrvWww(curPoi) {
         popup.setContents("Edit website", editSrvWwwComponent,
                 function (wwwEdit) {
-                    wwwEdit.activate(server, curPoi)
+                    wwwEdit.activate(server, curPoi, appContext)
                 },
                 function (wwwEdit) {
                     wwwEdit.onOk(server)

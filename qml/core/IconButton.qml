@@ -7,6 +7,7 @@ Button {
     property int iconSize: 16
     property int iconX: 3
     property int iconTextPadding: 0
+    property bool iconSmooth: true
 
     width: text.width+image.width+10
 
@@ -16,7 +17,7 @@ Button {
         source: '../../glyphicons-free/' + parent.iconName + '.png'
         height: iconSize
         fillMode: Image.PreserveAspectFit
-        smooth: true
+        smooth: iconSmooth
         id: image
         opacity: enabled ? 1 : 0.7
     }

@@ -7,7 +7,8 @@ import "core"
 Rectangle {
     id: srvWebsiteEdit
     color: "light grey"
-    property int preferredHeight: 260
+    property int preferredHeight: 275
+    property variant appContext: null
 
     property variant model: getDefaultModel()
     property var origModel
@@ -17,9 +18,10 @@ Rectangle {
             "username": "", "password": "", "serverDatabaseId": null}
     }
 
-    function activate(server, _model) {
+    function activate(server, _model, _appContext) {
         popupDbPicker.visible = false
         origModel = _model
+        appContext = _appContext
         srvWebsiteEdit.model = Utils.deepCopy(_model)
         description.selectAll()
         description.forceActiveFocus()
@@ -37,6 +39,7 @@ Rectangle {
     function updateDbButtonText() {
         var db = getAppState().projectListState.getDatabaseById(model.serverDatabaseId)
         databaseButton.text = db ? db.desc : "..."
+        databaseGotoButton.visible = db
     }
 
     function onOk(server) {
@@ -117,15 +120,30 @@ Rectangle {
         Text {
             text: "Database:"
         }
-        Button {
-            id: databaseButton
+        Flow {
             Layout.fillWidth: true
-            onClicked: {
-                // must init everytime because the OK button gets disconnected after use
-                // and also to update the search view filter text
-                initDbPickerPopup()
-                popupDbPicker.visible = true
-                popup.shadeHeader()
+            Button {
+                id: databaseButton
+                width: parent.width - (databaseGotoButton.visible ? databaseGotoButton.width : 0)
+                onClicked: {
+                    // must init everytime because the OK button gets disconnected after use
+                    // and also to update the search view filter text
+                    initDbPickerPopup()
+                    popupDbPicker.visible = true
+                    popup.shadeHeader()
+                }
+            }
+            IconButton {
+                id: databaseGotoButton
+                width: 37
+                iconSize: 19
+                iconX: 9
+                iconSmooth: false
+                iconName: "glyphicons-390-new-window-alt"
+                onClicked: {
+                    appContext.closePopup()
+                    appContext.triggerSearch(databaseButton.text)
+                }
             }
         }
     }

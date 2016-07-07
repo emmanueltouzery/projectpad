@@ -89,6 +89,16 @@ Window {
         toastButton.visible = false
     }
 
+    function closePopup() {
+        popup.doClose()
+    }
+
+    function triggerSearch(txt) {
+        history.push(["SearchView.qml", { query: txt }])
+        searchField.text = txt
+        searchField.visible = true
+    }
+
     function searchTriggered(isSearchActive) {
         if (isSearchActive) {
             if (searchField.visible) {
