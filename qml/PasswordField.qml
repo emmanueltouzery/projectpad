@@ -16,6 +16,7 @@ TextField {
         fillMode: Image.PreserveAspectFit
         height: parent.height - 7 * 2
         width: parent.height - 7 * 2
+        smooth: false
 
         MouseArea {
             anchors.fill: parent
