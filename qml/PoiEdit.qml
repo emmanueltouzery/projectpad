@@ -6,7 +6,7 @@ import "utils.js" as Utils
 Rectangle {
     id: poiEdit
     color: "light grey"
-    property int preferredHeight: 190
+    property int preferredHeight: 200
     property bool isServerPoi
 
     property variant model: getDefaultModel()

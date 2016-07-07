@@ -7,7 +7,7 @@ import "utils.js" as Utils
 Rectangle {
     id: extraUserEdit
     color: "light grey"
-    property int preferredHeight: 190
+    property int preferredHeight: 200
 
     property variant model: getDefaultModel()
     property var origModel
