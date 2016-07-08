@@ -65,8 +65,7 @@ function showSelectMenu(project, server, parnt, desktopSize,
         }])
     }
     if (server.accessType === "SrvAccessRdp"
-            && server.username.length > 0
-            && server.password.length > 0) {
+            && server.username.length > 0) {
         options.push(["glyphicons-489-multiple-displays", function() {
             var desktopWidth = desktopSize.width
             if (desktopSize.width / desktopSize.height > 3) {
@@ -82,8 +81,7 @@ function showSelectMenu(project, server, parnt, desktopSize,
         }])
     }
     if ((server.accessType === "SrvAccessSsh" || server.accessType === "SrvAccessSshTunnel")
-            && server.username.length > 0
-            && server.password.length > 0) {
+            && server.username.length > 0) {
         options.push(["glyphicons-489-multiple-displays", function() {
             Utils.runIfSshHostTrusted(server, function () {
                 Utils.handleEitherVoid(getAppState().projectViewState.openSshSession(server))
