@@ -95,7 +95,12 @@ Window {
 
     function triggerSearch(txt) {
         history.push(["SearchView.qml", { query: txt }])
-        searchField.text = txt
+        if (searchField.text === txt) {
+            // just make sure the screen is refreshed.
+            refreshSearch()
+        } else {
+            searchField.text = txt
+        }
         searchField.visible = true
     }
 
@@ -111,6 +116,20 @@ Window {
         } else {
             loadViewAction("ProjectList.qml", null)
         }
+    }
+
+    function refreshSearch() {
+        // if the current loader view is already the search,
+        // just tell him the search text changed.
+        // otherwise use loadViewAction() to load the search
+        // view and give him the search text.
+        loadViewAction(
+            "SearchView.qml",
+            {
+                matches: getAppState().search("AllEntityTypes", searchField.text),
+                query: searchField.text,
+                isPickingServers: false
+            })
     }
 
     Toolbar {
@@ -154,19 +173,7 @@ Window {
             height: parent.height - 7 * 2
             width: parent.height - 7 * 2
         }
-        onTextChanged: {
-            // if the current loader view is already the search,
-            // just tell him the search text changed.
-            // otherwise use loadViewAction() to load the search
-            // view and give him the search text.
-            loadViewAction(
-                "SearchView.qml",
-                {
-                    matches: getAppState().search("AllEntityTypes", searchField.text),
-                    query: searchField.text,
-                    isPickingServers: false
-                })
-        }
+        onTextChanged: refreshSearch()
     }
 
     // slight drop shadow from the toolbar for a 3d effect
