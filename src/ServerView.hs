@@ -174,7 +174,12 @@ runExtraUserServerRdp sqlBackend (fromEntityRef -> extraUser) width height =
 
 openExtraUserServerSshSession :: SqlBackend -> EntityRef ServerExtraUserAccount -> IO (Either Text ())
 openExtraUserServerSshSession sqlBackend (fromEntityRef -> extraUser) =
-    withExtraUserServer sqlBackend extraUser $ \server ->
+    withExtraUserServer sqlBackend extraUser $ \_server -> do
+          let server = _server
+                  {
+                      serverUsername = serverExtraUserAccountUsername extraUser,
+                      serverPassword = serverExtraUserAccountPassword extraUser
+                  }
           openServerSshAction' sqlBackend server $ \port srv ->
                openSshSession srv port (JustSsh True)
 
