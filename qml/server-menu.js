@@ -1,4 +1,5 @@
 .import "utils.js" as Utils
+.import "remote-control.js" as Remote
 
 function getServerIcon(server) {
     // a bit messy because I check several
@@ -64,30 +65,9 @@ function showSelectMenu(project, server, parnt, desktopSize,
                 function(location) { successMessage("Saved file to " + location) })
         }])
     }
-    if (server.accessType === "SrvAccessRdp"
-            && server.username.length > 0) {
-        options.push(["glyphicons-489-multiple-displays", function() {
-            var desktopWidth = desktopSize.width
-            if (desktopSize.width / desktopSize.height > 3) {
-                // I can assume a double monitor setup: divide the
-                // width by two to compensate.
-                desktopWidth = desktopWidth / 2
-            }
-            Utils.handleEitherVoid(
-                getAppState().projectViewState.runRdp(
-                    server,
-                    Math.round(desktopWidth * 0.75),
-                    Math.round(desktopSize.height * 0.75)))
-        }])
-    }
-    if ((server.accessType === "SrvAccessSsh" || server.accessType === "SrvAccessSshTunnel")
-            && server.username.length > 0) {
-        options.push(["glyphicons-489-multiple-displays", function() {
-            Utils.runIfSshHostTrusted(server, function () {
-                Utils.handleEitherVoid(getAppState().projectViewState.openSshSession(server))
-            })
-        }])
-    }
+    options = options.concat(Remote.tileRemoteControlOptions(server,
+        function(w, h) { return getAppState().projectViewState.runRdp(server, w, h) },
+        function() { return getAppState().projectViewState.openSshSession(server) }))
     menu.options = options
     menu.show(parnt || parent, global)
 }
