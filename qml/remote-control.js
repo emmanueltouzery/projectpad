@@ -1,9 +1,9 @@
 .import "utils.js" as Utils
 
-function tileRemoteControlOptions(server, rdpCallback, sshCallback) {
+function tileRemoteControlOptions(server, desktopSize, rdpCallback, sshCallback) {
     var options = []
-    if (server.accessType === "SrvAccessRdp"
-            && server.username.length > 0) {
+    if (server.accessType === "SrvAccessRdp" &&
+            server.username.length > 0) {
         options.push(["glyphicons-489-multiple-displays", function() {
             var desktopWidth = desktopSize.width
             if (desktopSize.width / desktopSize.height > 3) {
@@ -17,8 +17,8 @@ function tileRemoteControlOptions(server, rdpCallback, sshCallback) {
                     Math.round(desktopSize.height * 0.75)))
         }])
     }
-    if ((server.accessType === "SrvAccessSsh" || server.accessType === "SrvAccessSshTunnel")
-            && server.username.length > 0) {
+    if ((server.accessType === "SrvAccessSsh" || server.accessType === "SrvAccessSshTunnel") &&
+            server.username.length > 0) {
         options.push(["glyphicons-489-multiple-displays", function() {
             Utils.runIfSshHostTrusted(server, function () {
                 Utils.handleEitherVoid(sshCallback())

@@ -65,7 +65,7 @@ function showSelectMenu(project, server, parnt, desktopSize,
                 function(location) { successMessage("Saved file to " + location) })
         }])
     }
-    options = options.concat(Remote.tileRemoteControlOptions(server,
+    options = options.concat(Remote.tileRemoteControlOptions(server, desktopSize,
         function(w, h) { return getAppState().projectViewState.runRdp(server, w, h) },
         function() { return getAppState().projectViewState.openSshSession(server) }))
     menu.options = options
