@@ -8,6 +8,7 @@ Rectangle {
     id: serverLinkEdit
     color: "light grey"
     property int preferredHeight: 130
+    property variant appContext: null
 
     property variant model: getDefaultModel()
     property var origModel
@@ -17,8 +18,9 @@ Rectangle {
         return {"desc": "New server link"}
     }
 
-    function activate(parent, _model, _environment) {
+    function activate(parent, _model, _environment, _appContext) {
         origModel = _model
+        appContext = _appContext
         serverLinkEdit.model = Utils.deepCopy(_model)
         serverLinkEdit.environment = _environment
         var groups = getAppState().projectViewState.getProjectGroupNames(parent.id)
@@ -67,15 +69,31 @@ Rectangle {
         Text {
             text: "Server:"
         }
-        Button {
-            id: serverButton
+        Flow {
             Layout.fillWidth: true
-            onClicked: {
-                // must init everytime because the OK button gets disconnected after use
-                // and also to update the search view filter text
-                initServerPickerPopup()
-                popupServerPicker.visible = true
-                popup.shadeHeader()
+            Button {
+                id: serverButton
+                width: parent.width - (serverGotoButton.visible ? serverGotoButton.width : 0)
+                onClicked: {
+                    // must init everytime because the OK button gets disconnected after use
+                    // and also to update the search view filter text
+                    initServerPickerPopup()
+                    popupServerPicker.visible = true
+                    popup.shadeHeader()
+                }
+            }
+            IconButton {
+                id: serverGotoButton
+                width: 37
+                iconSize: 19
+                iconX: 9
+                iconSmooth: false
+                iconName: "glyphicons-390-new-window-alt"
+                onClicked: {
+                    appContext.closePopup()
+                    var server = getAppState().projectListState.getServerById(model.linkedServerId)
+                    appContext.loadViewAction("ServerView.qml", server)
+                }
             }
         }
 

@@ -32,7 +32,7 @@ ItemTile {
                     function (serverLinkEdit) {
                         serverLinkEdit.activate(
                             project, model.serverLink,
-                            model.serverLink.environment)
+                            model.serverLink.environment, appContext)
                     },
                     function (serverLinkEdit) {
                         serverLinkEdit.onOk(project)
