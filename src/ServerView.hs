@@ -152,6 +152,37 @@ updateServerExtraUserAccount sqlBackend acctRef
             ServerExtraUserAccountGroupName P.=. grpName
         ]
 
+withExtraUserServer :: SqlBackend -> ServerExtraUserAccount
+                    -> (Server -> IO (Either Text a))
+                    -> IO (Either Text a)
+withExtraUserServer sqlBackend extraUser withSrvAction = do
+    mServer <- runSqlBackend sqlBackend (P.get $ serverExtraUserAccountServerId extraUser)
+    case mServer of
+      Nothing     -> return (Left "Can't find server for extra user???")
+      Just server -> withSrvAction server
+
+runExtraUserServerRdp :: SqlBackend -> EntityRef ServerExtraUserAccount -> Int -> Int -> IO (Either Text Text)
+runExtraUserServerRdp sqlBackend (fromEntityRef -> extraUser) width height =
+    withExtraUserServer sqlBackend extraUser $ \server ->
+          runRdp
+             ServerInfo {
+                 srvAddress  = serverIp server,
+                 srvUsername = serverExtraUserAccountUsername extraUser,
+                 srvPassword = serverExtraUserAccountPassword extraUser
+             }
+             width height
+
+openExtraUserServerSshSession :: SqlBackend -> EntityRef ServerExtraUserAccount -> IO (Either Text ())
+openExtraUserServerSshSession sqlBackend (fromEntityRef -> extraUser) =
+    withExtraUserServer sqlBackend extraUser $ \_server -> do
+          let server = _server
+                  {
+                      serverUsername = serverExtraUserAccountUsername extraUser,
+                      serverPassword = serverExtraUserAccountPassword extraUser
+                  }
+          openServerSshAction' sqlBackend server $ \port srv ->
+               openSshSession srv port (JustSsh True)
+
 saveExtraUserAuthKey :: EntityRef ServerExtraUserAccount -> IO (Either Text Text)
 saveExtraUserAuthKey =
     saveAuthKey serverExtraUserAccountAuthKeyFilename serverExtraUserAccountAuthKey
@@ -270,9 +301,15 @@ getServerDisplaySections sqlBackend serverId = do
       runServerQ f = sqlToQml sqlBackend (f serverId)
 
 openServerSshAction :: SqlBackend -> EntityRef Server
-                     -> (Int -> ServerInfo -> IO (Either Text a))
-                     -> IO (Either Text a)
+                    -> (Int -> ServerInfo -> IO (Either Text a))
+                    -> IO (Either Text a)
 openServerSshAction sqlBackend (entityVal . fromObjRef -> server) callback =
+    openServerSshAction' sqlBackend server callback
+
+openServerSshAction' :: SqlBackend -> Server
+                    -> (Int -> ServerInfo -> IO (Either Text a))
+                    -> IO (Either Text a)
+openServerSshAction' sqlBackend server callback =
     case serverAccessType server of
       SrvAccessSsh       -> callback sshDefaultPort (serverToSystemServer server)
       SrvAccessSshTunnel -> openServerSshTunnelAction sqlBackend server callback
@@ -325,6 +362,8 @@ createServerViewState sqlBackend = do
             defMethod' "executePoiAction"         (liftQmlResult3 $ executePoiAction sqlBackend),
             defStatic "executePoiSecondaryAction" (liftQmlResult2 $ executePoiSecondaryAction sqlBackend),
             defMethod' "executePoiThirdAction"    (liftQmlResult3 $ executePoiThirdAction sqlBackend),
+            defStatic  "runExtraUserRdp"          (liftQmlResult3 $ runExtraUserServerRdp sqlBackend),
+            defStatic  "openExtraUserSshSession"  (liftQmlResult1 $ openExtraUserServerSshSession sqlBackend),
             defSignalNamedParams "gotOutput"      (Proxy :: Proxy SignalOutput) $ fstName "output"
         ]
     newObject serverViewClass ()

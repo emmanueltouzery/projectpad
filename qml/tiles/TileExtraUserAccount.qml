@@ -1,6 +1,8 @@
 import QtQuick 2.0
+import QtQuick.Window 2.2
 import ".."
 import "../utils.js" as Utils
+import "../remote-control.js" as Remote
 
 ItemTile {
     property int modelId: model.id
@@ -46,6 +48,11 @@ ItemTile {
                         function(location) {successMessage("Saved file to " + location)});
                 }])
             }
+            var desktopSize = {width: Screen.desktopAvailableWidth,
+                               height: Screen.desktopAvailableHeight}
+            options = options.concat(Remote.tileRemoteControlOptions(server, desktopSize,
+                function (w,h) { return getAppState().serverViewState.runExtraUserRdp(model, w, h) },
+                function() { return getAppState().serverViewState.openExtraUserSshSession(model) }))
             selectMenu.options = options
             selectMenu.show(parent, global)
             activated(parent)
