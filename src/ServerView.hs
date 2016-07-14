@@ -222,9 +222,10 @@ executePoiThirdAction :: SqlBackend -> ObjRef ServerViewState -> EntityRef Serve
 executePoiThirdAction sqlBackend srvState server (entityVal . fromObjRef -> serverPoi) =
     openServerSshAction sqlBackend server $ \port eSrv ->
     case serverPointOfInterestInterestType serverPoi of
-        PoiLogFile -> downloadFileSsh eSrv port (serverPointOfInterestPath serverPoi)
+        x | elem x [PoiLogFile, PoiConfigFile]
+            -> downloadFileSsh eSrv port (serverPointOfInterestPath serverPoi)
                       (fireSignal (Proxy :: Proxy SignalOutput) srvState . cmdProgressToJs) >> return (Right ())
-        _ -> return $ Right ()
+        _   -> return $ Right ()
 
 executePoiLogFile :: ServerInfo -> Int -> ServerPointOfInterest -> Text -> IO (Either Text ())
 executePoiLogFile eSrv port serverPoi cmd = openSshSession eSrv port

@@ -82,6 +82,12 @@ ItemTile {
                                 serverViewState.executePoiAction(server, model)
                         })
                     }])
+                    options.push(["glyphicons-182-download-alt", function() {
+                        Utils.runIfSshHostTrusted(server, function() {
+                            getAppState().
+                                serverViewState.executePoiThirdAction(server, model)
+                        })
+                    }])
                     break
                 }
             }
