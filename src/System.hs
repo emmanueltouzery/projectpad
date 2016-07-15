@@ -157,19 +157,15 @@ addInHostTrustStore port ServerInfo{..} = tryText $ do
 -- like that. So we take another approach. Use the SSH control master feature.
 -- have SSH within setsid to establish the connection... Then we start a
 -- second ssh without setsid, that one will reuse the existing connection.
-runSshContents :: Text -> Text -> Int -> Text
-runSshContents hostname username port = T.concat [
+runSshContents :: Text -> Text -> Int -> Maybe Text -> Text
+runSshContents hostname username port mCmd = T.concat [
     "sh -c \"setsid ssh -o ControlPersist=30s -o ControlMaster=auto -nNS ", controlPath,
     " ", remoteDetails, ";",
-    "ssh -S ", controlPath, " ", remoteDetails, "\""]
+    "ssh -S ", controlPath, cmdFlag, " ", remoteDetails, " ", fromMaybe "" mCmd, "\""]
     where
+      cmdFlag = maybe "" (const " -t") mCmd
       controlPath = "~/.ssh/%C"
       remoteDetails = T.concat [username, "@", hostname, " -p ", text port]
-
-runSshContentsCommand :: Text -> Text -> Text -> Int -> Text
-runSshContentsCommand hostname username command port = T.concat [
-    "/usr/bin/setsid -w /usr/bin/ssh ", username, "@", hostname,
-    " -p ", text port, " -t '", command, "; bash -l'"]
 
 runSshContentsTunnel :: Int -> ServerInfo -> ServerInfo -> Text
 runSshContentsTunnel port intermediate final = T.concat [
@@ -201,8 +197,8 @@ data SshCommandOptions = JustSsh { sshoTerminal :: Bool }
 openSshSession :: ServerInfo -> Int -> SshCommandOptions -> IO (Either Text ())
 openSshSession srv@ServerInfo{..} port sshCommandOptions = do
     let scriptContents = T.unpack $ case sshCommandOptions of
-         JustSsh _              -> runSshContents srvAddress srvUsername port
-         SshCommand cmd         -> runSshContentsCommand srvAddress srvUsername cmd port
+         JustSsh _              -> runSshContents srvAddress srvUsername port Nothing
+         SshCommand cmd         -> runSshContents srvAddress srvUsername port (Just cmd)
          SshTunnel intermediate -> runSshContentsTunnel port intermediate srv
     let openTerminal = case sshCommandOptions of
             JustSsh True  -> True
