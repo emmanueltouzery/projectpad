@@ -181,7 +181,7 @@ openExtraUserServerSshSession sqlBackend (fromEntityRef -> extraUser) =
                       serverPassword = serverExtraUserAccountPassword extraUser
                   }
           openServerSshAction' sqlBackend server $ \port srv ->
-               openSshSession srv port (JustSsh True)
+               openSshSession srv port JustSsh
 
 saveExtraUserAuthKey :: EntityRef ServerExtraUserAccount -> IO (Either Text Text)
 saveExtraUserAuthKey =
@@ -204,10 +204,14 @@ executePoiAction :: SqlBackend -> ObjRef ServerViewState -> EntityRef Server
 executePoiAction sqlBackend srvState server (entityVal . fromObjRef -> serverPoi) =
     openServerSshAction sqlBackend server $ \port eSrv ->
     case serverPointOfInterestInterestType serverPoi of
-        PoiCommandToRun -> executePoiCommand srvState eSrv port serverPoi
-        PoiLogFile      -> executePoiLogFile eSrv port serverPoi "tail -f "
-        PoiConfigFile   -> executePoiLogFile eSrv port serverPoi "vim "
-        _               -> return $ Right ()
+        PoiCommandToRun    -> executePoiCommand srvState eSrv port serverPoi
+        PoiCommandTerminal -> openSshSession eSrv port (SshCommand $ workDir <> serverPointOfInterestText serverPoi)
+        PoiLogFile         -> executePoiLogFile eSrv port serverPoi "tail -f "
+        PoiConfigFile      -> executePoiLogFile eSrv port serverPoi "vim "
+        _                  -> return $ Right ()
+    where workDir = case serverPointOfInterestPath serverPoi of
+            "" -> ""
+            x  -> x <> "/"
 
 executePoiSecondaryAction :: SqlBackend -> EntityRef Server
     -> EntityRef ServerPointOfInterest -> IO (Either Text ())
@@ -222,7 +226,7 @@ executePoiThirdAction :: SqlBackend -> ObjRef ServerViewState -> EntityRef Serve
 executePoiThirdAction sqlBackend srvState server (entityVal . fromObjRef -> serverPoi) =
     openServerSshAction sqlBackend server $ \port eSrv ->
     case serverPointOfInterestInterestType serverPoi of
-        x | elem x [PoiLogFile, PoiConfigFile]
+        x | x `elem` [PoiLogFile, PoiConfigFile]
             -> downloadFileSsh eSrv port (serverPointOfInterestPath serverPoi)
                       (fireSignal (Proxy :: Proxy SignalOutput) srvState . cmdProgressToJs) >> return (Right ())
         _   -> return $ Right ()

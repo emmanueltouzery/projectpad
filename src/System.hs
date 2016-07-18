@@ -184,7 +184,7 @@ prepareSshPassword password tmpDir = do
     let sysEnv = [("SSH_ASKPASS", echoPassPath)]
     return $ parentEnv ++ sysEnv
 
-data SshCommandOptions = JustSsh { sshoTerminal :: Bool }
+data SshCommandOptions = JustSsh
                        | SshCommand Text
                        | SshTunnel ServerInfo
                        deriving Show
@@ -197,17 +197,13 @@ data SshCommandOptions = JustSsh { sshoTerminal :: Bool }
 openSshSession :: ServerInfo -> Int -> SshCommandOptions -> IO (Either Text ())
 openSshSession srv@ServerInfo{..} port sshCommandOptions = do
     let scriptContents = T.unpack $ case sshCommandOptions of
-         JustSsh _              -> runSshContents srvAddress srvUsername port Nothing
+         JustSsh                -> runSshContents srvAddress srvUsername port Nothing
          SshCommand cmd         -> runSshContents srvAddress srvUsername port (Just cmd)
          SshTunnel intermediate -> runSshContentsTunnel port intermediate srv
-    let openTerminal = case sshCommandOptions of
-            JustSsh True  -> True
-            SshCommand _  -> True
-            _             -> False
     -- TODO detect other xterm types than gnome-terminal
-    let (cmd, params) = if openTerminal
-                           then ("gnome-terminal", ["-e", scriptContents])
-                           else ("/usr/bin/sh", ["-c", scriptContents])
+    let (cmd, params) = case sshCommandOptions of
+                          SshTunnel _ -> ("/usr/bin/sh", ["-c", scriptContents])
+                          _           -> ("gnome-terminal", ["-e", scriptContents])
     sshEnv <- prepareSshPassword srvPassword =<< getTemporaryDirectory
     tryText $ void $
         createProcess (proc cmd params)

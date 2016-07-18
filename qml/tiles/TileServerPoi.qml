@@ -47,6 +47,7 @@ ItemTile {
                 && server.password.length > 0) {
                 switch (model.interestType) {
                 case "PoiCommandToRun":
+                case "PoiCommandTerminal":
                     options.push(["glyphicons-138-cogwheels", function() {
                         Utils.runIfSshHostTrusted(server, function() {
                             var info = getAppState().

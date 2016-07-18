@@ -131,6 +131,7 @@ Rectangle {
                 ListElement { text: "Log file"; value: "PoiLogFile"}
                 ListElement { text: "Config file"; value: "PoiConfigFile"}
                 ListElement { text: "Command to run"; value: "PoiCommandToRun"}
+                ListElement { text: "Command to run (terminal)"; value: "PoiCommandTerminal"}
             }
         }
     }

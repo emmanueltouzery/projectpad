@@ -209,13 +209,18 @@ splitParams = parseOnly splitParamsParser
         parseQuotedParam = char '"' *> takeWhile1 (/= '"') <* char '"'
         parseParam = takeWhile1 (/= ' ')
 
+withParams :: Text -> (CommandProgress -> a) -> ([Text] -> a) -> a
+withParams txt notify action = case splitParams txt of
+  Left x   -> notify (CommandFailed $ "Error parsing the command: " <> T.pack x)
+  Right [] -> notify (CommandFailed "Incomplete command line")
+  Right params -> action params
+
 runPoiAction :: ObjRef ProjectViewState
     -> EntityRef ProjectPointOfInterest -> IO ()
 runPoiAction prjViewState (fromEntityRef -> poi)
-    | interest == PoiCommandToRun = case splitParams txt of
-        Left x -> notify (CommandFailed $ "Error parsing the command: " <> T.pack x)
-        Right [] -> notify (CommandFailed "Incomplete command line")
-        Right (prog:parameters) -> tryCommandAsync prog parameters path Nothing notify
+    | interest == PoiCommandToRun = withParams txt notify $
+      \(prog:parameters) -> tryCommandAsync prog parameters path Nothing notify
+    | interest == PoiCommandTerminal = tryCommandAsync "gnome-terminal" ["-e", txt] path Nothing notify
     | interest `elem` [PoiLogFile, PoiApplication] = do
         result <- openAssociatedFile (projectPointOfInterestPath poi)
         notify (eitherToCmdProgress result)
@@ -237,7 +242,7 @@ runServerRdp (fromEntityRef -> server) = runRdp (serverToSystemServer server)
 
 openServerSshSession :: SqlBackend -> EntityRef Server -> IO (Either Text ())
 openServerSshSession sqlBackend server = openServerSshAction sqlBackend server $
-    \port srv -> openSshSession srv port (JustSsh True)
+    \port srv -> openSshSession srv port JustSsh
 
 data ServerExtraInfo = ServerExtraInfo
     {
