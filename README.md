@@ -1,5 +1,8 @@
 # ProjectPad
 
+
+<img align="right" src="https://raw.github.com/wiki/emmanueltouzery/projectpad/projectpad-128.png" alt="app icon"/>
+
 ![Main view screenshot](https://raw.githubusercontent.com/wiki/emmanueltouzery/projectpad/main_pic.png)
 
 ## Description

@@ -3,6 +3,7 @@ import Distribution.Simple
 import Distribution.Simple.LocalBuildInfo
 import Distribution.Simple.Setup (ConfigFlags, InstallFlags, BuildFlags)
 
+import System.Process
 import System.Directory
 import Data.List
 import Control.Applicative
@@ -29,3 +30,8 @@ doPostBuild _ _ pkg_descr lbi = do
         mapM_ (\s -> copyFile s (appDataDir </> s)) sourceFiles
     mapM_ copyResources ["qml", "qml/core", "qml/buttonstyles", "qml/tiles",
                    "glyphicons-free", "pics"]
+    rawSystem "xdg-icon-resource" ["install", "--size", "64", "projectpad-64.png", "projectpad", "--novendor"]
+    rawSystem "xdg-icon-resource" ["install", "--size", "96", "projectpad-96.png", "projectpad", "--novendor"]
+    rawSystem "xdg-icon-resource" ["install", "--size", "128", "projectpad-128.png", "projectpad", "--novendor"]
+    rawSystem "xdg-desktop-menu" ["install", "projectpad.desktop", "--novendor"]
+    return ()
