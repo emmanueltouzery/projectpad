@@ -228,12 +228,12 @@ waitUntilPortIsOpen port = do
 
 isPortFree :: Int -> IO Bool
 isPortFree port = do
-    s <- socket AF_INET Stream defaultProtocol
+    skt <- socket AF_INET Stream defaultProtocol
     localhost <- inet_addr "127.0.0.1"
-    portOpen  <- try (connect s (SockAddrInet (fromIntegral port) localhost))
+    portOpen  <- try (connect skt (SockAddrInet (fromIntegral port) localhost))
     case portOpen of
         Left (_ :: SomeException) -> return True
-        Right () -> close s >> return False
+        Right () -> close skt >> return False
 
 sshHandlePasswordAndRun :: Text -> [Text] -> (CommandProgress -> IO ()) -> IO ()
 sshHandlePasswordAndRun password sshCommandParams readCallback = do
