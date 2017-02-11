@@ -4,5 +4,5 @@ dist/
 *.db
 .tern-port
 flycheck_
-persistent-sqlcipher-2.2/
+persistent-sqlcipher-2.6/
 .stack-work/
