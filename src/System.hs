@@ -39,12 +39,17 @@ data ServerInfo = ServerInfo {
 runRdp :: ServerInfo -> Int -> Int -> IO (Either Text Text)
 runRdp ServerInfo{..} width height = do
     homeDir <- T.pack <$> getHomeDirectory
-    let params = T.unpack <$> [srvAddress,
-                               "-u", srvUsername,
-                               "-g", T.pack $ show width <> "x" <> show height,
-                               "-r", "disk:mydisk=" <> homeDir,
-                               "-p", "-"]
-    r <- try (createProcess (proc "rdesktop" params) { std_in = CreatePipe})
+    let params = T.unpack <$> ["/v:" <> srvAddress,
+                               "+clipboard",
+                               "/cert-tofu", -- accept cert on first use,
+                                             -- otherwise sometimes I get mismatch
+                                             -- between IP & hostname & cert is rejected
+                               "/u:" <> srvUsername,
+                               "/w:" <> T.pack (show width),
+                               "/h:" <> T.pack (show height),
+                               "/drive:remote," <> homeDir,
+                               "/from-stdin"]
+    r <- try (createProcess (proc "xfreerdp" params) { std_in = CreatePipe})
     case r of
         Right (Just stdin, _, _, _) -> do
             hPutStr stdin (T.unpack srvPassword)
