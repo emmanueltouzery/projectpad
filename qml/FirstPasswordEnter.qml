@@ -6,7 +6,7 @@ import "utils.js" as Utils
 Rectangle {
     id: poiEdit
     color: "light grey"
-    property int preferredHeight: 140
+    height: childrenRect.height
 
     signal loadView(string name, variant model)
 

@@ -3,7 +3,7 @@ import QtQuick.Controls 1.3
 
 Rectangle {
     color: "light grey"
-    property int preferredHeight: 200
+    height: childrenRect.height
 
     function init() {
     }
@@ -24,8 +24,8 @@ Rectangle {
 
     Column {
         spacing: 10
-        anchors.verticalCenter: parent.verticalCenter
-        x: 10
+        // anchors.verticalCenter: parent.verticalCenter
+        x: 15
 
         RadioButton {
             id: addServerPoi

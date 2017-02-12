@@ -6,7 +6,7 @@ import "utils.js" as Utils
 Rectangle {
     id: srvDatabaseEdit
     color: "light grey"
-    property int preferredHeight: 240
+    height: childrenRect.height
 
     property variant model: getDefaultModel()
     property var origModel

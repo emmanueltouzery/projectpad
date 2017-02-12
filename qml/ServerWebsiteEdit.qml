@@ -7,7 +7,7 @@ import "core"
 Rectangle {
     id: srvWebsiteEdit
     color: "light grey"
-    property int preferredHeight: 275
+    height: childrenRect.height
     property variant appContext: null
 
     property variant model: getDefaultModel()

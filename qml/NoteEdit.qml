@@ -8,7 +8,7 @@ Rectangle {
     id: noteEdit
     color: "light grey"
     property bool widthResize: true
-    property int preferredHeight: -1
+    property bool heightResize: true
     property variant appContext: null
 
     property variant model: getDefaultModel()

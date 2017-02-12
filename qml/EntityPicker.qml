@@ -2,7 +2,7 @@ import QtQuick 2.0
 import QtQuick.Controls 1.2
 
 Rectangle {
-    property int preferredHeight: -1
+    property bool heightResize: true
     property bool widthResize: true
     property string entityType
     property var extraFilter

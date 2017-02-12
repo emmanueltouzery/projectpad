@@ -9,7 +9,7 @@ import "core"
 Rectangle {
     id: serverEdit
     color: "light grey"
-    property int preferredHeight: isSshTunnelAccess() ? 420 : 350
+    height: childrenRect.height
 
     property variant model: getDefaultModel()
     property var origModel

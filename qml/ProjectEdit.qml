@@ -9,8 +9,8 @@ import "utils.js" as Utils
 Rectangle {
     id: projectEdit
     color: "light grey"
-    property int preferredHeight: 160
     property variant appContext: null
+    height: childrenRect.height
     property string iconFilePath
 
     property var basicModel : {
@@ -74,7 +74,6 @@ Rectangle {
         anchors.right: parent.right
         anchors.margins: 10
         columns: 2
-        height: 40
 
         Text {
             text: "Project name:"

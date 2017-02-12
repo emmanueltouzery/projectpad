@@ -103,7 +103,7 @@ Rectangle {
             ? window.width - 220
             : 580
         color: Qt.lighter("light gray", 1.15)
-        height: popupHeader.height
+        // height: popupHeader.height
         z: 2
         radius: 5
 
@@ -114,7 +114,7 @@ Rectangle {
             color: parent.color
             y: 10
             z: -1
-            height: parent.height - 10
+            height: 30
         }
 
         Rectangle {
@@ -169,9 +169,9 @@ Rectangle {
             id: popupContentsLoader
             width: parent.width
             y: popupHeader.height
-            height: item.preferredHeight < 0
+            height: item.heightResize
                ? window.height - mapToItem(popupHost, 0, 0).y - 60 - embedLevel*60
-               : item.preferredHeight
+               : childrenRect.height+30
         }
     }
 

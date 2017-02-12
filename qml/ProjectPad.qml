@@ -1,4 +1,4 @@
-import QtQuick 2.0
+import QtQuick 2.7
 import QtQuick.Window 2.0
 import QtQuick.Controls 1.2
 import QtQuick.Layouts 1.1
@@ -545,8 +545,7 @@ Window {
                 confirmContentsText.text = contents
             }
             color: "dark grey"
-            height: 60
-            property int preferredHeight: 60
+            height: childrenRect.height
             Text {
                 id: confirmContentsText
                 x: 15
@@ -561,10 +560,9 @@ Window {
     Component {
         id: aboutDialogComponent
         Rectangle {
-            property int preferredHeight: 180
+            height: childrenRect.height
             Text {
-                anchors.fill: parent
-                anchors.margins: 10
+                padding: 10
                 text: "<html><body><h2>ProjectPad</h2> License: BSD3 (except for the icons).<br/>"
                     + "<a href='https://github.com/emmanueltouzery/projectpad'>Website</a><br/>"
                     + "<ul><li>Uses <a href='http://sqlcipher.net/'>SQLcipher</a>"

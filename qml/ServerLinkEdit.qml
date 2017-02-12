@@ -7,8 +7,8 @@ import "core"
 Rectangle {
     id: serverLinkEdit
     color: "light grey"
-    property int preferredHeight: 130
     property variant appContext: null
+    height: childrenRect.height
 
     property variant model: getDefaultModel()
     property var origModel

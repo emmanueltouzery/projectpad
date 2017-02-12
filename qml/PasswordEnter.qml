@@ -1,11 +1,11 @@
-import QtQuick 2.0
+import QtQuick 2.7
 import QtQuick.Controls 1.2
 import QtQuick.Layouts 1.1
 import "utils.js" as Utils
 
 Column {
     id: passwordEnter
-    property int preferredHeight: 190
+    height: childrenRect.height
 
     signal loadView(string name, variant model)
 
@@ -54,12 +54,12 @@ Column {
 
     Rectangle {
         width: parent.width
-        height: 110
+        height: childrenRect.height
         color: "light grey"
 
         Text {
             id: introText
-            y: 10
+            topPadding: 10
             x: 10
             text: "Please enter the password to open the application."
         }
@@ -84,46 +84,37 @@ Column {
                 id: checkboxChangePassword
                 Layout.columnSpan: 2
                 text: "Change the password"
-                onClicked: {
-                    changePasswordSection.visible = checked
-                }
             }
         }
     }
 
     Rectangle {
+        id: changePasswordSection
         width: parent.width
-        height: 80
-        color: "transparent"
+        height: childrenRect.height
+        color: "light gray"
+        visible: checkboxChangePassword.checked
 
-        Rectangle {
-            id: changePasswordSection
-            width: parent.width
-            height: 80
-            color: "light gray"
-            visible: false
-
-            GridLayout {
-                anchors.left: parent.left
-                anchors.right: parent.right
-                anchors.margins: 10
-                columns: 2
-                Text {
-                    text: "New password:"
-                }
-                TextField {
-                    id: newPasswordText
-                    Layout.fillWidth: true
-                    echoMode: TextInput.Password
-                }
-                Text {
-                    text: "Repeat new password:"
-                }
-                TextField {
-                    id: repeatPasswordText
-                    Layout.fillWidth: true
-                    echoMode: TextInput.Password
-                }
+        GridLayout {
+            anchors.left: parent.left
+            anchors.right: parent.right
+            anchors.margins: 10
+            columns: 2
+            Text {
+                text: "New password:"
+            }
+            TextField {
+                id: newPasswordText
+                Layout.fillWidth: true
+                echoMode: TextInput.Password
+            }
+            Text {
+                text: "Repeat new password:"
+            }
+            TextField {
+                id: repeatPasswordText
+                Layout.fillWidth: true
+                echoMode: TextInput.Password
             }
         }
     }
