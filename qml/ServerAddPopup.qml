@@ -1,4 +1,4 @@
-import QtQuick 2.0
+import QtQuick 2.7
 import QtQuick.Controls 1.3
 
 Rectangle {
@@ -25,7 +25,8 @@ Rectangle {
     Column {
         spacing: 10
         // anchors.verticalCenter: parent.verticalCenter
-        x: 15
+        topPadding: 10
+        leftPadding: 10
 
         RadioButton {
             id: addServerPoi
