@@ -105,6 +105,8 @@ Window {
     }
 
     function searchTriggered(isSearchActive) {
+        var childWindow = Qt.createComponent("Child.qml").createObject(window)
+        childWindow.open()
         if (isSearchActive) {
             if (searchField.visible) {
                 searchField.selectAll()
