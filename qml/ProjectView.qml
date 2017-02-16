@@ -30,6 +30,9 @@ Rectangle {
     }
 
     function actionTriggered(name) {
+        // using noOpacity in these calls to avoid triggering the
+        // shade animation a second time when the user goes to the
+        // second step of the wizard which is aesthetically displeasing.
         switch (name) {
         case "addsrv":
             popup.setContents(
@@ -42,7 +45,7 @@ Rectangle {
                 function (serverEdit) {
                     serverEdit.onOk(pv.model.project)
                     refreshProjectView()
-                })
+                }, {noOpacity: true})
             break;
         case "addsrvlink":
             popup.setContents(
@@ -55,7 +58,7 @@ Rectangle {
                 function (serverLinkEdit) {
                     serverLinkEdit.onOk(pv.model.project)
                     refreshProjectView()
-                });
+                }, {noOpacity: true});
             break;
         case "addpoi":
             popup.setContents(
@@ -66,7 +69,7 @@ Rectangle {
                 function (poiEdit) {
                     poiEdit.onOk(pv.model.project);
                     refreshProjectView()
-                })
+                }, {noOpacity: true})
             break;
         case "addnote":
             popup.setContents(
@@ -77,7 +80,7 @@ Rectangle {
                 function (noteEdit) {
                     noteEdit.onOk(pv.model.project);
                     refreshProjectView()
-                })
+                }, {noOpacity: true})
             break;
         case "add":
             popup.implicitClose = false

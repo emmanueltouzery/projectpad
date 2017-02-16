@@ -35,6 +35,9 @@ Rectangle {
     }
 
     function actionTriggered(name) {
+        // using noOpacity in these calls to avoid triggering the
+        // shade animation a second time when the user goes to the
+        // second step of the wizard which is aesthetically displeasing.
         switch (name) {
             case "addpoi":
                 popup.setContents("Add point of interest", editPoiComponent,
