@@ -4,6 +4,8 @@ Rectangle {
     width: 180; height: 180
     property string itemDesc
     property string icon
+    border.width: focus ? 1 : 0
+    border.color: 'black'
 
     Text {
         text: itemDesc

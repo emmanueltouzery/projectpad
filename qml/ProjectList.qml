@@ -3,6 +3,7 @@ import QtQuick.Controls 1.2
 import "utils.js" as Utils
 import "core"
 import "tiles"
+import "keyboard-helpers.js" as KeyboardHelpers
 
 ScrollView {
     id: projectList
@@ -15,6 +16,10 @@ ScrollView {
 
     function getBreadCrumbs() {
         return {pathLinks: [], title: ''};
+    }
+
+    function setFocus() {
+        itemsrepeater.forceActiveFocus()
     }
 
     function actionTriggered(name) {
@@ -53,10 +58,14 @@ ScrollView {
 
             Repeater {
                 id: itemsrepeater
+                Keys.onPressed: {
+                    KeyboardHelpers.handleKey(event, flow, itemsrepeater)
+                }
                 model: getAppState().projectListState.projects
 
                 TileProject {
                     onActivated: Utils.scrollInView(tile, projectList, projectsFlickable)
+                    Keys.forwardTo: itemsrepeater
                 }
             }
         }

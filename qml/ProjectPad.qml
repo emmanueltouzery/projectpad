@@ -214,6 +214,7 @@ Window {
                 if (loader.item.appContext !== undefined) {
                     loader.item.appContext = window
                 }
+                loader.item.setFocus()
             }
         }
 
