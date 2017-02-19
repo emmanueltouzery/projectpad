@@ -1,31 +1,61 @@
-function handleKey(event, flow, repeater) {
-    if (repeater.count === 0) {
+function handleKey(event, flow) {
+    var items = getAllItems(flow)
+    if (items.length === 0) {
         return
     }
-    var focusedItem = getFocusedItemInfo(repeater)
+    var focusedItem = getFocusedItemInfo(items)
     if (!focusedItem) {
-        repeater.itemAt(0).focus = true
+        items[0].focus = true
         return
     }
     switch (event.key) {
     case Qt.Key_Left:
-        focusPreviousItem(repeater, focusedItem)
+        focusPreviousItem(items, focusedItem)
         break;
     case Qt.Key_Right:
-        focusNextItem(repeater, focusedItem)
+        focusNextItem(items, focusedItem)
         break;
     case Qt.Key_Down:
-        focusItemDown(repeater, flow, focusedItem)
+        focusItemDown(items, flow, focusedItem)
         break;
     case Qt.Key_Up:
-        focusItemUp(repeater, flow, focusedItem)
+        focusItemUp(items, flow, focusedItem)
         break;
     }
 }
 
+function containerToItemList(container) {
+    if (container.isTile) {
+        return [container]
+    }
+    if (container.children) {
+        return container.children
+    }
+    if (!container.count) {
+        return [container]
+    }
+    var result = []
+    for (var i=0;i<container.count;i++) {
+        result.push(container.itemAt(i));
+    }
+    return result
+}
+
+function getAllItems(qmlItem) {
+    if (qmlItem.isTile) {
+        return [qmlItem]
+    }
+    var items = containerToItemList(qmlItem)
+    var result = []
+    for (var i=0;i<items.length;i++) {
+        result = result.concat(getAllItems(items[i]));
+    }
+    return result
+}
+
 function getFocusedItemInfo(repeater) {
-    for (var i=0;i<repeater.count; i++) {
-        var curItem = repeater.itemAt(i)
+    for (var i=0;i<repeater.length; i++) {
+        var curItem = repeater[i]
         if (curItem.focus) {
             return {item: curItem, index: i}
         }
@@ -35,13 +65,13 @@ function getFocusedItemInfo(repeater) {
 
 function focusPreviousItem(repeater, focusedItem) {
     if (focusedItem.index > 0) {
-        focusItem(repeater.itemAt(focusedItem.index-1))
+        focusItem(repeater[focusedItem.index-1])
     }
 }
 
 function focusNextItem(repeater, focusedItem) {
-    if (focusedItem.index < repeater.count-1) {
-        focusItem(repeater.itemAt(focusedItem.index+1))
+    if (focusedItem.index < repeater.length-1) {
+        focusItem(repeater[focusedItem.index+1])
     }
 }
 
@@ -56,15 +86,15 @@ function focusItemUp(repeater, flow, focusedItem) {
     var rowCol = itemGetRowColInfo(flow, focusedItem)
     var itemOneRowAboveIndex = (rowCol.row-1)*rowCol.itemsPerRow+rowCol.col
     if (itemOneRowAboveIndex >= 0) {
-        focusItem(repeater.itemAt(itemOneRowAboveIndex))
+        focusItem(repeater[itemOneRowAboveIndex])
     }
 }
 
 function focusItemDown(repeater, flow, focusedItem) {
     var rowCol = itemGetRowColInfo(flow, focusedItem)
     var itemOneRowUnderIndex = (rowCol.row+1)*rowCol.itemsPerRow+rowCol.col
-    if (itemOneRowUnderIndex < repeater.count) {
-        focusItem(repeater.itemAt(itemOneRowUnderIndex))
+    if (itemOneRowUnderIndex < repeater.length) {
+        focusItem(repeater[itemOneRowUnderIndex])
     }
 }
 

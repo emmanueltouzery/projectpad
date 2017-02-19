@@ -7,6 +7,7 @@ import "core"
 import "tiles"
 import "utils.js" as Utils
 import "poiactions.js" as PoiActions
+import "keyboard-helpers.js" as KeyboardHelpers
 
 Rectangle {
     id: pv
@@ -22,6 +23,10 @@ Rectangle {
 
     function getBreadCrumbs() {
         return {pathLinks: [], title: model.project.name + " " + PoiActions.envDesc(model.environment)};
+    }
+
+    function setFocus() {
+        flow.forceActiveFocus()
     }
 
     function refreshProjectView() {
@@ -113,6 +118,7 @@ Rectangle {
     ScrollView {
         id: projectScrollView
         anchors.fill: parent
+
         Flickable {
             id: projectFlickable
             anchors.fill: parent
@@ -126,6 +132,10 @@ Rectangle {
                 anchors.bottomMargin: 4
                 spacing: 10
                 id: flow
+
+                Keys.onPressed: {
+                    KeyboardHelpers.handleKey(event, flow)
+                }
 
                 Repeater {
                     id: projectSectionRepeater

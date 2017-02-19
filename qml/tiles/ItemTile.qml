@@ -6,6 +6,7 @@ Rectangle {
     property string icon
     border.width: focus ? 1 : 0
     border.color: 'black'
+    property bool isTile: true
 
     Text {
         text: itemDesc
