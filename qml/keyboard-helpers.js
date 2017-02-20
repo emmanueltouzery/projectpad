@@ -116,7 +116,7 @@ function itemGetRowColInfoMultipleFlows(flow, item, flowLengths) {
         } else {
             // the item is in this flow
             var r = itemGetRowColInfo(flow, {item:item.item, index:remainingIdx})
-            item.item.itemDesc = curRow+r.row + ", " + r.col
+            // item.item.itemDesc = curRow+r.row + ", " + r.col
             return {row: curRow+r.row, col: r.col, itemsPerRow: r.itemsPerRow}
         }
     }
