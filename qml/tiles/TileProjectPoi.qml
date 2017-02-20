@@ -24,23 +24,33 @@ ItemTile {
             })
     }
 
+    onFocusChanged: {
+        if (focus) {
+            showMenu(this)
+        }
+    }
+
+    function showMenu(item) {
+        selectMenu.options = [[PoiActions.actions[model.interestType].icon, function() {
+            var info = getAppState().projectViewState.runPoiAction(model)
+            appContext.progressMessage("\nStarted program\n")
+        }],
+                              ["glyphicons-151-edit", function() {editPoi(model)}],
+                              ["glyphicons-193-circle-remove", function() {
+                                  appContext.confirmDelete(function() {
+                                      Utils.handleEitherVoid(getAppState()
+                                                             .projectViewState.deleteProjectPois([model.id]))
+                                      // force refresh
+                                      refreshProjectView()
+                                  })
+                              }]]
+        selectMenu.show(item, global)
+    }
+
     MouseArea {
         anchors.fill: parent
         onClicked: {
-            selectMenu.options = [[PoiActions.actions[model.interestType].icon, function() {
-                var info = getAppState().projectViewState.runPoiAction(model)
-                appContext.progressMessage("\nStarted program\n")
-                }],
-                ["glyphicons-151-edit", function() {editPoi(model)}],
-                ["glyphicons-193-circle-remove", function() {
-                    appContext.confirmDelete(function() {
-                        Utils.handleEitherVoid(getAppState()
-                                           .projectViewState.deleteProjectPois([model.id]))
-                        // force refresh
-                        refreshProjectView()
-                    })
-                }]]
-            selectMenu.show(parent, global)
+            showMenu(parent)
             activated(parent)
         }
     }

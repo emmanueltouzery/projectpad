@@ -11,6 +11,12 @@ ItemTile {
     property variant global: undefined
     signal activated(variant tile)
 
+    onFocusChanged: {
+        if (focus) {
+            showMenu(this)
+        }
+    }
+
     Flow {
         x: 5
         y: 145
@@ -62,14 +68,18 @@ ItemTile {
         }
     }
 
+    function showMenu(item) {
+        var desktopSize = {width: Screen.desktopAvailableWidth,
+                           height: Screen.desktopAvailableHeight}
+        ServerMenu.showSelectMenu(
+            pv.model.project, modelData.server, item, desktopSize,
+            function() { refreshProjectView() }, selectMenu, global)
+    }
+
     MouseArea {
         anchors.fill: parent
         onClicked: {
-            var desktopSize = {width: Screen.desktopAvailableWidth,
-                               height: Screen.desktopAvailableHeight}
-            ServerMenu.showSelectMenu(
-                pv.model.project, modelData.server, parent, desktopSize,
-                function() { refreshProjectView() }, selectMenu, global)
+            showMenu(parent)
             activated(parent)
         }
     }

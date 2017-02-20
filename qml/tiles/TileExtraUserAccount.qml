@@ -14,6 +14,12 @@ ItemTile {
     property variant global: undefined
     signal activated(variant tile)
 
+    onFocusChanged: {
+        if (focus) {
+            showMenu(this)
+        }
+    }
+
     function editExtraUserAccount(curUserAcct) {
         popup.setContents("Edit extra user account", editExtraUserAccountComponent,
                 function (userEdit) {
@@ -25,36 +31,42 @@ ItemTile {
                     refreshServerView()
                 })
     }
+
+    function showMenu(item) {
+        var options = [
+            ["glyphicons-151-edit", function() { editExtraUserAccount(model)}],
+            ["glyphicons-512-copy", function() {
+                appContext.copyItemEntity("ServerExtraUserEntityType",
+                                          model.id, true)
+            }],
+            ["glyphicons-193-circle-remove", function() {
+                appContext.confirmDelete(function() {
+                    Utils.handleEitherVoid(getAppState().serverViewState
+                                           .deleteServerExtraUserAccounts([model.id]))
+                    refreshServerView()
+                })
+            }]]
+        if (model.authKeyFilename !== "...") {
+            options.push(["glyphicons-45-keys", function() {
+                Utils.handleEither(
+                    getAppState().serverViewState.saveAuthKey(model),
+                    function(location) {successMessage("Saved file to " + location)});
+            }])
+        }
+        var desktopSize = {width: Screen.desktopAvailableWidth,
+                           height: Screen.desktopAvailableHeight}
+        options = options.concat(Remote.tileRemoteControlOptions(
+            server, desktopSize,
+            function (w,h) { return getAppState().serverViewState.runExtraUserRdp(model, w, h) },
+            function() { return getAppState().serverViewState.openExtraUserSshSession(model) }))
+        selectMenu.options = options
+        selectMenu.show(item, global)
+    }
+
     MouseArea {
         anchors.fill: parent
         onClicked: {
-            var options = [
-                ["glyphicons-151-edit", function() { editExtraUserAccount(model)}],
-                ["glyphicons-512-copy", function() {
-                    appContext.copyItemEntity("ServerExtraUserEntityType",
-                                                  model.id, true)
-                }],
-                ["glyphicons-193-circle-remove", function() {
-                    appContext.confirmDelete(function() {
-                        Utils.handleEitherVoid(getAppState().serverViewState
-                                           .deleteServerExtraUserAccounts([model.id]))
-                        refreshServerView()
-                    })
-                }]]
-            if (model.authKeyFilename !== "...") {
-                options.push(["glyphicons-45-keys", function() {
-                    Utils.handleEither(
-                        getAppState().serverViewState.saveAuthKey(model),
-                        function(location) {successMessage("Saved file to " + location)});
-                }])
-            }
-            var desktopSize = {width: Screen.desktopAvailableWidth,
-                               height: Screen.desktopAvailableHeight}
-            options = options.concat(Remote.tileRemoteControlOptions(server, desktopSize,
-                function (w,h) { return getAppState().serverViewState.runExtraUserRdp(model, w, h) },
-                function() { return getAppState().serverViewState.openExtraUserSshSession(model) }))
-            selectMenu.options = options
-            selectMenu.show(parent, global)
+            showMenu(parent)
             activated(parent)
         }
     }

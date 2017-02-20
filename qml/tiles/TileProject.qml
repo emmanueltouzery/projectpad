@@ -15,6 +15,13 @@ ItemTile {
         }
     }
 
+    onFocusChanged: {
+        if (focus) {
+            selectMenu.options = getActions(modelData)
+            selectMenu.show(this)
+        }
+    }
+
     function getActions(projectModel) {
         var environments = [];
         if (projectModel.hasDev) {
