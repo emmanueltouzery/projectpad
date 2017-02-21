@@ -166,8 +166,11 @@ Rectangle {
                                 model: modelData
                                 server: pv.model
                                 global: parent.parent
-                                onActivated: Utils.scrollInView(
-                                    tile, serverScrollView, serverFlickable)
+                                onActivated: {
+                                    Utils.scrollInView(
+                                        tile, serverScrollView, serverFlickable)
+                                    tile.focus = true
+                                }
                             }
                         }
 
@@ -179,8 +182,11 @@ Rectangle {
                                 model: modelData
                                 server: pv.model
                                 global: parent.parent
-                                onActivated: Utils.scrollInView(
-                                    tile, serverScrollView, serverFlickable)
+                                onActivated: {
+                                    Utils.scrollInView(
+                                        tile, serverScrollView, serverFlickable)
+                                    tile.focus = true
+                                }
                             }
                         }
 
@@ -192,8 +198,11 @@ Rectangle {
                                 model: modelData
                                 server: pv.model
                                 global: parent.parent
-                                onActivated: Utils.scrollInView(
-                                    tile, serverScrollView, serverFlickable)
+                                onActivated: {
+                                    Utils.scrollInView(
+                                        tile, serverScrollView, serverFlickable)
+                                    tile.focus = true
+                                }
                             }
                         }
 
@@ -205,8 +214,11 @@ Rectangle {
                                 server: pv.model
                                 model: modelData
                                 global: parent.parent
-                                onActivated: Utils.scrollInView(
-                                    tile, serverScrollView, serverFlickable)
+                                onActivated: {
+                                    Utils.scrollInView(
+                                        tile, serverScrollView, serverFlickable)
+                                    tile.focus = true
+                                }
                             }
                         }
                     }

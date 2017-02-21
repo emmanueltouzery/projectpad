@@ -30,6 +30,7 @@ Rectangle {
             }
             obj.activated.connect(function(tile_) {
                 Utils.scrollInView(tile_, scrollView, flickable)
+                tile_.focus = true
             })
         }
     }
@@ -148,7 +149,10 @@ Rectangle {
                                 global: rootFlow
                                 model: modelData.child
                                 project: modelData.parent
-                                onActivated: Utils.scrollInView(tile, scrollView, flickable)
+                                onActivated: {
+                                    Utils.scrollInView(tile, scrollView, flickable)
+                                    tile.focus = true
+                                }
                             }
                         }
                         Repeater {
@@ -157,7 +161,10 @@ Rectangle {
                                 global: rootFlow
                                 model: modelData.child
                                 project: modelData.parent
-                                onActivated: Utils.scrollInView(tile, scrollView, flickable)
+                                onActivated: {
+                                    Utils.scrollInView(tile, scrollView, flickable)
+                                    tile.focus = true
+                                }
                             }
                         }
                         Repeater {
@@ -175,7 +182,10 @@ Rectangle {
                                 global: rootFlow
                                 project: modelData.parent
                                 model: modelData.child
-                                onActivated: Utils.scrollInView(tile, scrollView, flickable)
+                                onActivated: {
+                                    Utils.scrollInView(tile, scrollView, flickable)
+                                    tile.focus = true
+                                }
                             }
                         }
                         Flow {

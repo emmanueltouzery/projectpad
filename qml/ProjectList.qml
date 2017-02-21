@@ -64,7 +64,10 @@ ScrollView {
                 model: getAppState().projectListState.projects
 
                 TileProject {
-                    onActivated: Utils.scrollInView(tile, projectList, projectsFlickable)
+                    onActivated: {
+                        Utils.scrollInView(tile, projectList, projectsFlickable)
+                        tile.focus = true
+                    }
                     Keys.forwardTo: itemsrepeater
                 }
             }

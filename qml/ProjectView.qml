@@ -161,8 +161,11 @@ Rectangle {
                                 model: modelData
                                 project: pv.model.project
                                 global: parent.parent
-                                onActivated: Utils.scrollInView(
-                                    tile, projectScrollView, projectFlickable)
+                                onActivated: {
+                                    Utils.scrollInView(
+                                        tile, projectScrollView, projectFlickable)
+                                    tile.focus = true
+                                }
                             }
                         }
 
@@ -171,8 +174,11 @@ Rectangle {
                             model: modelData.servers
                             TileServer {
                                 global: parent.parent
-                                onActivated: Utils.scrollInView(
-                                    tile, projectScrollView, projectFlickable)
+                                onActivated: {
+                                    Utils.scrollInView(
+                                        tile, projectScrollView, projectFlickable)
+                                    tile.focus = true
+                                }
                             }
                         }
 
@@ -183,8 +189,11 @@ Rectangle {
                                 model: modelData
                                 project: pv.model.project
                                 global: parent.parent
-                                onActivated: Utils.scrollInView(
-                                    tile, projectScrollView, projectFlickable)
+                                onActivated: {
+                                    Utils.scrollInView(
+                                        tile, projectScrollView, projectFlickable)
+                                    tile.focus = true
+                                }
                             }
                         }
 
@@ -196,8 +205,11 @@ Rectangle {
                                 model: modelData
                                 project: pv.model.project
                                 global: parent.parent
-                                onActivated: Utils.scrollInView(
-                                    tile, projectScrollView, projectFlickable)
+                                onActivated: {
+                                    Utils.scrollInView(
+                                        tile, projectScrollView, projectFlickable)
+                                    tile.focus = true
+                                }
                             }
                         }
                     }
