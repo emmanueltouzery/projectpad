@@ -24,23 +24,36 @@ function handleKey(event, flow, selectMenu) {
     }
     var shortcuts = selectMenu.options
         .map(function (opt) { return opt[0]; })
-        .map(function (icon) { return iconShortcuts[icon] });
+        .map(function (icon) {
+            var v = iconShortcuts[icon]
+            if (!v) {
+                console.warn("No shortcut for icon " + icon)
+            }
+            return v
+        });
     var shortcutIndex = shortcuts.indexOf(event.text)
     if (shortcutIndex >= 0) {
         selectMenu.options[shortcutIndex][1]()
     }
 }
 
+// shortcut key alphabetically ordered for a quickcheck
+// that we don't duplicate them
 var iconShortcuts = {
+    "glyphicons-512-copy": "c",
+    "glyphicons-182-download-alt": "d",
     "glyphicons-151-edit": "e",
-    "glyphicons-193-circle-remove": "x",
+    "glyphicons-283-cardio": "f",
+    "glyphicons-138-cogwheels": "g",
+    "glyphicons-145-folder-open": "o",
     "glyphicons-333-certificate": "p",
-    "glyphicons-534-lab": "u",
+    "glyphicons-489-multiple-displays": "r",
     "glyphicons-140-adjust-alt": "s",
     "glyphicons-361-bug": "t",
-    "glyphicons-145-folder-open": "o",
-    "glyphicons-512-copy": "c",
-    "glyphicons-489-multiple-displays": "r"
+    "glyphicons-534-lab": "u",
+    "glyphicons-52-eye-open": "v",
+    "glyphicons-372-global": "w",
+    "glyphicons-193-circle-remove": "x"
 }
 
 function containerToItemList(container) {
