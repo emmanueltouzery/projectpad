@@ -6,6 +6,7 @@ import "core"
 import "tiles"
 import "utils.js" as Utils
 import "poiactions.js" as PoiActions
+import "keyboard-helpers.js" as KeyboardHelpers
 
 Rectangle {
     id: pv
@@ -32,6 +33,10 @@ Rectangle {
     function refreshServerView() {
         serverSectionRepeater.model = getAppState().serverViewState
             .getServerDisplaySections(pv.model.id)
+    }
+
+    function setFocus() {
+        flow.forceActiveFocus()
     }
 
     function actionTriggered(name) {
@@ -118,6 +123,10 @@ Rectangle {
                 anchors.bottomMargin: 4
                 spacing: 10
                 id: flow
+
+                Keys.onPressed: {
+                    KeyboardHelpers.handleKey(event, flow, selectMenu)
+                }
 
                 ServerHeader {
                     project: Utils.findById(
