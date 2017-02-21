@@ -45,6 +45,7 @@ var iconShortcuts = {
     "glyphicons-151-edit": "e",
     "glyphicons-283-cardio": "f",
     "glyphicons-138-cogwheels": "g",
+    "glyphicons-45-keys": "k",
     "glyphicons-145-folder-open": "o",
     "glyphicons-333-certificate": "p",
     "glyphicons-489-multiple-displays": "r",
