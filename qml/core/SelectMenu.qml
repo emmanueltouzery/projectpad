@@ -39,13 +39,13 @@ Canvas {
     }
 
     function show(parnt, global) {
-    if (global !== undefined) {
-        var globalCoords = parnt.mapToItem(global, 0, 0)
-        selectMenu.x = globalCoords.x
-        selectMenu.y = globalCoords.y
-    } else {
-        selectMenu.y = parnt.y
-        selectMenu.x = parnt.x
+        if (global !== undefined) {
+            var globalCoords = parnt.mapToItem(global, 0, 0)
+            selectMenu.x = globalCoords.x
+            selectMenu.y = globalCoords.y
+        } else {
+            selectMenu.y = parnt.y
+            selectMenu.x = parnt.x
         }
         selectMenu.visible = true
         selectMenu.requestPaint()
