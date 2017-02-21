@@ -134,7 +134,7 @@ Rectangle {
                 id: flow
 
                 Keys.onPressed: {
-                    KeyboardHelpers.handleKey(event, flow)
+                    KeyboardHelpers.handleKey(event, flow, selectMenu)
                 }
 
                 Repeater {

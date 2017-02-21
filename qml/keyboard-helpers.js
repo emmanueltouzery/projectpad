@@ -1,4 +1,4 @@
-function handleKey(event, flow) {
+function handleKey(event, flow, selectMenu) {
     var items = getAllItems(flow)
     if (items.items.length === 0) {
         return
@@ -22,6 +22,25 @@ function handleKey(event, flow) {
         focusItemUp(items, flow, focusedItem)
         break;
     }
+    var shortcuts = selectMenu.options
+        .map(function (opt) { return opt[0]; })
+        .map(function (icon) { return iconShortcuts[icon] });
+    var shortcutIndex = shortcuts.indexOf(event.text)
+    if (shortcutIndex >= 0) {
+        selectMenu.options[shortcutIndex][1]()
+    }
+}
+
+var iconShortcuts = {
+    "glyphicons-151-edit": "e",
+    "glyphicons-193-circle-remove": "x",
+    "glyphicons-333-certificate": "p",
+    "glyphicons-534-lab": "u",
+    "glyphicons-140-adjust-alt": "s",
+    "glyphicons-361-bug": "t",
+    "glyphicons-145-folder-open": "o",
+    "glyphicons-512-copy": "c",
+    "glyphicons-489-multiple-displays": "r"
 }
 
 function containerToItemList(container) {

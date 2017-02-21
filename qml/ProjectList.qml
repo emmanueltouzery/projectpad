@@ -59,7 +59,7 @@ ScrollView {
             Repeater {
                 id: itemsrepeater
                 Keys.onPressed: {
-                    KeyboardHelpers.handleKey(event, flow)
+                    KeyboardHelpers.handleKey(event, flow, selectMenu)
                 }
                 model: getAppState().projectListState.projects
 
