@@ -5,6 +5,7 @@ Flow {
     id: serverFlow
     width: parent.width
     spacing: 10
+    property bool isFlow: true // needed for keyboard navigation
 
     function makeTileModel() {
         return function(modelData) {

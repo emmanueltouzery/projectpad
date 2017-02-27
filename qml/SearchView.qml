@@ -4,6 +4,7 @@ import QtQuick.Layouts 1.1
 import "core"
 import "tiles"
 import "utils.js" as Utils
+import "keyboard-helpers.js" as KeyboardHelpers
 
 Rectangle {
     id: searchView
@@ -14,6 +15,10 @@ Rectangle {
     property bool isPickingServers: false
     property variant allTiles: []
     property variant serverEditComponent
+
+    function setFocus() {
+        rootFlow.forceActiveFocus()
+    }
 
     // shared with SearchServerView
     function addTilesToFlow(tileName, items, flow) {
@@ -109,6 +114,11 @@ Rectangle {
                 anchors.margins: 4
                 spacing: 10
                 id: rootFlow
+
+                Keys.onPressed: {
+                    KeyboardHelpers.handleKey(event, rootFlow, selectMenu)
+                }
+
                 Repeater {
                     model: searchView.model.matches
                     Flow {

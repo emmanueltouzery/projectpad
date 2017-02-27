@@ -1,19 +1,21 @@
+var debugGrid = false
+
 function handleKey(event, flow, selectMenu) {
     var items = getAllItems(flow)
-    if (items.items.length === 0) {
+    if (items.length === 0) {
         return
     }
-    var focusedItem = getFocusedItemInfo(items.items)
+    var focusedItem = getFocusedItemInfo(items)
     if (!focusedItem) {
-        items.items[0].focus = true
+        items[0].focus = true
         return
     }
     switch (event.key) {
     case Qt.Key_Left:
-        focusPreviousItem(items.items, focusedItem)
+        focusPreviousItem(items, flow, focusedItem)
         break;
     case Qt.Key_Right:
-        focusNextItem(items.items, focusedItem)
+        focusNextItem(items, flow, focusedItem)
         break;
     case Qt.Key_Down:
         focusItemDown(items, flow, focusedItem)
@@ -85,45 +87,50 @@ function containerToItemList(container) {
  */
 function getAllItems(qmlItem) {
     if (qmlItem.isTile) {
-        return {items: [qmlItem], flowLengths: [1]}
+        return [qmlItem]
     }
     var items = containerToItemList(qmlItem)
     var result = []
-    var flowLengths = [0]
     for (var i=0;i<items.length;i++) {
         var curItem = items[i]
-        var isFlow = curItem.toString().indexOf("QQuickFlow") >= 0
-        var children = getAllItems(curItem)
-        result = result.concat(children.items);
-        if (isFlow && flowLengths[flowLengths.length-1] > 0) {
-            flowLengths.push(children.items.length)
+        if (curItem.isTile) {
+            result.push(curItem)
         } else {
-            flowLengths[flowLengths.length-1] += children.items.length
+            var isFlow = curItem.isFlow || curItem.toString().indexOf("QQuickFlow") >= 0
+            if (isFlow) {
+                if (result.length > 0 && result[result.length-1] !== null) {
+                    result.push(null)
+                }
+            }
+            var children = getAllItems(curItem)
+            result = result.concat(children);
         }
     }
-    return {items: result, flowLengths: flowLengths}
+    return result
 }
 
 function getFocusedItemInfo(repeater) {
     for (var i=0;i<repeater.length; i++) {
         var curItem = repeater[i]
-        if (curItem.focus) {
+        if (curItem && curItem.focus) {
             return {item: curItem, index: i}
         }
     }
     return null
 }
 
-function focusPreviousItem(repeater, focusedItem) {
-    if (focusedItem.index > 0) {
-        focusItem(repeater[focusedItem.index-1])
-    }
+function focusPreviousItem(items, flow, focusedItem) {
+    focusItemToLeft(items, flow, focusedItem, function (curRowCol, rowCol) {
+        return (curRowCol.row === rowCol.row && curRowCol.col < rowCol.col) ||
+            (curRowCol.row < rowCol.row)
+    })
 }
 
-function focusNextItem(repeater, focusedItem) {
-    if (focusedItem.index < repeater.length-1) {
-        focusItem(repeater[focusedItem.index+1])
-    }
+function focusNextItem(items, flow, focusedItem) {
+    focusItemToRight(items, flow, focusedItem, function (curRowCol, rowCol) {
+        return (curRowCol.row === rowCol.row && curRowCol.col > rowCol.col)  ||
+            (curRowCol.row > rowCol.row)
+    })
 }
 
 function itemGetRowColInfo(flow, item) {
@@ -134,29 +141,41 @@ function itemGetRowColInfo(flow, item) {
 }
 
 
-function itemGetRowColInfoMultipleFlows(flow, item, flowLengths) {
+function itemGetRowColInfoMultipleFlows(flow, item, items) {
+    var itemsPerRow = Math.floor(flow.width / (item.item.width+flow.spacing))
     var remainingIdx = item.index
     var curRow = 0
-    for (var i=0;i<flowLengths.length;i++) {
-        if (remainingIdx > flowLengths[i]-1) {
-            // the item is actually in a later flow
-            var r = itemGetRowColInfo(flow, {item:item.item, index:flowLengths[i]-1})
-            if (flowLengths[i] > 0) {
-                curRow += r.row+1
-            }
-            // item.item.itemDesc = r.row + ", " + r.col
-            remainingIdx -= flowLengths[i]
+    var curCol = 0
+    for (var i=0;i<items.length;i++) {
+        var curItem = items[i]
+        if (curItem === null) {
+            ++curRow
+            curCol = 0
         } else {
-            // the item is in this flow
-            var r = itemGetRowColInfo(flow, {item:item.item, index:remainingIdx})
-            // item.item.itemDesc = curRow+r.row + ", " + r.col
-            return {row: curRow+r.row, col: r.col, itemsPerRow: r.itemsPerRow}
+            if (debugGrid) {
+                curItem.itemDesc = curRow + ", " + curCol
+            }
+            if (i === item.index) {
+                return {row: curRow, col: curCol, itemsPerRow: itemsPerRow}
+            }
+            ++curCol
+            if (curCol >= itemsPerRow) {
+                ++curRow
+                curCol = 0
+            }
         }
     }
+    console.error("itemGetRowColInfoMultipleFlows: didn't find the item!")
 }
 
 function focusItemUp(items, flow, focusedItem) {
-    var rowCol = itemGetRowColInfoMultipleFlows(flow, focusedItem, items.flowLengths)
+    focusItemToLeft(items, flow, focusedItem, function (curRowCol, rowCol) {
+        return (curRowCol.row < rowCol.row && curRowCol.col <= rowCol.col)
+    })
+}
+
+function focusItemToLeft(items, flow, focusedItem, cellAcceptCheck) {
+    var rowCol = itemGetRowColInfoMultipleFlows(flow, focusedItem, items)
     // calculating the previous item index based on row, column, itemsPerRow and
     // some multiplications is too naive because rows may not be complete in
     // case several flows are in play, like so:
@@ -165,20 +184,29 @@ function focusItemUp(items, flow, focusedItem) {
     // I I I
     var curItemIndex = focusedItem.index
     for (; curItemIndex>=0; curItemIndex--) {
-        var curItem = items.items[curItemIndex]
+        var curItem = items[curItemIndex]
+        if (curItem === null) {
+            continue
+        }
         var curRowCol = itemGetRowColInfoMultipleFlows(
-            flow, {item:curItem, index:curItemIndex}, items.flowLengths)
-        if (curRowCol.row < rowCol.row && curRowCol.col <= rowCol.col) {
+            flow, {item:curItem, index:curItemIndex}, items)
+        if (cellAcceptCheck(curRowCol, rowCol)) {
             break
         }
     }
     // need the Math.max() because in case we don't find anything,
     // the for loop will call curItemIndex-- one extra time when we finish
-    focusItem(items.items[Math.max(curItemIndex, 0)])
+    focusItem(items[Math.max(curItemIndex, 0)])
 }
 
 function focusItemDown(items, flow, focusedItem) {
-    var rowCol = itemGetRowColInfoMultipleFlows(flow, focusedItem, items.flowLengths)
+    focusItemToRight(items, flow, focusedItem, function (curRowCol, rowCol) {
+        return (curRowCol.row > rowCol.row && curRowCol.col >= rowCol.col)
+    })
+}
+
+function focusItemToRight(items, flow, focusedItem, cellAcceptCheck) {
+    var rowCol = itemGetRowColInfoMultipleFlows(flow, focusedItem, items)
     // calculating the next item index based on row, column, itemsPerRow and
     // some multiplications is too naive because rows may not be complete in
     // case several flows are in play, like so:
@@ -186,17 +214,20 @@ function focusItemDown(items, flow, focusedItem) {
     // I I      <-- empty item because next row is a new flow
     // I I I
     var curItemIndex = focusedItem.index
-    for (; curItemIndex<items.items.length; curItemIndex++) {
-        var curItem = items.items[curItemIndex]
+    for (; curItemIndex<items.length; curItemIndex++) {
+        var curItem = items[curItemIndex]
+        if (curItem === null) {
+            continue
+        }
         var curRowCol = itemGetRowColInfoMultipleFlows(
-            flow, {item:curItem, index:curItemIndex}, items.flowLengths)
-        if (curRowCol.row > rowCol.row && curRowCol.col >= rowCol.col) {
+            flow, {item:curItem, index:curItemIndex}, items)
+        if (cellAcceptCheck(curRowCol, rowCol)) {
             break
         }
     }
     // need the Math.min() because in case we don't find anything,
     // the for loop will call curItemIndex++ one extra time when we finish
-    focusItem(items.items[Math.min(curItemIndex, items.items.length-1)])
+    focusItem(items[Math.min(curItemIndex, items.length-1)])
 }
 
 function focusItem(item) {
