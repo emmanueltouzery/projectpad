@@ -10,19 +10,28 @@ function handleKey(event, flow, selectMenu) {
         items[0].focus = true
         return
     }
+
+    if (event.modifiers === Qt.AltModifier && event.key === Qt.Key_Left) {
+        toolbar.backAction()
+        return
+    }
+    if (event.modifiers === Qt.AltModifier && event.key === Qt.Key_Right) {
+        toolbar.forwardAction()
+        return
+    }
     switch (event.key) {
     case Qt.Key_Left:
         focusPreviousItem(items, flow, focusedItem)
-        break;
+        break
     case Qt.Key_Right:
         focusNextItem(items, flow, focusedItem)
-        break;
+        break
     case Qt.Key_Down:
         focusItemDown(items, flow, focusedItem)
-        break;
+        break
     case Qt.Key_Up:
         focusItemUp(items, flow, focusedItem)
-        break;
+        break
     }
     var shortcuts = selectMenu.options
         .map(function (opt) { return opt[0]; })
