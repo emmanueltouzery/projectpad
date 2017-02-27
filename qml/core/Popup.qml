@@ -13,6 +13,8 @@ Rectangle {
     property int embedLevel: 0
     width: window.width
 
+    signal close()
+
     function escPressedCallback() {
         if (cancelButton.visible) {
             doClose()
@@ -47,6 +49,8 @@ Rectangle {
                     popup.unshadeHeader()
                     // restore the focus on the parent popup so the ESC key can work.
                     popup.forceActiveFocus()
+                } else {
+                    close()
                 }
             }
         }
@@ -83,6 +87,8 @@ Rectangle {
             popup.unshadeHeader()
             // restore the focus on the parent popup so the ESC key can work.
             popup.forceActiveFocus()
+        } else {
+            close()
         }
     }
 

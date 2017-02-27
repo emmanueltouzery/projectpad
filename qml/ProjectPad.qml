@@ -289,6 +289,7 @@ Window {
     Popup {
         id: popup
         visible: false
+        onClose: loader.item.setFocus()
     }
 
     Component.onCompleted: {
