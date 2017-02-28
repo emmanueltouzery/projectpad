@@ -25,8 +25,8 @@ Rectangle {
         return {pathLinks: [], title: model.project.name + " " + PoiActions.envDesc(model.environment)};
     }
 
-    function setFocus() {
-        flow.forceActiveFocus()
+    function flowToFocus() {
+        return flow
     }
 
     function refreshProjectView() {

@@ -214,7 +214,7 @@ Window {
                 if (loader.item.appContext !== undefined) {
                     loader.item.appContext = window
                 }
-                loader.item.setFocus()
+                loader.item.flowToFocus().forceActiveFocus()
             }
         }
 
@@ -289,7 +289,15 @@ Window {
     Popup {
         id: popup
         visible: false
-        onClose: loader.item.setFocus()
+        onClose: {
+            if (loader.item) {
+                loader.item.flowToFocus().forceActiveFocus()
+            }
+            if (selectedTile) {
+                selectedTile.focus = true
+                selectedTile.activated(selectedTile)
+            }
+        }
     }
 
     Component.onCompleted: {

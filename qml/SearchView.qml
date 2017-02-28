@@ -16,8 +16,8 @@ Rectangle {
     property variant allTiles: []
     property variant serverEditComponent
 
-    function setFocus() {
-        rootFlow.forceActiveFocus()
+    function flowToFocus() {
+        return rootFlow
     }
 
     // shared with SearchServerView

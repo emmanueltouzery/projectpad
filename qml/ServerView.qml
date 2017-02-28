@@ -35,8 +35,8 @@ Rectangle {
             .getServerDisplaySections(pv.model.id)
     }
 
-    function setFocus() {
-        flow.forceActiveFocus()
+    function flowToFocus() {
+        return flow
     }
 
     function actionTriggered(name) {

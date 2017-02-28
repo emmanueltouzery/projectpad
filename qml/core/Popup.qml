@@ -2,6 +2,7 @@ import QtQuick 2.0
 import QtQuick.Controls 1.2
 import QtQuick.Layouts 1.1
 import "../buttonstyles"
+import "../keyboard-helpers.js" as KeyboardHelpers
 
 Rectangle {
     id: popupHost
@@ -12,8 +13,9 @@ Rectangle {
     property bool implicitClose: true
     property int embedLevel: 0
     width: window.width
+    property var selectedTile
 
-    signal close()
+    signal close(var selectedTile)
 
     function escPressedCallback() {
         if (cancelButton.visible) {
@@ -33,6 +35,10 @@ Rectangle {
     }
 
     function setContents(title, contents, initCallback, okCallback, options) {
+        if (loader.item) {
+            popupHost.selectedTile = KeyboardHelpers.getFocusedItemInfo(
+                KeyboardHelpers.getAllItems(loader.item.flowToFocus())).item
+        }
         implicitClose = true
         okButton.text = (options && options.okBtnText) || "OK"
         okButton.style = defaultButtonStyle
@@ -50,7 +56,7 @@ Rectangle {
                     // restore the focus on the parent popup so the ESC key can work.
                     popup.forceActiveFocus()
                 } else {
-                    close()
+                    close(popupHost.selectedTile)
                 }
             }
         }
@@ -88,7 +94,7 @@ Rectangle {
             // restore the focus on the parent popup so the ESC key can work.
             popup.forceActiveFocus()
         } else {
-            close()
+            close(popupHost.selectedTile)
         }
     }
 

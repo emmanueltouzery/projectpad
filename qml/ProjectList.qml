@@ -18,8 +18,8 @@ ScrollView {
         return {pathLinks: [], title: ''};
     }
 
-    function setFocus() {
-        itemsrepeater.forceActiveFocus()
+    function flowToFocus() {
+        return flow
     }
 
     function actionTriggered(name) {
@@ -56,11 +56,12 @@ ScrollView {
             spacing: 10
             id: flow
 
+            Keys.onPressed: {
+                KeyboardHelpers.handleKey(event, flow, selectMenu)
+            }
+
             Repeater {
                 id: itemsrepeater
-                Keys.onPressed: {
-                    KeyboardHelpers.handleKey(event, flow, selectMenu)
-                }
                 model: getAppState().projectListState.projects
 
                 TileProject {
@@ -68,7 +69,6 @@ ScrollView {
                         Utils.scrollInView(tile, projectList, projectsFlickable)
                         tile.focus = true
                     }
-                    Keys.forwardTo: itemsrepeater
                 }
             }
         }
