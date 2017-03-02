@@ -19,6 +19,10 @@ ItemTile {
         }
     }
 
+    function tileId() {
+        return { type: "TileServerWebsite", id: modelId }
+    }
+
     function editSrvWww(curPoi) {
         popup.setContents("Edit website", editSrvWwwComponent,
                 function (wwwEdit) {

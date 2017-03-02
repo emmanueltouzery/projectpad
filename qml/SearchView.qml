@@ -8,7 +8,7 @@ import "keyboard-helpers.js" as KeyboardHelpers
 
 Rectangle {
     id: searchView
-    signal loadView(string name, variant model)
+    signal loadView(string name, variant model, var selectedTile)
     property variant model
     property variant appContext: null
     property bool selectorMode: false
@@ -72,7 +72,7 @@ Rectangle {
     function refreshSearch() {
         loadView("SearchView.qml", {
             matches: getAppState().search("AllEntityTypes", searchView.model.query),
-            query: searchView.model.query})
+            query: searchView.model.query}, null)
     }
     function refreshServerView() { refreshSearch() }
     function refreshProjectView() { refreshSearch() }

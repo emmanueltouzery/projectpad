@@ -27,6 +27,10 @@ ItemTile {
         }
     }
 
+    function tileId() {
+        return { type: "TileServerLink", id: modelId }
+    }
+
     function showMenu(item) {
         var desktopSize = {width: Screen.desktopAvailableWidth,
                            height: Screen.desktopAvailableHeight}

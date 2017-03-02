@@ -20,6 +20,10 @@ ItemTile {
         }
     }
 
+    function tileId() {
+        return { type: "TileExtraUserAccount", id: modelId }
+    }
+
     function editExtraUserAccount(curUserAcct) {
         popup.setContents("Edit extra user account", editExtraUserAccountComponent,
                 function (userEdit) {

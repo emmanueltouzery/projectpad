@@ -22,26 +22,30 @@ ItemTile {
         }
     }
 
+    function tileId() {
+        return { type: "TileProject", id: modelId }
+    }
+
     function getActions(projectModel) {
         var environments = [];
         if (projectModel.hasDev) {
             environments.push(["glyphicons-361-bug", function() {
-                loadView("ProjectView.qml", {"project": projectModel, "environment": "EnvDevelopment"})
+                loadView("ProjectView.qml", {"project": projectModel, "environment": "EnvDevelopment"}, tileId())
             }])
         }
         if (projectModel.hasUat) {
             environments.push(["glyphicons-534-lab", function() {
-                loadView("ProjectView.qml", {"project": projectModel, "environment": "EnvUat"})
+                loadView("ProjectView.qml", {"project": projectModel, "environment": "EnvUat"}, tileId())
             }])
         }
         if (projectModel.hasStaging) {
             environments.push(["glyphicons-140-adjust-alt", function() {
-                loadView("ProjectView.qml", {"project": projectModel, "environment": "EnvStage"})
+                loadView("ProjectView.qml", {"project": projectModel, "environment": "EnvStage"}, tileId())
             }])
         }
         if (projectModel.hasProd) {
             environments.push(["glyphicons-333-certificate", function() {
-                loadView("ProjectView.qml", {"project": projectModel, "environment": "EnvProd"})
+                loadView("ProjectView.qml", {"project": projectModel, "environment": "EnvProd"}, tileId())
             }])
         }
         return environments.concat([
@@ -53,7 +57,7 @@ ItemTile {
                     },
                     function (projectEdit) {
                         projectEdit.onOk()
-                        loadView("ProjectList.qml", null)
+                        loadView("ProjectList.qml", null, tileId())
                     })
             }],
             ["glyphicons-193-circle-remove", function() {

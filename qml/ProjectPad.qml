@@ -6,6 +6,7 @@ import QtQuick.Dialogs 1.0
 import QtQml 2.2
 import QtGraphicalEffects 1.0
 import "core"
+import "keyboard-helpers.js" as KeyboardHelpers
 
 Window {
     width: 800; height: 650;
@@ -26,14 +27,14 @@ Window {
     property var history: []
     property int historyFromLast: 1
 
-    function loadViewAction(name, model) {
-        loadViewActionEx(name, model, false)
+    function loadViewAction(name, model, selectedTile) {
+        loadViewActionEx(name, model, false, selectedTile)
     }
 
     // TODO the history doesn't really behave well
     // when something is deleted... Should be removed
     // from history I guess.
-    function loadViewActionEx(name, model, isBackFwd) {
+    function loadViewActionEx(name, model, isBackFwd, selectedTile) {
         if (!isBackFwd) {
             // during a search session we overwrite the history
             // each time, to avoid having in the history:
@@ -41,9 +42,12 @@ Window {
             if (history.length > 0 &&
                 history[history.length-1][0] === "SearchView.qml" &&
                 name === "SearchView.qml") {
-                history[history.length-1] = [name, model]
+                history[history.length-1] = [name, model, null]
             } else {
-                history.push([name, model])
+                if (history.length > 0) {
+                    history[history.length-historyFromLast][2] = selectedTile
+                }
+                history.push([name, model, null])
             }
         }
         if (isBackFwd && name === "SearchView.qml") {
@@ -94,7 +98,7 @@ Window {
     }
 
     function triggerSearch(txt) {
-        history.push(["SearchView.qml", { query: txt }])
+        history.push(["SearchView.qml", { query: txt }, null])
         if (searchField.text === txt) {
             // just make sure the screen is refreshed.
             refreshSearch()
@@ -114,7 +118,7 @@ Window {
             }
             searchField.forceActiveFocus()
         } else {
-            loadViewAction("ProjectList.qml", null)
+            loadViewAction("ProjectList.qml", null, null)
         }
     }
 
@@ -129,12 +133,32 @@ Window {
                 matches: getAppState().search("AllEntityTypes", searchField.text),
                 query: searchField.text,
                 isPickingServers: false
-            })
+            }, null)
     }
 
     Toolbar {
+
+        Timer {
+            id: selectTile
+            interval: 50
+            repeat: false
+            onTriggered: {
+                var toGo = history[history.length-historyFromLast]
+                var selectedTileInfo = toGo[2]
+                if (selectedTileInfo) {
+                    var selectedTile = KeyboardHelpers.getAllItems(loader.item.flowToFocus())
+                        .filter(function(item) {
+                            return item && item.tileId().type === selectedTileInfo.type &&
+                                item.tileId().id === selectedTileInfo.id
+                        })[0]
+                    selectedTile.focus = true
+                    selectedTile.activated(selectedTile)
+                }
+            }
+        }
+
         id: toolbar
-        onLoadView: loadViewAction(name, model)
+        onLoadView: loadViewAction(name, model, selectedTile)
         onActionTriggered: loader.item.actionTriggered(name)
         onToggleMenu: {
             popupMenu.visible = !popupMenu.visible
@@ -145,14 +169,26 @@ Window {
             if (history.length > historyFromLast) {
                 ++historyFromLast
                 var toGo = history[history.length-historyFromLast]
-                loadViewActionEx(toGo[0], toGo[1], true)
+                var selectedTileInfo = toGo[2]
+                loadViewActionEx(toGo[0], toGo[1], true, selectedTileInfo)
+                // i would immediately select the tile, but if I do that,
+                // there is some bug and I get flipped X & Y coordinates :-)
+                // with a little sleep, all is OK. sleep time of 0 is not enough,
+                // 50ms is OK though.
+                selectTile.start()
             }
         }
         onForwardAction: {
             if (historyFromLast > 1) {
                 --historyFromLast
                 var toGo = history[history.length-historyFromLast]
-                loadViewActionEx(toGo[0], toGo[1], true)
+                var selectedTileInfo = toGo[2]
+                loadViewActionEx(toGo[0], toGo[1], true, selectedTileInfo)
+                // i would immediately select the tile, but if I do that,
+                // there is some bug and I get flipped X & Y coordinates :-)
+                // with a little sleep, all is OK. sleep time of 0 is not enough,
+                // 50ms is OK though.
+                selectTile.start()
             }
         }
     }
@@ -249,12 +285,12 @@ Window {
         }
     }
 
-    signal loadView(string name, variant model)
+    signal loadView(string name, variant model, var selectedTile)
 
     Connections {
         target: loader.item
         onLoadView: {
-            loadViewAction(name, model)
+            loadViewAction(name, model, selectedTile)
         }
     }
 
@@ -325,7 +361,7 @@ Window {
                 progressMessage("Welcome!\n")
                 serverViewStateSignalConn.target = getAppState().serverViewState
                 projectViewStateSignalConn.target = getAppState().projectViewState
-                loadViewAction(name, model)
+                loadViewAction(name, model, null)
             }
         }
     }
@@ -333,7 +369,7 @@ Window {
     Component {
         id: firstPasswordComponent
         FirstPasswordEnter {
-            onLoadView: loadViewAction(name, model)
+            onLoadView: loadViewAction(name, model, selectedTile)
         }
     }
     TextField {

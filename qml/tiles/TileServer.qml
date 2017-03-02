@@ -17,6 +17,10 @@ ItemTile {
         }
     }
 
+    function tileId() {
+        return { type: "TileServer", id: modelId }
+    }
+
     Flow {
         x: 5
         y: 145

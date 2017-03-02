@@ -12,7 +12,7 @@ import "keyboard-helpers.js" as KeyboardHelpers
 Rectangle {
     id: pv
     anchors.fill: parent
-    signal loadView(string name, variant model)
+    signal loadView(string name, variant model, var selectedTile)
     property variant model
     property variant appContext: null
     property string _popupToDisplay

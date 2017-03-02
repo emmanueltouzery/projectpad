@@ -16,6 +16,10 @@ ItemTile {
         }
     }
 
+    function tileId() {
+        return { type: "TileNode", id: model.id }
+    }
+
     function showMenu(item) {
         selectMenu.options = [
             ["glyphicons-151-edit", function() {

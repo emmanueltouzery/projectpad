@@ -14,6 +14,10 @@ ItemTile {
     property variant global: undefined
     signal activated(variant tile)
 
+    function tileId() {
+        return { type: "TileServerDatabase", id: modelId }
+    }
+
     function editDb(curDb) {
         popup.setContents("Edit database", editDatabaseComponent,
                 function (dbEdit) {

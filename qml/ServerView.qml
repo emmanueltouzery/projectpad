@@ -11,7 +11,7 @@ import "keyboard-helpers.js" as KeyboardHelpers
 Rectangle {
     id: pv
     anchors.fill: parent
-    signal loadView(string name, variant model)
+    signal loadView(string name, variant model, var selectedTile)
     property variant model
     property variant appContext: null
     property string _popupToDisplay
@@ -143,9 +143,9 @@ Rectangle {
                             // the server was deleted! Go to the parent project.
                             var projectModel = Utils.findById(
                                 getAppState().projectListState.projects, model.projectId)
-                            loadView("ProjectView.qml", {"project": projectModel, "environment": pv.model.environment})
+                            loadView("ProjectView.qml", {"project": projectModel, "environment": pv.model.environment}, null)
                         } else {
-                            loadView("ServerView.qml", updatedServer)
+                            loadView("ServerView.qml", updatedServer, null)
                         }
                     }
                 }

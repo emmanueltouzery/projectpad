@@ -24,6 +24,10 @@ ItemTile {
             })
     }
 
+    function tileId() {
+        return { type: "TileProjectPoi", id: model.id }
+    }
+
     onFocusChanged: {
         if (focus) {
             showMenu(this)
