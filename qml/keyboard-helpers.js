@@ -19,6 +19,27 @@ function handleKey(event, flow, selectMenu) {
         toolbar.forwardAction()
         return
     }
+    if (event.modifiers === Qt.ControlModifier && event.key === Qt.Key_U) {
+        // move to the parent (server if we're under a server, project if we're a server)
+        if (focusedItem.item.server) {
+            // the parent case happens from the search view
+            var serverId = focusedItem.item.server.parent ?
+                focusedItem.item.server.parent.id : focusedItem.item.server.id
+            var server = getAppState().projectListState.getServerById(serverId)
+            var project = Utils.findById(
+                getAppState().projectListState.projects, server.projectId)
+            loadView("ProjectView.qml",
+                     {project: project, environment: server.environment},
+                     focusedItem.item.tileId(), {type: "TileServer", id: serverId})
+        } else if (focusedItem.item.project) {
+            var projectId = focusedItem.item.project.id
+            var project = Utils.findById(
+                getAppState().projectListState.projects, projectId)
+            loadView("ProjectList.qml",
+                     {project: project, environment: focusedItem.item.environment},
+                     focusedItem.item.tileId(), {type: "TileProject", id: projectId})
+        }
+    }
     switch (event.key) {
     case Qt.Key_Left:
         focusPreviousItem(items, flow, focusedItem)
@@ -148,7 +169,6 @@ function itemGetRowColInfo(flow, item) {
     var myIndexInRow = item.index % itemsPerRow
     return {row: myRow, col: myIndexInRow, itemsPerRow: itemsPerRow}
 }
-
 
 function itemGetRowColInfoMultipleFlows(flow, item, items) {
     var itemsPerRow = Math.floor(flow.width / (item.item.width+flow.spacing))

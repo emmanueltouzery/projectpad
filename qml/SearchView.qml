@@ -8,7 +8,7 @@ import "keyboard-helpers.js" as KeyboardHelpers
 
 Rectangle {
     id: searchView
-    signal loadView(string name, variant model, var selectedTile)
+    signal loadView(string name, variant model, var selectedTile, var selectedTileAfter)
     property variant model
     property variant appContext: null
     property bool selectorMode: false

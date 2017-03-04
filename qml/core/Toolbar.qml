@@ -10,7 +10,7 @@ Rectangle {
 
     property int toolbarPadding: 3
 
-    signal loadView(string name, variant model, var selectedTile)
+    signal loadView(string name, variant model, var selectedTile, var selectedTileAfter)
 
     signal toggleMenu()
     signal searchTrigger(bool isSearchActive)
@@ -78,7 +78,7 @@ Rectangle {
         IconButton {
             btnText: 'home'
             iconName: 'glyphicons-21-home'
-            onClicked: loadView("ProjectList.qml", null, null)
+            onClicked: loadView("ProjectList.qml", null, null, null)
             style: breadcbrumbsButton
             height: parent.height
             checked: pathLinks.length === 0 && title.length === 0
@@ -89,7 +89,7 @@ Rectangle {
             Button {
                 text: modelData.display
                 height: parent.height
-                onClicked: loadView(modelData.screen, modelData.model, null)
+                onClicked: loadView(modelData.screen, modelData.model, null, null)
                 style: breadcbrumbsButton
             }
         }

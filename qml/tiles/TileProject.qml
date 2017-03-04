@@ -30,22 +30,22 @@ ItemTile {
         var environments = [];
         if (projectModel.hasDev) {
             environments.push(["glyphicons-361-bug", function() {
-                loadView("ProjectView.qml", {"project": projectModel, "environment": "EnvDevelopment"}, tileId())
+                loadView("ProjectView.qml", {"project": projectModel, "environment": "EnvDevelopment"}, tileId(), null)
             }])
         }
         if (projectModel.hasUat) {
             environments.push(["glyphicons-534-lab", function() {
-                loadView("ProjectView.qml", {"project": projectModel, "environment": "EnvUat"}, tileId())
+                loadView("ProjectView.qml", {"project": projectModel, "environment": "EnvUat"}, tileId(), null)
             }])
         }
         if (projectModel.hasStaging) {
             environments.push(["glyphicons-140-adjust-alt", function() {
-                loadView("ProjectView.qml", {"project": projectModel, "environment": "EnvStage"}, tileId())
+                loadView("ProjectView.qml", {"project": projectModel, "environment": "EnvStage"}, tileId(), null)
             }])
         }
         if (projectModel.hasProd) {
             environments.push(["glyphicons-333-certificate", function() {
-                loadView("ProjectView.qml", {"project": projectModel, "environment": "EnvProd"}, tileId())
+                loadView("ProjectView.qml", {"project": projectModel, "environment": "EnvProd"}, tileId(), null)
             }])
         }
         return environments.concat([

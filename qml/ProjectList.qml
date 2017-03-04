@@ -37,7 +37,7 @@ ScrollView {
         }
     }
 
-    signal loadView(string name, variant model, var selectedTile)
+    signal loadView(string name, variant model, var selectedTile, var selectedTileAfter)
 
     Flickable {
         id: projectsFlickable

@@ -27,14 +27,16 @@ Window {
     property var history: []
     property int historyFromLast: 1
 
-    function loadViewAction(name, model, selectedTile) {
-        loadViewActionEx(name, model, false, selectedTile)
+    property var selectTileCurCallback: null
+
+    function loadViewAction(name, model, selectedTile, selectedTileAfter) {
+        loadViewActionEx(name, model, false, selectedTile, selectedTileAfter)
     }
 
     // TODO the history doesn't really behave well
     // when something is deleted... Should be removed
     // from history I guess.
-    function loadViewActionEx(name, model, isBackFwd, selectedTile) {
+    function loadViewActionEx(name, model, isBackFwd, selectedTile, selectedTileAfter) {
         if (!isBackFwd) {
             // during a search session we overwrite the history
             // each time, to avoid having in the history:
@@ -66,6 +68,9 @@ Window {
             searchField.visible = false
         }
         loader.setSource(name, {"model": model})
+        if (selectedTileAfter) {
+            selectTileDelay(selectedTileAfter)
+        }
     }
 
     function confirmDelete(callback) {
@@ -141,29 +146,39 @@ Window {
             }, null)
     }
 
-    Toolbar {
+    function selectTile(tileId) {
+        var selectedTile = KeyboardHelpers.getAllItems(loader.item.flowToFocus())
+            .filter(function(item) {
+                return item && item.tileId().type === tileId.type &&
+                    item.tileId().id === tileId.id
+            })[0]
+        selectedTile.focus = true
+        selectedTile.activated(selectedTile)
+    }
 
-        Timer {
-            id: selectTile
-            interval: 50
-            repeat: false
-            onTriggered: {
-                var toGo = history[history.length-historyFromLast]
-                var selectedTileInfo = toGo[2]
-                if (selectedTileInfo) {
-                    var selectedTile = KeyboardHelpers.getAllItems(loader.item.flowToFocus())
-                        .filter(function(item) {
-                            return item && item.tileId().type === selectedTileInfo.type &&
-                                item.tileId().id === selectedTileInfo.id
-                        })[0]
-                    selectedTile.focus = true
-                    selectedTile.activated(selectedTile)
-                }
+    Timer {
+        id: selectTileTimer
+        interval: 50
+        repeat: false
+    }
+
+    function selectTileDelay(tileId) {
+        if (selectTileCurCallback) {
+            selectTileTimer.triggered.disconnect(selectTileCurCallback)
+        }
+        var selectTileCb = function() {
+            if (tileId) {
+                selectTile(tileId)
             }
         }
+        selectTileTimer.triggered.connect(selectTileCb)
+        selectTileCurCallback = selectTileCb
+        selectTileTimer.start()
+    }
 
+    Toolbar {
         id: toolbar
-        onLoadView: loadViewAction(name, model, selectedTile)
+        onLoadView: loadViewAction(name, model, selectedTile, selectedTileAfter)
         onActionTriggered: loader.item.actionTriggered(name)
         onToggleMenu: {
             popupMenu.visible = !popupMenu.visible
@@ -180,7 +195,7 @@ Window {
                 // there is some bug and I get flipped X & Y coordinates :-)
                 // with a little sleep, all is OK. sleep time of 0 is not enough,
                 // 50ms is OK though.
-                selectTile.start()
+                selectTileDelay(toGo[2])
             }
         }
         onForwardAction: {
@@ -193,7 +208,7 @@ Window {
                 // there is some bug and I get flipped X & Y coordinates :-)
                 // with a little sleep, all is OK. sleep time of 0 is not enough,
                 // 50ms is OK though.
-                selectTile.start()
+                selectTileDelay(toGo[2])
             }
         }
     }
@@ -300,12 +315,12 @@ Window {
         }
     }
 
-    signal loadView(string name, variant model, var selectedTile)
+    signal loadView(string name, variant model, var selectedTile, var selectedTileAfter)
 
     Connections {
         target: loader.item
         onLoadView: {
-            loadViewAction(name, model, selectedTile)
+            loadViewAction(name, model, selectedTile, selectedTileAfter)
         }
     }
 
@@ -376,7 +391,7 @@ Window {
                 progressMessage("Welcome!\n")
                 serverViewStateSignalConn.target = getAppState().serverViewState
                 projectViewStateSignalConn.target = getAppState().projectViewState
-                loadViewAction(name, model, null)
+                loadViewAction(name, model, null, null)
             }
         }
     }
@@ -384,7 +399,7 @@ Window {
     Component {
         id: firstPasswordComponent
         FirstPasswordEnter {
-            onLoadView: loadViewAction(name, model, selectedTile)
+            onLoadView: loadViewAction(name, model, selectedTile, null)
         }
     }
     TextField {

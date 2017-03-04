@@ -11,7 +11,7 @@ import "keyboard-helpers.js" as KeyboardHelpers
 Rectangle {
     id: pv
     anchors.fill: parent
-    signal loadView(string name, variant model, var selectedTile)
+    signal loadView(string name, variant model, var selectedTile, var selectedTileAfter)
     property variant model
     property variant appContext: null
     property string _popupToDisplay
@@ -193,7 +193,7 @@ Rectangle {
                                 global: parent.parent
                                 onActivated: {
                                     Utils.scrollInView(
-                                        tile, serverScrollView, serverFlickable)
+                                       tile, serverScrollView, serverFlickable)
                                     tile.focus = true
                                 }
                             }

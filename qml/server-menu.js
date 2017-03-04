@@ -36,7 +36,7 @@ function showSelectMenu(project, server, parnt, desktopSize,
         customDelete = overrides.delete
     }
     var options = [
-        ["glyphicons-145-folder-open", function() { loadView("ServerView.qml", server, parnt.tileId()) }],
+        ["glyphicons-145-folder-open", function() { loadView("ServerView.qml", server, parnt.tileId(), null) }],
         ["glyphicons-151-edit", customEdit || function() {editServer(project, server, refreshAction)}],
         ["glyphicons-512-copy", function() {
             appContext.copyItemEntity("ServerEntityType", server.id, true)
