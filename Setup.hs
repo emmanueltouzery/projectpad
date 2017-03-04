@@ -29,7 +29,8 @@ doPostBuild _ _ pkg_descr lbi = do
         sourceFiles <- getResourceFiles subfolder
         mapM_ (\s -> copyFile s (appDataDir </> s)) sourceFiles
     mapM_ copyResources ["qml", "qml/core", "qml/buttonstyles", "qml/tiles",
-                   "glyphicons-free", "pics"]
+                   "glyphicons-free", "pics", "help"]
+    copyFile "projectpad-128.png" (appDataDir </> "projectpad-128.png") -- for the help HTML
     rawSystem "xdg-icon-resource" ["install", "--size", "64", "projectpad-64.png", "projectpad", "--novendor"]
     rawSystem "xdg-icon-resource" ["install", "--size", "96", "projectpad-96.png", "projectpad", "--novendor"]
     rawSystem "xdg-icon-resource" ["install", "--size", "128", "projectpad-128.png", "projectpad", "--novendor"]

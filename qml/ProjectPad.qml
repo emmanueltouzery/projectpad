@@ -494,6 +494,14 @@ Window {
         }
     }
 
+    Action {
+        id: openHelp
+        shortcut: "?"
+        onTriggered: {
+            getAppState().openAssociatedFile(getDataPath("help/index.html"))
+        }
+    }
+
     PopupMenu {
         anchors.top: toolbar.bottom
         anchors.right: parent.right
@@ -508,6 +516,9 @@ Window {
             }],
             ["Repeat clipboard copy (ctrl-y)", function() {
                 repeatCopyAction.trigger()
+            }],
+            ["Help", function() {
+                openHelp.trigger()
             }]
         ]
         visible: false

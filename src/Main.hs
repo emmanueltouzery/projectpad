@@ -11,7 +11,6 @@ module Main where
 -- the way to the GUI.
 
 import Database.Persist.Sqlite
-import Control.Applicative
 import Graphics.QML
 import Data.Typeable
 import Database.Sqlite as Sqlite
@@ -195,7 +194,9 @@ createLoginContext dbFullPath logQueriesToStdout = do
             defMethod' "isDbInitialized" $ const isDbInitialized,
             defMethod  "setupPasswordAndUpgradeDb"
                 (setupPasswordAndUpgradeDb dbFullPath logQueriesToStdout),
-            defMethod  "getAppState" getAppState
+            defMethod  "getAppState" getAppState,
+            defMethod' "getDataPath"
+                (const $ fmap T.pack . Paths_projectpad.getDataFileName . T.unpack)
         ]
     newObject loginClass =<< LoginState <$> newMVar Nothing
 
