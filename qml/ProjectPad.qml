@@ -198,9 +198,17 @@ Window {
         id: searchField
         visible: false
         width: parent.width
-        Keys.onEscapePressed: {
-            toolbar.disableSearch()
-            searchTriggered(false)
+        Keys.onPressed: {
+            switch (event.key) {
+            case Qt.Key_Escape:
+                toolbar.disableSearch()
+                searchTriggered(false)
+                break
+            case Qt.Key_Tab:
+            case Qt.Key_Down:
+                loader.item.flowToFocus().forceActiveFocus()
+                break
+            }
         }
         Image {
             anchors { top: parent.top; right: parent.right; margins: 7 }
@@ -250,7 +258,9 @@ Window {
                 if (loader.item.appContext !== undefined) {
                     loader.item.appContext = window
                 }
-                loader.item.flowToFocus().forceActiveFocus()
+                if (!searchField.visible) {
+                    loader.item.flowToFocus().forceActiveFocus()
+                }
             }
         }
 
