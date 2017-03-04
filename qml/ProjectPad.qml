@@ -75,7 +75,11 @@ Window {
     function confirmDanger(title, contents, btnText, callback) {
         popup.setContentsDanger(
             title, confirmComponent, btnText,
-            function (deleteDialog) {deleteDialog.setContents(contents)},
+            function (deleteDialog) {
+                deleteDialog.setContents(contents);
+                // if I don't force the focus, the <esc> key doesn't close the dialog
+                popup.cancelButton().focus = true
+            },
             function (deleteDialog) { callback() })
     }
 

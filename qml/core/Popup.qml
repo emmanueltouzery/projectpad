@@ -34,6 +34,10 @@ Rectangle {
         Keys.escapePressed.disconnect(escPressedCallback)
     }
 
+    function cancelButton() {
+        return cancelButton
+    }
+
     function setContents(title, contents, initCallback, okCallback, options) {
         if (loader.item) {
             popupHost.selectedTile = KeyboardHelpers.getFocusedItemInfo(
