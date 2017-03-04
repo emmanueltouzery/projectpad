@@ -1,6 +1,15 @@
 var debugGrid = false
 
 function handleKey(event, flow, selectMenu) {
+    if (event.modifiers === Qt.AltModifier && event.key === Qt.Key_Left) {
+        toolbar.backAction()
+        return
+    }
+    if (event.modifiers === Qt.AltModifier && event.key === Qt.Key_Right) {
+        toolbar.forwardAction()
+        return
+    }
+
     var items = getAllItems(flow)
     if (items.length === 0) {
         return
@@ -8,15 +17,6 @@ function handleKey(event, flow, selectMenu) {
     var focusedItem = getFocusedItemInfo(items)
     if (!focusedItem) {
         items[0].focus = true
-        return
-    }
-
-    if (event.modifiers === Qt.AltModifier && event.key === Qt.Key_Left) {
-        toolbar.backAction()
-        return
-    }
-    if (event.modifiers === Qt.AltModifier && event.key === Qt.Key_Right) {
-        toolbar.forwardAction()
         return
     }
     if (event.modifiers === Qt.ControlModifier && event.key === Qt.Key_U) {
