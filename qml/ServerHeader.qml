@@ -23,6 +23,14 @@ Rectangle {
         serverOptionsGroup.current = null
         lineSelectMenu.displayedServer = null
     }
+
+    // we're not a tile, but we often load views from server headers,
+    // and someone will ask us our tileId() to manipulate history.
+    // just return an empty one... hackish but...
+    function tileId() {
+        return null
+    }
+
     Image {
         x: 5
         source: {
