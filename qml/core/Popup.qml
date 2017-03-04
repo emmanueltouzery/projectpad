@@ -40,8 +40,11 @@ Rectangle {
 
     function setContents(title, contents, initCallback, okCallback, options) {
         if (loader.item) {
-            popupHost.selectedTile = KeyboardHelpers.getFocusedItemInfo(
-                KeyboardHelpers.getAllItems(loader.item.flowToFocus())).item
+            var focusedItemInfo = KeyboardHelpers.getFocusedItemInfo(
+                KeyboardHelpers.getAllItems(loader.item.flowToFocus()))
+            if (focusedItemInfo) {
+                popupHost.selectedTile = focusedItemInfo.item
+            }
         }
         implicitClose = true
         okButton.text = (options && options.okBtnText) || "OK"
