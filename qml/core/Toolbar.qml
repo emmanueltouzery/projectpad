@@ -105,6 +105,26 @@ Rectangle {
         }
     }
 
+    Action {
+        shortcut: "F1"
+        onTriggered: {
+            if (actions.length > 0) {
+                actionTriggered(actions[0][0])
+            }
+        }
+    }
+
+    // currently we only ever have one action in the toolbar,
+    // so this is not necessary, but...
+    Action {
+        shortcut: "F2"
+        onTriggered: {
+            if (actions.length > 1) {
+                actionTriggered(actions[1][0])
+            }
+        }
+    }
+
     Flow {
         id: flow
         y: toolbarPadding
