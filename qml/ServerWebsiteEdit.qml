@@ -141,12 +141,23 @@ Rectangle {
                 iconSmooth: false
                 iconName: "glyphicons-390-new-window-alt"
                 onClicked: {
-                    appContext.closePopup()
-                    appContext.triggerSearch(databaseButton.text)
+                    goToDb.trigger()
                 }
             }
         }
     }
+
+    Action {
+        id: goToDb
+        shortcut: "Ctrl+g"
+        onTriggered: {
+            if (databaseGotoButton.visible) {
+                appContext.closePopup()
+                appContext.triggerSearch(databaseButton.text)
+            }
+        }
+    }
+
     Popup {
         id: popupDbPicker
         visible: false
