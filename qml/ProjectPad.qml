@@ -110,6 +110,7 @@ Window {
             searchField.text = txt
         }
         searchField.visible = true
+        searchField.forceActiveFocus()
     }
 
     function searchTriggered(isSearchActive) {
