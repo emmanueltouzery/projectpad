@@ -149,7 +149,10 @@ Window {
     function selectTile(tileId) {
         var selectedTile = KeyboardHelpers.getAllItems(loader.item.flowToFocus())
             .filter(function(item) {
-                return item && item.tileId().type === tileId.type &&
+                // we get nulls for items when we have separators in the grid.
+                // ServerHeader will return a null tileId()
+                return item && item.tileId() &&
+                    item.tileId().type === tileId.type &&
                     item.tileId().id === tileId.id
             })[0]
         selectedTile.focus = true
