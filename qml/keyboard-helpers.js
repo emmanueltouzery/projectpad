@@ -256,7 +256,11 @@ function focusItemToRight(items, flow, focusedItem, cellAcceptCheck) {
     }
     // need the Math.min() because in case we don't find anything,
     // the for loop will call curItemIndex++ one extra time when we finish
-    focusItem(items[Math.min(curItemIndex, items.length-1)])
+    var lastIndex = items.length-1
+    while (lastIndex >= 0 && items[lastIndex] === null) {
+        --lastIndex
+    }
+    focusItem(items[Math.min(curItemIndex, lastIndex)])
 }
 
 function focusItem(item) {
