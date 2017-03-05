@@ -45,6 +45,10 @@ Flow {
         onShouldRefresh: {
             refreshSearch()
         }
+        onActivated: {
+            Utils.scrollInView(tile, scrollView, flickable)
+            tile.focus = true
+        }
     }
     Flow {
         id: extraUserFlow

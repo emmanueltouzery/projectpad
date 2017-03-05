@@ -54,7 +54,9 @@ function handleKey(event, flow, selectMenu) {
         focusItemUp(items, flow, focusedItem)
         break
     }
-    var shortcuts = selectMenu.options
+
+    var options = focusedItem.item.isTile ? selectMenu.options : lineSelectMenu.options
+    var shortcuts = options
         .map(function (opt) { return opt[0]; })
         .map(function (icon) {
             var v = iconShortcuts[icon]
@@ -65,7 +67,7 @@ function handleKey(event, flow, selectMenu) {
         });
     var shortcutIndex = shortcuts.indexOf(event.text)
     if (shortcutIndex >= 0) {
-        selectMenu.options[shortcutIndex][1]()
+        options[shortcutIndex][1]()
     }
 }
 
@@ -125,6 +127,9 @@ function getAllItems(qmlItem) {
         var curItem = items[i]
         if (curItem.isTile) {
             result.push(curItem)
+        } else if (curItem.isServerHeader) {
+            result.push(curItem)
+            result.push(null) // force a reset of the row after this, as it takes the whole row
         } else {
             var isFlow = curItem.isFlow || curItem.toString().indexOf("QQuickFlow") >= 0
             if (isFlow) {
@@ -163,15 +168,14 @@ function focusNextItem(items, flow, focusedItem) {
     })
 }
 
-function itemGetRowColInfo(flow, item) {
-    var itemsPerRow = Math.floor(flow.width / (item.item.width+flow.spacing))
-    var myRow = Math.floor(item.index / itemsPerRow)
-    var myIndexInRow = item.index % itemsPerRow
-    return {row: myRow, col: myIndexInRow, itemsPerRow: itemsPerRow}
+function getTileWidth(flow, items) {
+    var tileItems = items.filter(function (it) { return it && it.isTile })
+    return tileItems.length > 0 ? tileItems[0].width : flow.width-flow.spacing
 }
 
 function itemGetRowColInfoMultipleFlows(flow, item, items) {
-    var itemsPerRow = Math.floor(flow.width / (item.item.width+flow.spacing))
+    // find a tile item for the width
+    var itemsPerRow = Math.floor(flow.width / (getTileWidth(flow, items)+flow.spacing))
     var remainingIdx = item.index
     var curRow = 0
     var curCol = 0
@@ -181,7 +185,7 @@ function itemGetRowColInfoMultipleFlows(flow, item, items) {
             ++curRow
             curCol = 0
         } else {
-            if (debugGrid) {
+            if (debugGrid && curItem.itemDesc) {
                 curItem.itemDesc = curRow + ", " + curCol
             }
             if (i === item.index) {

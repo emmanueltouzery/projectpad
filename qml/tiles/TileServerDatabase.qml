@@ -33,6 +33,9 @@ ItemTile {
     onFocusChanged: {
         if (focus) {
             showMenu(this)
+        } else if (lineSelectMenu.visible) {
+            // select menu & lineSelectMenu are exclusive (one or the other)
+            selectMenu.visible = false
         }
     }
 
