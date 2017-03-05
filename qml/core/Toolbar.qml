@@ -108,7 +108,8 @@ Rectangle {
     Action {
         shortcut: "F1"
         onTriggered: {
-            if (actions.length > 0) {
+            // actions will be undefined from the search screen
+            if (actions && actions.length > 0) {
                 actionTriggered(actions[0][0])
             }
         }
