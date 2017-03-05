@@ -115,7 +115,8 @@ function containerToItemList(container) {
  * I I I
  * I I      <-- empty item because next row is a new flow
  * I I I
- * we return the list of items and also the lengths of each flow.
+ * we return the list of items, separated by nulls which signal the
+ * reset of the layout to the next row.
  */
 function getAllItems(qmlItem) {
     if (qmlItem.isTile) {
