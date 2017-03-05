@@ -6,6 +6,8 @@ Rectangle {
     height: childrenRect.height
 
     function init() {
+        // this focus is nice, also enables <esc> to close the dialog
+        addServerWebsite.forceActiveFocus()
     }
 
     function next() {
