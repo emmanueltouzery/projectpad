@@ -134,6 +134,10 @@ Rectangle {
                     server: pv.model
                     rootFlowInParent: flow
                     iconType: 'server'
+                    onActivated: {
+                        Utils.scrollInView(tile, serverScrollView, serverFlickable)
+                        tile.focus = true
+                    }
                     onShouldRefresh: {
                         var allServers = getAppState().projectViewState
                             .getServers(pv.model.projectId, pv.model.environment).map(
