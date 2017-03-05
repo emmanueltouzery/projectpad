@@ -24,6 +24,10 @@ ItemTile {
         return { type: "TileServer", id: modelId }
     }
 
+    function projectId() {
+        return modelData.server.projectId
+    }
+
     Flow {
         x: 5
         y: 145

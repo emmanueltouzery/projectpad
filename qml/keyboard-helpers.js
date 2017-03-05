@@ -21,6 +21,9 @@ function handleKey(event, flow, selectMenu) {
     }
     if (event.modifiers === Qt.ControlModifier && event.key === Qt.Key_U) {
         // move to the parent (server if we're under a server, project if we're a server)
+        var projectId =
+            (focusedItem.item.project ? focusedItem.item.project.id : null) ||
+            focusedItem.item.projectId()
         if (focusedItem.item.server) {
             // the parent case happens from the search view
             var serverId = focusedItem.item.server.parent ?
@@ -31,8 +34,7 @@ function handleKey(event, flow, selectMenu) {
             loadView("ProjectView.qml",
                      {project: project, environment: server.environment},
                      focusedItem.item.tileId(), {type: "TileServer", id: serverId})
-        } else if (focusedItem.item.project) {
-            var projectId = focusedItem.item.project.id
+        } else if (projectId) {
             var project = Utils.findById(
                 getAppState().projectListState.projects, projectId)
             loadView("ProjectList.qml",
