@@ -155,6 +155,10 @@ Window {
                     item.tileId().type === tileId.type &&
                     item.tileId().id === tileId.id
             })[0]
+        if (!selectedTile) {
+            console.error("can't find tileId; " + tileId + " type " +
+                          tileId.type + ", id: " + tileId.id)
+        }
         selectedTile.focus = true
         selectedTile.activated(selectedTile)
     }
