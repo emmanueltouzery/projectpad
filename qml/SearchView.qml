@@ -72,7 +72,7 @@ Rectangle {
     function refreshSearch() {
         loadView("SearchView.qml", {
             matches: getAppState().search("AllEntityTypes", searchView.model.query),
-            query: searchView.model.query}, null)
+            query: searchView.model.query}, null, null)
     }
     function refreshServerView() { refreshSearch() }
     function refreshProjectView() { refreshSearch() }
