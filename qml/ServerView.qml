@@ -140,16 +140,18 @@ Rectangle {
                     }
                     onShouldRefresh: {
                         var allServers = getAppState().projectViewState
-                            .getServers(pv.model.projectId, pv.model.environment).map(
-                                             function(se) { return se.server })
+                            .getServers(pv.model.environment, pv.model.projectId).map(
+                                function(se) { return se.server })
                         var updatedServer = Utils.findById(allServers, pv.model.id)
                         if (updatedServer === null) {
                             // the server was deleted! Go to the parent project.
                             var projectModel = Utils.findById(
                                 getAppState().projectListState.projects, model.projectId)
-                            loadView("ProjectView.qml", {"project": projectModel, "environment": pv.model.environment}, null)
+                            loadView("ProjectView.qml",
+                                     {"project": projectModel,
+                                      "environment": pv.model.environment}, null, null)
                         } else {
-                            loadView("ServerView.qml", updatedServer, null)
+                            loadView("ServerView.qml", updatedServer, null, null)
                         }
                     }
                 }
