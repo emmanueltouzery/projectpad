@@ -49,12 +49,18 @@ runRdp ServerInfo{..} width height = do
                                "/h:" <> T.pack (show height),
                                "/drive:remote," <> homeDir,
                                "/from-stdin"]
-    r <- try (createProcess (proc "xfreerdp" params) { std_in = CreatePipe})
+    r <- try (createProcess (proc "xfreerdp" params)
+             { std_in = CreatePipe, std_err = CreatePipe})
     case r of
-        Right (Just stdin, _, _, _) -> do
+        Right (Just stdin, _, Just hStderr, pHndl) -> do
             hPutStr stdin (T.unpack srvPassword)
             hFlush stdin
-            return $ Right ""
+            t <- T.hGetChunk hStderr
+            if T.null t || t == "Password: "
+                then return (Right "")
+                -- abort in case something else than 'Password: ' is printed on stderr
+                -- happens when the certificate on the server has changed.
+                else terminateProcess pHndl *> return (Left t)
         Left x -> return $ Left $ textEx x
         _ -> error "run RDP unexpected process output"
 
