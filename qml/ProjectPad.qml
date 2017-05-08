@@ -46,6 +46,7 @@ Window {
                 name === "SearchView.qml") {
                 history[history.length-1] = [name, model, null]
             } else {
+                historyFromLast = 1
                 if (history.length > 0) {
                     history[history.length-historyFromLast][2] = selectedTile
                 }
