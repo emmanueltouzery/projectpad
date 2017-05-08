@@ -46,7 +46,12 @@ Window {
                 name === "SearchView.qml") {
                 history[history.length-1] = [name, model, null]
             } else {
+                // we're going forward: strip the history branch from the
+                // previous "go back" actions (we won't be able to go forward
+                // again and undo these go back actions now)
+                history = history.slice(0, history.length+1-historyFromLast)
                 historyFromLast = 1
+
                 if (history.length > 0) {
                     history[history.length-historyFromLast][2] = selectedTile
                 }
