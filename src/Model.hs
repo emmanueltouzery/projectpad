@@ -234,7 +234,8 @@ instance DefaultClass (Entity ServerDatabase) where
             defPropConst "text"      serverDatabaseText,
             defPropConst "username"  serverDatabaseUsername,
             defPropConst "password"  serverDatabasePassword,
-            defPropConst "groupName" $ fromMaybe "" . serverDatabaseGroupName
+            defPropConst "groupName" $ fromMaybe "" . serverDatabaseGroupName,
+            defFk "serverId" $ Just . serverDatabaseServerId
         ]
 
 instance DefaultClass (Entity ServerExtraUserAccount) where

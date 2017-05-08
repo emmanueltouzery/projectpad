@@ -153,7 +153,11 @@ Rectangle {
         onTriggered: {
             if (databaseGotoButton.visible) {
                 appContext.closePopup()
-                appContext.triggerSearch(databaseButton.text)
+                var db = getAppState().projectListState.getDatabaseById(model.serverDatabaseId)
+                var srver = getAppState().projectListState.getServerById(db.serverId)
+                appContext.loadViewAction("ServerView.qml", srver,
+                                          { type: "TileServerWebsite", id: model.id},
+                                          { type: "TileServerDatabase", id: model.serverDatabaseId})
             }
         }
     }
