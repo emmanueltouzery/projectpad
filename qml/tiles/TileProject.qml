@@ -57,7 +57,7 @@ ItemTile {
                     },
                     function (projectEdit) {
                         projectEdit.onOk()
-                        loadView("ProjectList.qml", null, tileId())
+                        loadView("ProjectList.qml", null, tileId(), null)
                     })
             }],
             ["glyphicons-193-circle-remove", function() {
