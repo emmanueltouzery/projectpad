@@ -40,7 +40,7 @@ addProject sqlBackend changeKey state txt iconPath hasDev hasUat hasStage hasPro
     iconBytes <- readIcon iconPath
     when (hasDev || hasUat || hasStage || hasProd) $ void $
         runSqlBackend sqlBackend $ P.insert (Project txt iconBytes
-            (text hasDev) (text hasUat) (text hasStage) (text hasProd))
+            hasDev hasUat hasStage hasProd)
     fireSignal changeKey state
 
 updateProject :: SqlBackend -> SignalKey (IO ()) -> ObjRef ProjectListState
@@ -50,8 +50,8 @@ updateProject sqlBackend changeKey state prj name iconPath hasDev hasUat hasStag
     let idKey = entityKey $ fromObjRef prj
     iconBytes <- readIcon iconPath
     runSqlBackend sqlBackend $ P.update idKey [ProjectName P.=. name,
-        ProjectHasDev P.=. text hasDev, ProjectHasUat P.=. text hasUat,
-        ProjectHasStage P.=. text hasStage, ProjectHasProd P.=. text hasProd,
+        ProjectHasDev P.=. hasDev, ProjectHasUat P.=. hasUat,
+        ProjectHasStage P.=. hasStage, ProjectHasProd P.=. hasProd,
         ProjectIcon P.=. iconBytes]
     fireSignal changeKey state
     newProjectList <- runSqlBackend sqlBackend readProjects

@@ -105,7 +105,6 @@ data UnlockResult = Ok
 openAndUnlockDb :: Text -> Text -> Text -> IO Sqlite.Connection
 openAndUnlockDb dbFullPath password newPassword = do
     conn <- open dbFullPath
-    prepare conn "PRAGMA foreign_keys = ON;" >>= step
     prepare conn (T.concat ["PRAGMA key = '", password, "'"]) >>= step
     when (T.length newPassword > 0) $
         void $ prepare conn (T.concat ["PRAGMA rekey = '", newPassword, "'"]) >>= step
@@ -129,6 +128,11 @@ getSqlBackend dbFullPath logQueriesToStdout password newPassword = do
         else const $ return ()
     sqlBackend <- wrapConnection conn logger
     disableWal conn
+    runSqlBackend sqlBackend upgradeSchema
+    -- turn on the constraints only after applying the migrations,
+    -- because some migrations need the constraints off for easier
+    -- operation (migration 17 for instance)
+    prepare conn "PRAGMA foreign_keys = ON;" >>= step
     return sqlBackend
 
 setupPasswordAndUpgradeDb :: Text -> Bool -> ObjRef LoginState -> Text -> Text -> IO Text
@@ -137,11 +141,8 @@ setupPasswordAndUpgradeDb dbFullPath logQueriesToStdout (fromObjRef -> loginStat
     T.pack . show <$> if not encrypted
         then return DbNotEncrypted
         else do
-            setupResult <- try $ do
-                sqlBackend <- getSqlBackend dbFullPath
-                              logQueriesToStdout password newPassword
-                runSqlBackend sqlBackend upgradeSchema
-                return sqlBackend
+            setupResult <- try $
+                getSqlBackend dbFullPath logQueriesToStdout password newPassword
             -- print details to STDOUT in case of failure because maybe
             -- it was the right password and the schema upgrade failed!
             case setupResult of

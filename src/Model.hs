@@ -34,8 +34,6 @@ data EntityType = AllEntityTypes
                 | ServerPoiEntityType
                 deriving (Eq, Show, Read, Typeable)
 
--- TODO Project hasDev, Uat and so on should be Bool...
--- but currently fails with PersistMarshalError (persistent 2.1.1.4)
 mkPersist sqlSettings [persistLowerCase|
 ServerPointOfInterest
     desc Text
@@ -113,10 +111,10 @@ ServerExtraUserAccount
 Project
     name Text
     icon ByteString
-    hasDev Text
-    hasUat Text
-    hasStage Text
-    hasProd Text
+    hasDev Bool
+    hasUat Bool
+    hasStage Bool
+    hasProd Bool
     deriving Show Typeable
 DbVersion
     code Int
@@ -164,14 +162,11 @@ instance DefaultClass (Entity Project) where
         [
             defPropConst "name"          projectName,
             defPropConst "hasCustomIcon" $ not . BS.null . projectIcon,
-            defPropConst "hasDev"        $ readBool . projectHasDev,
-            defPropConst "hasUat"        $ readBool . projectHasUat,
-            defPropConst "hasStaging"    $ readBool . projectHasStage,
-            defPropConst "hasProd"       $ readBool . projectHasProd
+            defPropConst "hasDev"        projectHasDev,
+            defPropConst "hasUat"        projectHasUat,
+            defPropConst "hasStaging"    projectHasStage,
+            defPropConst "hasProd"       projectHasProd
         ]
-
-readBool :: Text -> Bool
-readBool = read . T.unpack
 
 readT :: Read a => T.Text -> a
 readT = read . T.unpack
