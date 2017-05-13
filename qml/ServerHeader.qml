@@ -88,7 +88,7 @@ Rectangle {
     }
     Text {
         x: 35
-        text: server.desc
+        text: server.desc + (server.isRetired ? " [RETIRED]" : "")
         height: parent.height
         verticalAlignment: Text.AlignVCenter
     }

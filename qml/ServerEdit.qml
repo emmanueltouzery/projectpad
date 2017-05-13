@@ -18,7 +18,7 @@ Rectangle {
 
     function getDefaultModel() {
         return {"desc": "New server", "serverIp": "",
-            "text": "",
+            "isRetired": false, "text": "",
             "username": "", "password": "",
             "authKeyFilename": "...",
             "type": "", "accessType": ""}
@@ -56,14 +56,16 @@ Rectangle {
         var port = isSshTunnel ? sshTunnelPort.value : null
         if (model.id) {
             serverEdit.model = getAppState().projectViewState.updateServer(
-                origModel, serverDescription.text, ipAddress.text, txt.text,
-                username.text, password.text, serverEdit.keyFilepath,
+                origModel, serverDescription.text, ipAddress.text,
+                checkboxIsRetired.checked, txt.text, username.text,
+                password.text, serverEdit.keyFilepath,
                 serverTypeItems.get(serverType.currentIndex).value,
                 srvAccessType, port, model.sshTunnelThroughServerId,
                 group.editText);
         } else {
             getAppState().projectViewState.addServer(
                 project.id, serverDescription.text, ipAddress.text,
+                checkboxIsRetired.checked,
                 txt.text, username.text, password.text, serverEdit.keyFilepath,
                 serverTypeItems.get(serverType.currentIndex).value,
                 srvAccessType, port, model.sshTunnelThroughServerId,
@@ -90,6 +92,13 @@ Rectangle {
             id: serverDescription
             Layout.fillWidth: true
             text: serverEdit.model.desc
+        }
+
+        CheckBox {
+            id: checkboxIsRetired
+            Layout.columnSpan: 2
+            text: "Is retired"
+            checked: serverEdit.model.isRetired
         }
 
         Text {

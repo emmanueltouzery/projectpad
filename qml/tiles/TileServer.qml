@@ -1,5 +1,6 @@
-import QtQuick 2.0
+import QtQuick 2.4
 import QtQuick.Window 2.2
+import QtGraphicalEffects 1.0
 import ".."
 import "../server-menu.js" as ServerMenu
 
@@ -10,6 +11,15 @@ ItemTile {
     icon: ServerMenu.getServerIcon(modelData.server)
     property variant global: undefined
     signal activated(variant tile)
+
+    Image {
+        anchors.fill: parent
+        visible: modelData.server.isRetired
+        source: "../../pics/retired.png"
+        fillMode: Image.PreserveAspectFit
+        opacity: 0.25
+        transform: Rotation { origin.x: width/2; origin.y: height/2; angle: -25}
+    }
 
     onFocusChanged: {
         if (focus) {

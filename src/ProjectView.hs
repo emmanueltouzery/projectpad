@@ -31,10 +31,10 @@ readServers projectId = select $ from $ \s -> do
     orderBy [asc (s ^. ServerDesc)]
     return s
 
-addServer :: SqlBackend -> Int -> Text -> IpAddress -> Text -> Text
+addServer :: SqlBackend -> Int -> Text -> IpAddress -> Bool -> Text -> Text
     -> Text -> Text -> Text -> Text -> Maybe Int -> Maybe Int
     -> Text -> Maybe Text -> IO ()
-addServer sqlBackend projectId sDesc ipAddr txt username password
+addServer sqlBackend projectId sDesc ipAddr isRetired txt username password
         keyPath serverTypeT serverAccessTypeT sshTunnelPort sshTunnelThroughServerId
         srvEnvironmentT (groupOrNothing -> groupName) = do
     let srvType       = readT serverTypeT
@@ -42,15 +42,15 @@ addServer sqlBackend projectId sDesc ipAddr txt username password
     let srvEnv        = readT srvEnvironmentT
     let mTunnelThroughId = (toSqlKey . fromIntegral) <$> sshTunnelThroughServerId
     authKeyInfo <- processAuthKeyInfo keyPath
-    addHelper sqlBackend projectId $ Server sDesc ipAddr txt username password
+    addHelper sqlBackend projectId $ Server sDesc ipAddr txt isRetired username password
             (fst <$> authKeyInfo) (snd <$> authKeyInfo)
             srvType srvAccessType sshTunnelPort mTunnelThroughId srvEnv groupName
 
 updateServer :: SqlBackend -> EntityRef Server
-    -> Text -> IpAddress -> Text -> Text -> Text -> Text -> Text
+    -> Text -> IpAddress -> Bool -> Text -> Text -> Text -> Text -> Text
     -> Text -> Maybe Int -> Maybe Int -> Maybe Text
     -> IO (EntityRef Server)
-updateServer sqlBackend serverRef sDesc ipAddr txt
+updateServer sqlBackend serverRef sDesc ipAddr isRetired txt
   username password keyPath serverTypeT serverAccessTypeT
   sshTunnelPort sshTunnelThroughServerId (groupOrNothing -> groupName) = do
     let srvType       = read $ T.unpack serverTypeT
@@ -59,8 +59,8 @@ updateServer sqlBackend serverRef sDesc ipAddr txt
     authKeyInfo <- processAuthKeyInfo keyPath
     updateHelper sqlBackend serverRef
         [
-            ServerDesc P.=. sDesc, ServerIp P.=. ipAddr,
-            ServerText P.=. txt,
+            ServerDesc P.=. sDesc, ServerIsRetired P.=. isRetired,
+            ServerIp P.=. ipAddr, ServerText P.=. txt,
             ServerUsername P.=. username, ServerPassword P.=. password,
             ServerType P.=. srvType, ServerAccessType P.=. srvAccessType,
             ServerAuthKey P.=. fst <$> authKeyInfo,

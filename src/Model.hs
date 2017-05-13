@@ -61,6 +61,7 @@ Server
     desc Text
     ip IpAddress
     text Text
+    isRetired Bool
     username Text
     password Password
     authKey ByteString Maybe
@@ -176,6 +177,7 @@ instance DefaultClass (Entity Server) where
         [
             defPropConst "desc"            serverDesc,
             defPropConst "serverIp"        serverIp,
+            defPropConst "isRetired"       serverIsRetired,
             defPropConst "text"            serverText,
             defPropConst "username"        serverUsername,
             defPropConst "password"        serverPassword,
