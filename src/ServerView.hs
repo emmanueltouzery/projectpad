@@ -2,7 +2,6 @@
     MultiParamTypeClasses, ViewPatterns, RecordWildCards, NoMonoLocalBinds #-}
 module ServerView where
 
-import Control.Applicative
 import Graphics.QML
 import Graphics.QML.Objects.ParamNames
 import Database.Esqueleto

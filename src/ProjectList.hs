@@ -2,7 +2,6 @@
     NoMonomorphismRestriction, NoMonoLocalBinds, FlexibleContexts #-}
 module ProjectList where
 
-import Control.Applicative
 import Graphics.QML
 import qualified Database.Persist as P
 import Database.Esqueleto

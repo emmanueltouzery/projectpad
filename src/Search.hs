@@ -154,7 +154,7 @@ filterEntityJoin :: (DefaultClass (Entity a), Eq (Key b)) =>
 filterEntityJoin parentKey (Join parentKeyGetter entities) = mapM newObjectDC $
     filter (\e -> parentKeyGetter (entityVal e) == parentKey) entities
 
-makeParentChildInfos :: (DefaultClass (Entity b), Typeable b, Typeable a, Eq (Key a)) =>
+makeParentChildInfos :: (DefaultClass (Entity b), Typeable a, Eq (Key a)) =>
     EntityRef a -> Join b a -> IO [ObjRef (EntityParentChildInfo a b)]
 makeParentChildInfos parent childrenJoin = do
     let parentKey = entityKey (fromObjRef parent)

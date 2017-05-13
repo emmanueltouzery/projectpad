@@ -5,7 +5,6 @@ module System where
 import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.Text.IO as T
-import Control.Applicative
 import System.Directory
 import Control.Exception
 import System.Process

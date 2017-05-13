@@ -2,7 +2,6 @@
 module CrudHelpers where
 
 import Database.Esqueleto
-import Control.Monad
 import Graphics.QML
 import Data.Maybe as M
 import qualified Database.Persist as P

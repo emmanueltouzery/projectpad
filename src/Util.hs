@@ -6,11 +6,9 @@ import Data.Text (Text)
 import Control.Error
 import Graphics.QML
 import Data.Typeable
-import Data.Traversable
 import qualified Data.ByteString as BS
 import qualified Data.Text as T
 import Control.Exception
-import Control.Applicative
 import System.FilePath.Posix
 import System.Directory
 
