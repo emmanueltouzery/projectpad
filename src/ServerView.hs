@@ -151,6 +151,26 @@ updateServerExtraUserAccount sqlBackend acctRef
             ServerExtraUserAccountGroupName P.=. grpName
         ]
 
+readServerNotes :: Int -> SqlPersistM [Entity ServerNote]
+readServerNotes serverId = select $ from $ \p -> do
+    where_ (p ^. ServerNoteServerId ==. val (toSqlKey32 serverId))
+    orderBy [asc (p ^. ServerNoteTitle)]
+    return p
+
+addServerNote :: SqlBackend -> Int -> Text -> Text -> Maybe Text -> IO ()
+addServerNote sqlBackend serverId title contents
+    (groupOrNothing -> grpName) = addHelper sqlBackend serverId
+        $ ServerNote title contents grpName
+
+updateServerNote :: SqlBackend -> EntityRef ServerNote
+    -> Text -> Text -> Maybe Text -> IO (EntityRef ServerNote)
+updateServerNote sqlBackend noteRef title contents
+    (groupOrNothing -> grpName) = updateHelper sqlBackend noteRef
+        [
+            ServerNoteTitle P.=. title, ServerNoteContents P.=. contents,
+            ServerNoteGroupName P.=. grpName
+        ]
+
 withExtraUserServer :: SqlBackend -> ServerExtraUserAccount
                     -> (Server -> IO (Either Text a))
                     -> IO (Either Text a)
@@ -255,14 +275,18 @@ deleteServerDatabase = P.delete
 deleteServerExtraUserAccount :: Key ServerExtraUserAccount -> SqlPersistM ()
 deleteServerExtraUserAccount = P.delete
 
+deleteServerNote :: Key ServerNote -> SqlPersistM ()
+deleteServerNote = P.delete
+
 getServerGroupNames :: SqlBackend -> Int -> IO [Text]
 getServerGroupNames sqlBackend serverId = do
-    poiGroupNames <- readEF readServerPois serverPointOfInterestGroupName
-    wwwGroupNames <- readEF readServerWebsites serverWebsiteGroupName
-    dbGroupNames  <- readEF readServerDatabases serverDatabaseGroupName
+    poiGroupNames  <- readEF readServerPois serverPointOfInterestGroupName
+    wwwGroupNames  <- readEF readServerWebsites serverWebsiteGroupName
+    dbGroupNames   <- readEF readServerDatabases serverDatabaseGroupName
     extraAccountGroupNames <- readEF readServerExtraUserAccounts serverExtraUserAccountGroupName
+    noteGroupNames <- readEF readServerNotes serverNoteGroupName
     return $ mergeNames $
-        poiGroupNames ++ wwwGroupNames ++ dbGroupNames ++ extraAccountGroupNames
+        poiGroupNames ++ wwwGroupNames ++ dbGroupNames ++ noteGroupNames ++ extraAccountGroupNames
     where
       readEF f = readEntityFields sqlBackend (f serverId)
 
@@ -272,7 +296,8 @@ data ServerDisplaySection = ServerDisplaySection
         srvSectionPois       :: [EntityRef ServerPointOfInterest],
         srvSectionWebsites   :: [EntityRef ServerWebsite],
         srvSectionDatabases  :: [EntityRef ServerDatabase],
-        srvSectionExtraUsers :: [EntityRef ServerExtraUserAccount]
+        srvSectionExtraUsers :: [EntityRef ServerExtraUserAccount],
+        srvSectionNotes      :: [EntityRef ServerNote]
     } deriving Typeable
 
 instance DefaultClass ServerDisplaySection where
@@ -291,13 +316,15 @@ getServerDisplaySections sqlBackend serverId = do
     pois       <- runServerQ readServerPois
     websites   <- runServerQ readServerWebsites
     databases  <- runServerQ readServerDatabases
+    notes      <- runServerQ readServerNotes
     extraUsers <- runServerQ readServerExtraUserAccounts
     let sectionForGroup grp = ServerDisplaySection {
             srvSectionGrpName    = grp,
             srvSectionPois       = filterForGroup grp serverPointOfInterestGroupName pois,
             srvSectionWebsites   = filterForGroup grp serverWebsiteGroupName websites,
             srvSectionDatabases  = filterForGroup grp serverDatabaseGroupName databases,
-            srvSectionExtraUsers = filterForGroup grp serverExtraUserAccountGroupName extraUsers
+            srvSectionExtraUsers = filterForGroup grp serverExtraUserAccountGroupName extraUsers,
+            srvSectionNotes      = filterForGroup grp serverNoteGroupName notes
         }
     mapM newObjectDC $ sectionForGroup Nothing : (sectionForGroup . Just <$> groupNames)
     where
@@ -359,6 +386,9 @@ createServerViewState sqlBackend = do
             defStatic  "addServerExtraUserAccount" (addServerExtraUserAccount sqlBackend),
             defStatic  "updateServerExtraUserAccount" (updateServerExtraUserAccount sqlBackend),
             defMethod' "deleteServerExtraUserAccounts" (deleteHelper sqlBackend deleteServerExtraUserAccount),
+            defStatic  "addServerNote"            (addServerNote sqlBackend),
+            defStatic  "updateServerNote"         (updateServerNote sqlBackend),
+            defMethod' "deleteServerNotes"        (deleteHelper sqlBackend deleteServerNote),
             defStatic  "getServerGroupNames"      (getServerGroupNames sqlBackend),
             defStatic  "saveAuthKey"              (liftQmlResult1 saveExtraUserAuthKey),
             defStatic  "isHostTrusted"            (liftQmlResult1 $ isSshHostTrusted sqlBackend),

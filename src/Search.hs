@@ -47,7 +47,8 @@ data ServerSearchMatch = ServerSearchMatch
         smServerWebsites   :: [ObjRef (ServerChildInfo ServerWebsite)],
         smServerExtraUsers :: [ObjRef (ServerChildInfo ServerExtraUserAccount)],
         smServerPois       :: [ObjRef (ServerChildInfo ServerPointOfInterest)],
-        smServerDatabases  :: [ObjRef (ServerChildInfo ServerDatabase)]
+        smServerDatabases  :: [ObjRef (ServerChildInfo ServerDatabase)],
+        smServerNotes      :: [ObjRef (ServerChildInfo ServerNote)]
     } deriving Typeable
 
 prop :: (QmlReturnable tr, Typeable b) =>
@@ -62,7 +63,8 @@ instance DefaultClass ServerSearchMatch where
             prop "websites" smServerWebsites,
             prop "extraUsers" smServerExtraUsers,
             prop "pois" smServerPois,
-            prop "databases" smServerDatabases
+            prop "databases" smServerDatabases,
+            prop "notes" smServerNotes
         ]
 
 data ProjectSearchMatch = ProjectSearchMatch
@@ -101,6 +103,12 @@ filterProjectNotes :: SqlExpr (Value Text) -> SqlPersistM [Entity ProjectNote]
 filterProjectNotes query = select $ from $ \n -> do
     where_ ((n ^. ProjectNoteTitle `like` query)
         ||. (n ^. ProjectNoteContents `like` query))
+    return n
+
+filterServerNotes :: SqlExpr (Value Text) -> SqlPersistM [Entity ServerNote]
+filterServerNotes query = select $ from $ \n -> do
+    where_ ((n ^. ServerNoteTitle `like` query)
+        ||. (n ^. ServerNoteContents `like` query))
     return n
 
 filterServerLinks :: SqlExpr (Value Text) -> SqlPersistM [Entity ServerLink]
@@ -166,7 +174,8 @@ data ServerJoins = ServerJoins
          serverWebsitesJoin   :: ServerJoin ServerWebsite,
          serverExtraUsersJoin :: ServerJoin ServerExtraUserAccount,
          serverPoisJoin       :: ServerJoin ServerPointOfInterest,
-         serverDatabasesJoin  :: ServerJoin ServerDatabase
+         serverDatabasesJoin  :: ServerJoin ServerDatabase,
+         serverNotesJoin      :: ServerJoin ServerNote
      }
 
 getServerSearchMatch :: EntityRef Project -> ServerJoins
@@ -177,6 +186,7 @@ getServerSearchMatch project ServerJoins{..} server =
         <*> makeParentChildInfos server serverExtraUsersJoin
         <*> makeParentChildInfos server serverPoisJoin
         <*> makeParentChildInfos server serverDatabasesJoin
+        <*> makeParentChildInfos server serverNotesJoin
 
 getProjectSearchMatch :: SqlBackend -> ProjectJoin Server -> ServerJoins
     -> ProjectJoin ProjectPointOfInterest
@@ -226,6 +236,7 @@ searchText sqlBackend entityType txt = do
     serverExtraUsersJoin <- joinM ServerExtraUserEntityType serverExtraUserAccountServerId filterServerExtraUsers
     serverPoisJoin       <- joinM ServerPoiEntityType serverPointOfInterestServerId filterServerPois
     serverDatabasesJoin  <- joinM DatabaseEntityType serverDatabaseServerId filterServerDatabases
+    serverNotesJoin      <- joinM ServerNoteEntityType serverNoteServerId filterServerNotes
 
     serverServerIds <- fmap entityKey <$> fetchM ServerEntityType filterServers
 
@@ -237,7 +248,8 @@ searchText sqlBackend entityType txt = do
                            joinGetParentKeys serverWebsitesJoin,
                            joinGetParentKeys serverExtraUsersJoin,
                            joinGetParentKeys serverPoisJoin,
-                           joinGetParentKeys serverDatabasesJoin
+                           joinGetParentKeys serverDatabasesJoin,
+                           joinGetParentKeys serverNotesJoin
                        ]
     allServers <- runSqlBackend sqlBackend
                   (getByIds ServerId $ Set.toList allServerIds)
@@ -262,7 +274,7 @@ searchText sqlBackend entityType txt = do
     projectRefs <- mapM newObjectDC
         $ sortBy (comparing $ T.toCaseFold . projectName . entityVal) allProjects
     let serverJoins = ServerJoins serverWebsitesJoin
-          serverExtraUsersJoin serverPoisJoin serverDatabasesJoin
+          serverExtraUsersJoin serverPoisJoin serverDatabasesJoin serverNotesJoin
     mapM (getProjectSearchMatch sqlBackend projectServersJoin serverJoins
           projectPoisJoin projectNotesJoin projectSrvLinksJoin) projectRefs
     where

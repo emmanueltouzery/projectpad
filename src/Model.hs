@@ -28,6 +28,7 @@ data EntityType = AllEntityTypes
                 | ProjectPoiEntityType
                 | ProjectNoteEntityType
                 | ServerEntityType
+                | ServerNoteEntityType
                 | ServerLinkEntityType
                 | ServerWebsiteEntityType
                 | ServerExtraUserEntityType
@@ -73,6 +74,12 @@ Server
     environment EnvironmentType
     groupName Text Maybe
     projectId ProjectId
+    deriving Show Typeable
+ServerNote
+    title Text
+    contents Text
+    groupName Text Maybe
+    serverId ServerId
     deriving Show Typeable
 ServerLink
     desc Text
@@ -189,6 +196,14 @@ instance DefaultClass (Entity Server) where
             defPropConst "environment"     $ text . serverEnvironment,
             defPropConst "groupName"       $ fromMaybe "" . serverGroupName,
             defFk        "projectId"       $ Just . serverProjectId
+        ]
+
+instance DefaultClass (Entity ServerNote) where
+    classMembers = getStandardClassMembers
+        [
+            defPropConst "title"     serverNoteTitle,
+            defPropConst "contents"  serverNoteContents,
+            defPropConst "groupName" $ fromMaybe "" . serverNoteGroupName
         ]
 
 instance DefaultClass (Entity ServerLink) where
