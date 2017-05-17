@@ -101,8 +101,7 @@ Rectangle {
                             srvAdd.init()
                         },
                         function (srvAdd) {
-                            var matches = {1: "addpoi", 2: "addwww", 3: "adddb", 4: "addaccount", 5: "addsrvnote"}
-                            _popupToDisplay = matches[srvAdd.next()]
+                            _popupToDisplay = srvAdd.next()
                             displayPopupTimer.start()
                         }, {okBtnText: "Next"})
                 break;

@@ -12,15 +12,15 @@ Rectangle {
 
     function next() {
         if (addServerPoi.checked) {
-            return 1
+            return "addpoi"
         } else if (addServerWebsite.checked) {
-            return 2
+            return "addwww"
         } else if (addServerDatabase.checked) {
-            return 3
+            return "adddb"
         } else if (addExtraUserAccount.checked) {
-            return 4
+            return "addaccount"
         } else if (addServerNote.checked) {
-            return 5
+            return "addsrvnote"
         }
     }
 

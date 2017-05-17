@@ -12,13 +12,13 @@ Rectangle {
 
     function next() {
         if (addServer.checked) {
-            return 1
+            return "addsrv"
         } else if (addPointOfInterest.checked) {
-            return 2
+            return "addpoi"
         } else if (addNote.checked) {
-            return 3
+            return "addnote"
         } else if (addServerLink.checked) {
-            return 4
+            return "addsrvlink"
         }
     }
 

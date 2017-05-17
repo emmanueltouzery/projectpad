@@ -94,13 +94,7 @@ Rectangle {
                                   prjAdd.init()
                               },
                               function (prjAdd) {
-                                  var matches = {
-                                      1: "addsrv",
-                                      2: "addpoi",
-                                      3: "addnote",
-                                      4: "addsrvlink"
-                                  }
-                                  _popupToDisplay = matches[prjAdd.next()]
+                                  _popupToDisplay = prjAdd.next()
                                   displayPopupTimer.start()
                               }, {okBtnText: "Next"})
             break;
