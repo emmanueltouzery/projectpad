@@ -22,6 +22,8 @@ Flow {
         var makeTileModels = function (list) {
             return list.map(makeTileModel())
         }
+        addTilesToFlow("TileServerNote",
+                       makeTileModels(serverModel[index].notes), extraUserFlow)
         addTilesToFlow("TileExtraUserAccount",
                        makeTileModels(serverModel[index].extraUsers), extraUserFlow)
         addTilesToFlow("TileServerWebsite",

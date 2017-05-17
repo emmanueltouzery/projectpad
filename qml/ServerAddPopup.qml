@@ -19,6 +19,8 @@ Rectangle {
             return 3
         } else if (addExtraUserAccount.checked) {
             return 4
+        } else if (addServerNote.checked) {
+            return 5
         }
     }
 
@@ -49,6 +51,11 @@ Rectangle {
         RadioButton {
             id: addExtraUserAccount
             text: "Add extra user account"
+            exclusiveGroup: addGroup
+        }
+        RadioButton {
+            id: addServerNote
+            text: "Add note"
             exclusiveGroup: addGroup
         }
     }

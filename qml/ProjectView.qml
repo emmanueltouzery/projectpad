@@ -78,12 +78,12 @@ Rectangle {
             break;
         case "addnote":
             popup.setContents(
-                "Add note", noteEditComponent,
-                function (noteEdit) {
-                    noteEdit.activate(pv.model.project, noteEdit.getDefaultModel())
+                "Add note", projectNoteEditComponent,
+                function (projectNoteEdit) {
+                    projectNoteEdit.activate(pv.model.project, projectNoteEdit.getDefaultModel())
                 },
-                function (noteEdit) {
-                    noteEdit.onOk(pv.model.project);
+                function (projectNoteEdit) {
+                    projectNoteEdit.onOk(pv.model.project);
                     refreshProjectView()
                 }, {noOpacity: true})
             break;
@@ -157,7 +157,7 @@ Rectangle {
                         Repeater {
                             id: notesrepeater
                             model: modelData.notes
-                            TileNote {
+                            TileProjectNote {
                                 model: modelData
                                 project: pv.model.project
                                 global: parent.parent
@@ -248,9 +248,9 @@ Rectangle {
                 }
             }
             Component {
-                id: noteEditComponent
-                NoteEdit {
-                    id: noteEdit
+                id: projectNoteEditComponent
+                ProjectNoteEdit {
+                    id: projectNoteEdit
                     appContext: pv.appContext
                 }
             }

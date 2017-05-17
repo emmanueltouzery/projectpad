@@ -307,7 +307,8 @@ instance DefaultClass ServerDisplaySection where
             defPropertyConst "pois"       (readM srvSectionPois),
             defPropertyConst "websites"   (readM srvSectionWebsites),
             defPropertyConst "databases"  (readM srvSectionDatabases),
-            defPropertyConst "extraUsers" (readM srvSectionExtraUsers)
+            defPropertyConst "extraUsers" (readM srvSectionExtraUsers),
+            defPropertyConst "notes"      (readM srvSectionNotes)
         ]
 
 getServerDisplaySections :: SqlBackend -> Int -> IO [ObjRef ServerDisplaySection]

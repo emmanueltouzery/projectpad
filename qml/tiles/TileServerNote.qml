@@ -7,7 +7,7 @@ ItemTile {
     color: "lightsteelblue"
     icon: "glyphicons-40-notes"
     itemDesc: model.title
-    property variant project
+    property variant server
     signal activated(variant tile)
 
     onFocusChanged: {
@@ -20,28 +20,28 @@ ItemTile {
     }
 
     function tileId() {
-        return { type: "TileNode", id: model.id }
+        return { type: "TileServerNote", id: model.id }
     }
 
     function showMenu(item) {
         selectMenu.options = [
             ["glyphicons-151-edit", function() {
                 popup.setContents(
-                    "Edit note", noteEditComponent,
-                    function (noteEdit) {
-                        noteEdit.activate(project, model)
+                    "Edit note", editServerNoteComponent,
+                    function (serverNoteEdit) {
+                        serverNoteEdit.activate(server, model)
                     },
-                    function (noteEdit) {
-                        noteEdit.onOk()
-                        refreshProjectView()
+                    function (serverNoteEdit) {
+                        serverNoteEdit.onOk()
+                        refreshServerView()
                     })
             }],
             ["glyphicons-193-circle-remove", function() {
                 appContext.confirmDelete(function() {
                     Utils.handleEitherVoid(
-                        getAppState().projectViewState.deleteProjectNotes([model.id]))
+                        getAppState().serverViewState.deleteServerNotes([model.id]))
                     // force refresh
-                    refreshProjectView()
+                    refreshServerView()
                 })
             }]]
         selectMenu.show(item, global)

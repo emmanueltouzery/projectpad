@@ -155,7 +155,7 @@ Rectangle {
                         }
                         Repeater {
                             model: modelData.notes
-                            TileNote {
+                            TileProjectNote {
                                 global: rootFlow
                                 model: modelData.child
                                 project: modelData.parent
@@ -232,9 +232,16 @@ Rectangle {
         }
     }
     Component {
-        id: noteEditComponent
-        NoteEdit {
-            id: noteEdit
+        id: projectNoteEditComponent
+        ProjectNoteEdit {
+            id: projectNoteEdit
+            appContext: searchView.appContext
+        }
+    }
+    Component {
+        id: editServerNoteComponent
+        ServerNoteEdit {
+            id: serverNoteEdit
             appContext: searchView.appContext
         }
     }

@@ -84,6 +84,16 @@ Rectangle {
                             refreshServerView()
                         }, {noOpacity: true})
                 break;
+            case "addsrvnote":
+                popup.setContents("Add note", editServerNoteComponent,
+                        function (editServerNote) {
+                            editServerNote.activate(pv.model, editServerNote.getDefaultModel())
+                        },
+                        function (editServerNote) {
+                            editServerNote.onOk(pv.model);
+                            refreshServerView()
+                        }, {noOpacity: true})
+            break;
             case "add":
                 popup.implicitClose = false
                 popup.setContents("Add...", addServerComponent,
@@ -91,7 +101,7 @@ Rectangle {
                             srvAdd.init()
                         },
                         function (srvAdd) {
-                              var matches = {1: "addpoi", 2: "addwww", 3: "adddb", 4: "addaccount"}
+                            var matches = {1: "addpoi", 2: "addwww", 3: "adddb", 4: "addaccount", 5: "addsrvnote"}
                             _popupToDisplay = matches[srvAdd.next()]
                             displayPopupTimer.start()
                         }, {okBtnText: "Next"})
@@ -171,6 +181,22 @@ Rectangle {
                             width: parent.width
                             text: modelData.groupName || ""
                             visible: modelData.groupName !== null
+                        }
+
+                        Repeater {
+                            id: notesrepeater
+                            model: modelData.notes
+
+                            TileServerNote {
+                                model: modelData
+                                server: pv.model
+                                global: parent.parent
+                                onActivated: {
+                                    Utils.scrollInView(
+                                        tile, serverScrollView, serverFlickable)
+                                    tile.focus = true
+                                }
+                            }
                         }
 
                         Repeater {
@@ -274,6 +300,12 @@ Rectangle {
                 id: editExtraUserAccountComponent
                 ServerExtraUserAccountEdit {
                     id: srvExtraUserAccountEdit
+                }
+            }
+            Component {
+                id: editServerNoteComponent
+                ServerNoteEdit {
+                    id: srvNoteEdit
                 }
             }
             ExclusiveGroup {id: serverOptionsGroup}

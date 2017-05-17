@@ -4,43 +4,15 @@ import QtQuick.Controls 1.3
 
 import "utils.js" as Utils
 
-Rectangle {
-    id: noteEdit
-    color: "light grey"
-    property bool widthResize: true
-    property bool heightResize: true
-    property variant appContext: null
+GridLayout {
+    columns: 2
 
-    property variant model: getDefaultModel()
-    property var origModel
-
-    function getDefaultModel() {
-        return {"title":"New note", "contents":""}
+    function setEditMode(editMode) {
+        editAction.checked = editMode
     }
 
-    function activate(parent, _model) {
-        origModel = _model
-        model = Utils.deepCopy(_model)
-        editAction.checked = false
-        var groups = getAppState().projectViewState.getProjectGroupNames(parent.id)
-        group.model.clear()
-        groups.forEach(function (grp) {
-            group.model.append({"text": grp})
-        })
-        group.currentIndex = groups.indexOf(_model.groupName)
-        editModeChanged()
-        title.selectAll()
-        title.forceActiveFocus()
-    }
-
-    function onOk(project) {
-        if (model.id) {
-            model = getAppState().projectViewState.updateProjectNote(
-                origModel, title.text, textArea.text, group.editText);
-        } else {
-            getAppState().projectViewState.addProjectNote(
-                project.id, title.text, textArea.text, group.editText)
-        }
+    function getText() {
+        return textArea.text
     }
 
     function toggleSnippet(before, after) {
@@ -205,164 +177,135 @@ Rectangle {
         }
     }
 
-    GridLayout {
-        y: 10
-        anchors.left: parent.left
-        anchors.right: parent.right
-        height: parent.height - 15
-        anchors.margins: 10
-        columns: 2
-
-        Text {
-            text: "Title:"
-        }
-        TextField {
-            id: title
-            Layout.fillWidth: true
-            text: model.title
-        }
-
-        Text {
-            text: "Group:"
-        }
-        ComboBox {
-            id: group
-            Layout.fillWidth: true
-            textRole: "text"
-            model: ListModel {}
-            editable: true
-        }
-
-        ToolBar {
-            Layout.columnSpan: 2
-            Layout.fillWidth: true
-            Flow {
-                spacing: 5
-                y: (parent.height - height)/2
-                ToolButton {
-                    id: editModeBtn
-                    action: editAction
+    ToolBar {
+        Layout.columnSpan: 2
+        Layout.fillWidth: true
+        Flow {
+            spacing: 5
+            y: (parent.height - height)/2
+            ToolButton {
+                id: editModeBtn
+                action: editAction
+            }
+            ToolButton {
+                Image {
+                    x: 5
+                    // as of Qt 5.4, if I use visible to hide,
+                    // all the bottoms appear with the bevel
+                    // visible which is ugly => rather use the
+                    // y coordinate to hide or show.
+                    y: editAction.checked ? 3 : 100
+                    source: "../glyphicons-free/glyphicons-103-bold.png"
+                    fillMode: Image.Pad
                 }
-                ToolButton {
-                    Image {
-                        x: 5
-                        // as of Qt 5.4, if I use visible to hide,
-                        // all the bottoms appear with the bevel
-                        // visible which is ugly => rather use the
-                        // y coordinate to hide or show.
-                        y: editAction.checked ? 3 : 100
-                        source: "../glyphicons-free/glyphicons-103-bold.png"
-                        fillMode: Image.Pad
-                    }
-                    onClicked: toggleSnippet("**", "**")
-                    // second part of the hack: since I don't use
-                    // visible to hide, but the y coord, the bevel
-                    // is still visible on hover with the y=100.
-                    // => combine with enabled to get rid of that too.
-                    enabled: editAction.checked
+                onClicked: toggleSnippet("**", "**")
+                // second part of the hack: since I don't use
+                // visible to hide, but the y coord, the bevel
+                // is still visible on hover with the y=100.
+                // => combine with enabled to get rid of that too.
+                enabled: editAction.checked
+            }
+            ToolButton {
+                Image {
+                    x: 8
+                    y: editAction.checked ? 3 : 100
+                    source: "../glyphicons-free/glyphicons-102-italic.png"
+                    fillMode: Image.Pad
                 }
-                ToolButton {
-                    Image {
-                        x: 8
-                        y: editAction.checked ? 3 : 100
-                        source: "../glyphicons-free/glyphicons-102-italic.png"
-                        fillMode: Image.Pad
-                    }
-                    onClicked: toggleSnippet("*", "*")
-                    enabled: editAction.checked
+                onClicked: toggleSnippet("*", "*")
+                enabled: editAction.checked
+            }
+            ToolButton {
+                Image {
+                    x: 4
+                    y: editAction.checked ? 4 : 100
+                    source: "../glyphicons-free/glyphicons-460-header.png"
+                    fillMode: Image.Pad
                 }
-                ToolButton {
-                    Image {
-                        x: 4
-                        y: editAction.checked ? 4 : 100
-                        source: "../glyphicons-free/glyphicons-460-header.png"
-                        fillMode: Image.Pad
-                    }
-                    onClicked: toggleHeader()
-                    enabled: editAction.checked
+                onClicked: toggleHeader()
+                enabled: editAction.checked
+            }
+            ToolButton {
+                Image {
+                    x: 5
+                    y: editAction.checked ? 2 : 100
+                    source: "../glyphicons-free/glyphicons-51-link.png"
+                    fillMode: Image.Pad
                 }
-                ToolButton {
-                    Image {
-                        x: 5
-                        y: editAction.checked ? 2 : 100
-                        source: "../glyphicons-free/glyphicons-51-link.png"
-                        fillMode: Image.Pad
-                    }
-                    onClicked: toggleSnippet("[", "](url)")
-                    enabled: editAction.checked
+                onClicked: toggleSnippet("[", "](url)")
+                enabled: editAction.checked
+            }
+            ToolButton {
+                Image {
+                    x: 5
+                    y: editAction.checked ? 2 : 100
+                    source: "../glyphicons-free/glyphicons-204-lock.png"
+                    fillMode: Image.Pad
                 }
-                ToolButton {
-                    Image {
-                        x: 5
-                        y: editAction.checked ? 2 : 100
-                        source: "../glyphicons-free/glyphicons-204-lock.png"
-                        fillMode: Image.Pad
-                    }
-                    onClicked: togglePassword()
-                    enabled: editAction.checked
+                onClicked: togglePassword()
+                enabled: editAction.checked
+            }
+            ToolButton {
+                width: 33
+                Image {
+                    x: 3
+                    y: editAction.checked ? 8 : 100
+                    source: "../glyphicons-free/glyphicons-69-ruler.png"
+                    fillMode: Image.Pad
                 }
-                ToolButton {
-                    width: 33
-                    Image {
-                        x: 3
-                        y: editAction.checked ? 8 : 100
-                        source: "../glyphicons-free/glyphicons-69-ruler.png"
-                        fillMode: Image.Pad
-                    }
-                    onClicked: togglePreformat()
-                    enabled: editAction.checked
+                onClicked: togglePreformat()
+                enabled: editAction.checked
+            }
+            ToolButton {
+                width: 33
+                Image {
+                    x: 3
+                    y: editAction.checked ? 8 : 100
+                    source: "../glyphicons-free/glyphicons-547-quote.png"
+                    fillMode: Image.Pad
                 }
-                ToolButton {
-                    width: 33
-                    Image {
-                        x: 3
-                        y: editAction.checked ? 8 : 100
-                        source: "../glyphicons-free/glyphicons-547-quote.png"
-                        fillMode: Image.Pad
-                    }
-                    onClicked: toggleBlockquote()
-                    enabled: editAction.checked
-                }
+                onClicked: toggleBlockquote()
+                enabled: editAction.checked
             }
         }
+    }
 
-        TextArea {
-            id: preview
-            Layout.columnSpan: 2
-            Layout.fillWidth: true
-            Layout.fillHeight: true
-            textFormat: TextEdit.RichText
-            text: getRichText(model.contents)
-            readOnly: true
-            onLinkActivated: {
-                if (link.indexOf("pass://") === 0) {
-                    var pass = link.substring("pass://".length)
-                    if (passwordActions.visible && passwordActions.curPass === pass) {
-                        closePasswordActions()
-                    } else {
-                        passwordActions.curPass = pass
-                        passwordActions.visible = true
-                    }
+    TextArea {
+        id: preview
+        Layout.columnSpan: 2
+        Layout.fillWidth: true
+        Layout.fillHeight: true
+        textFormat: TextEdit.RichText
+        text: getRichText(model.contents)
+        readOnly: true
+        onLinkActivated: {
+            if (link.indexOf("pass://") === 0) {
+                var pass = link.substring("pass://".length)
+                if (passwordActions.visible && passwordActions.curPass === pass) {
+                    closePasswordActions()
                 } else {
-                    Qt.openUrlExternally(link)
+                    passwordActions.curPass = pass
+                    passwordActions.visible = true
                 }
+            } else {
+                Qt.openUrlExternally(link)
             }
         }
-        TextArea {
-            id: textArea
-            Layout.fillWidth: true
-            Layout.fillHeight: true
-            Layout.columnSpan: 2
-            visible: false
-            text: model.contents
-        }
+    }
+    TextArea {
+        id: textArea
+        Layout.fillWidth: true
+        Layout.fillHeight: true
+        Layout.columnSpan: 2
+        visible: false
+        text: model.contents
+    }
 
-        Action {
-            id: editAction
-            checkable: true
-            iconSource: "../glyphicons-free/glyphicons-151-edit.png"
-            onTriggered: editModeChanged()
-        }
+    Action {
+        id: editAction
+        checkable: true
+        iconSource: "../glyphicons-free/glyphicons-151-edit.png"
+        onTriggered: editModeChanged()
     }
 
     function editModeChanged() {
