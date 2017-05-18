@@ -55,6 +55,10 @@ ProjectPointOfInterest
 ProjectNote
     title Text
     contents Text
+    hasDev Bool
+    hasUat Bool
+    hasStage Bool
+    hasProd Bool
     groupName Text Maybe
     projectId ProjectId
     deriving Show Typeable
@@ -273,9 +277,13 @@ instance DefaultClass (Entity ProjectPointOfInterest) where
 instance DefaultClass (Entity ProjectNote) where
     classMembers = getStandardClassMembers
         [
-            defPropConst "title"     projectNoteTitle,
-            defPropConst "contents"  projectNoteContents,
-            defPropConst "groupName" $ fromMaybe "" . projectNoteGroupName
+            defPropConst "title"      projectNoteTitle,
+            defPropConst "contents"   projectNoteContents,
+            defPropConst "hasDev"     projectNoteHasDev,
+            defPropConst "hasUat"     projectNoteHasUat,
+            defPropConst "hasStaging" projectNoteHasStage,
+            defPropConst "hasProd"    projectNoteHasProd,
+            defPropConst "groupName"  $ fromMaybe "" . projectNoteGroupName
         ]
 
 deriving instance Typeable Entity

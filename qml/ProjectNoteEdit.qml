@@ -15,7 +15,9 @@ Rectangle {
     property var origModel
 
     function getDefaultModel() {
-        return {"title":"New note", "contents":""}
+        return {"title":"New note", "contents":"",
+                "hasDev": false, "hasUat": false,
+                "hasStaging": false, "hasProd": true}
     }
 
     function activate(parent, _model) {
@@ -28,19 +30,39 @@ Rectangle {
             group.model.append({"text": grp})
         })
         group.currentIndex = groups.indexOf(_model.groupName)
+        envPicker.setChecked({
+            dev: model.hasDev,
+            uat: model.hasUat,
+            stg: model.hasStaging,
+            prd: model.hasProd
+        })
         richText.editModeChanged()
         title.selectAll()
         title.forceActiveFocus()
     }
 
     function onOk(project) {
+        var checkedEnvs = envPicker.getChecked()
+        var oneEnv = checkedEnvs.dev || checkedEnvs.uat ||
+            checkedEnvs.stg || checkedEnvs.prd
+        if (!oneEnv) {
+            appContext.errorMessage("Pick at least one environment! (Development, UAT, ...)");
+            return
+        }
         if (model.id) {
             model = getAppState().projectViewState.updateProjectNote(
-                origModel, title.text, richText.getText(), group.editText);
+                origModel, title.text, richText.getText(),
+                checkedEnvs.dev, checkedEnvs.uat,
+                checkedEnvs.stg, checkedEnvs.prd,
+                group.editText);
         } else {
             getAppState().projectViewState.addProjectNote(
-                project.id, title.text, richText.getText(), group.editText)
+                project.id, title.text, richText.getText(),
+                checkedEnvs.dev, checkedEnvs.uat,
+                checkedEnvs.stg, checkedEnvs.prd,
+                group.editText)
         }
+        popup.doClose()
     }
 
     GridLayout {
@@ -70,6 +92,10 @@ Rectangle {
             textRole: "text"
             model: ListModel {}
             editable: true
+        }
+
+        EnvironmentPicker {
+            id: envPicker
         }
 
         RichText {

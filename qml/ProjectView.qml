@@ -80,6 +80,7 @@ Rectangle {
             popup.setContents(
                 "Add note", projectNoteEditComponent,
                 function (projectNoteEdit) {
+                    popup.implicitClose = false
                     projectNoteEdit.activate(pv.model.project, projectNoteEdit.getDefaultModel())
                 },
                 function (projectNoteEdit) {

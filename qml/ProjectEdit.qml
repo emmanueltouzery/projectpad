@@ -35,17 +35,20 @@ Rectangle {
         }
         projectIconButton.iconSource = iconPath
         projectEdit.iconFilePath = "file://" + iconPath
-        envDevelopment.checked = projectEdit.model.hasDev
-        envUat.checked = projectEdit.model.hasUat
-        envStaging.checked = projectEdit.model.hasStaging
-        envProd.checked = projectEdit.model.hasProd
+        envPicker.setChecked({
+            dev: projectEdit.model.hasDev,
+            uat: projectEdit.model.hasUat,
+            stg: projectEdit.model.hasStaging,
+            prd: projectEdit.model.hasProd
+        })
         projectNameEntry.selectAll()
         projectNameEntry.forceActiveFocus()
     }
 
     function onOk() {
-        var oneEnv = envDevelopment.checked || envUat.checked ||
-            envStaging.checked || envProd.checked;
+        var checkedEnvs = envPicker.getChecked()
+        var oneEnv = checkedEnvs.dev || checkedEnvs.uat ||
+            checkedEnvs.stg || checkedEnvs.prd
         if (!oneEnv) {
             appContext.errorMessage("Pick at least one environment! (Development, UAT, ...)");
             return
@@ -55,13 +58,13 @@ Rectangle {
             projectEdit.model = getAppState().projectListState.updateProject(
                 origModel, projectNameEntry.text,
                 iconPath,
-                envDevelopment.checked, envUat.checked,
-                envStaging.checked, envProd.checked)
+                checkedEnvs.dev, checkedEnvs.uat,
+                checkedEnvs.stg, checkedEnvs.prd)
         } else {
             getAppState().projectListState.addProject(
                 projectNameEntry.text, iconPath,
-                envDevelopment.checked, envUat.checked,
-                envStaging.checked, envProd.checked)
+                checkedEnvs.dev, checkedEnvs.uat,
+                checkedEnvs.stg, checkedEnvs.prd)
         }
         getAppState().projectListState.copyProjectIcons()
         popup.doClose()
@@ -98,47 +101,8 @@ Rectangle {
             onClicked: fileDialog.visible = true
         }
 
-        GridLayout {
-            Layout.fillWidth: true
-            Layout.columnSpan: 2
-            columns: 2
-
-            IconButton {
-                id: envDevelopment
-                iconX: 10
-                iconTextPadding: 5
-                Layout.fillWidth: true
-                iconName: "glyphicons-361-bug"
-                btnText: "Development"
-                checkable: true
-            }
-            IconButton {
-                id: envUat
-                iconX: 10
-                iconTextPadding: 5
-                Layout.fillWidth: true
-                iconName: "glyphicons-534-lab"
-                btnText: "UAT"
-                checkable: true
-            }
-            IconButton {
-                id: envStaging
-                iconX: 10
-                iconTextPadding: 5
-                Layout.fillWidth: true
-                iconName: "glyphicons-140-adjust-alt"
-                btnText: "Staging"
-                checkable: true
-            }
-            IconButton {
-                id: envProd
-                iconX: 10
-                iconTextPadding: 5
-                Layout.fillWidth: true
-                iconName: "glyphicons-333-certificate"
-                btnText: "PROD"
-                checkable: true
-            }
+        EnvironmentPicker {
+            id: envPicker
         }
     }
 

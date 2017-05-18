@@ -98,25 +98,38 @@ updateProjectPoi sqlBackend poiRef
             ProjectPointOfInterestGroupName P.=. groupName
         ]
 
-readNotes :: Int -> SqlPersistM [Entity ProjectNote]
-readNotes projectId = select $ from $ \nte -> do
-    where_ (nte ^. ProjectNoteProjectId ==. val (toSqlKey32 projectId))
-    orderBy [asc (nte ^. ProjectNoteTitle)]
-    return nte
+readNotes :: Text -> Int -> SqlPersistM [Entity ProjectNote]
+readNotes environment projectId =
+    let envGetter = case readT environment of
+              EnvDevelopment -> ProjectNoteHasDev
+              EnvUat         -> ProjectNoteHasUat
+              EnvStage       -> ProjectNoteHasStage
+              EnvProd        -> ProjectNoteHasProd
+    in
+      select $ from $ \nte -> do
+        where_ ((nte ^. ProjectNoteProjectId ==. val (toSqlKey32 projectId))
+                 &&. (nte ^. envGetter ==. val True))
+        orderBy [asc (nte ^. ProjectNoteTitle)]
+        return nte
 
-addProjectNote :: SqlBackend -> Int -> Text -> Text -> Maybe Text -> IO ()
+addProjectNote :: SqlBackend -> Int -> Text -> Text
+    -> Bool -> Bool -> Bool -> Bool -> Maybe Text -> IO ()
 addProjectNote sqlBackend projectId title contents
+    hasDev hasUat hasStage hasProd
     (groupOrNothing -> groupName) = addHelper sqlBackend projectId
-        $ ProjectNote title contents groupName
+        $ ProjectNote title contents hasDev hasUat hasStage hasProd groupName
 
 updateProjectNote :: SqlBackend -> EntityRef ProjectNote
-    -> Text -> Text -> Maybe Text
+    -> Text -> Text -> Bool -> Bool -> Bool -> Bool -> Maybe Text
     -> IO (EntityRef ProjectNote)
 updateProjectNote sqlBackend noteRef title contents
+    hasDev hasUat hasStage hasProd
     (groupOrNothing -> groupName) = updateHelper sqlBackend noteRef
         [
             ProjectNoteTitle P.=. title, ProjectNoteContents P.=. contents,
-            ProjectNoteGroupName P.=. groupName
+            ProjectNoteGroupName P.=. groupName, ProjectNoteHasDev P.=. hasDev,
+            ProjectNoteHasUat P.=. hasUat, ProjectNoteHasStage P.=. hasStage,
+            ProjectNoteHasProd P.=. hasProd
         ]
 
 readServerForLink :: SqlBackend -> ServerLink -> IO (Entity Server)
@@ -185,7 +198,7 @@ getProjectDisplaySections sqlBackend projectId environment = do
     servers       <- getProjectServersExtraInfo sqlBackend environment projectId
     linkedServers <- getProjectServerLinks sqlBackend environment projectId
     pois          <- runServerQ readPois
-    notes         <- runServerQ readNotes
+    notes         <- runServerQ (readNotes environment)
     let sectionForGroup grp = ProjectDisplaySection {
             prjSectionGrpName = grp,
             prjSectionServers =

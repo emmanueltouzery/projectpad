@@ -29,6 +29,7 @@ ItemTile {
                 popup.setContents(
                     "Edit note", projectNoteEditComponent,
                     function (projectnoteEdit) {
+                        popup.implicitClose = false
                         projectnoteEdit.activate(project, model)
                     },
                     function (projectnoteEdit) {
