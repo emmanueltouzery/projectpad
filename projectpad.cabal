@@ -15,6 +15,14 @@ build-type:          Custom
 -- extra-source-files:
 cabal-version:       >=1.10
 
+custom-setup
+  setup-depends:
+    base >= 4.7 && < 5,
+    Cabal < 1.25,
+    process,
+    directory,
+    filepath
+
 executable projectpad
   main-is:             Main.hs
   other-modules:
