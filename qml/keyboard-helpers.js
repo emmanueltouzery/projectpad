@@ -77,6 +77,7 @@ function handleKey(event, flow, selectMenu) {
 // shortcut key alphabetically ordered for a quickcheck
 // that we don't duplicate them
 var iconShortcuts = {
+    "glyphicons-58-history": "b", // not documented, not sure there's much point?
     "glyphicons-512-copy": "c",
     "glyphicons-182-download-alt": "d",
     "glyphicons-151-edit": "e",

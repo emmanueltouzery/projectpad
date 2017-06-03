@@ -234,7 +234,7 @@ runPoiAction prjViewState (fromEntityRef -> poi)
     | interest == PoiCommandToRun = withParams txt notify $
       \(prog:parameters) -> tryCommandAsync prog parameters path Nothing notify
     | interest == PoiCommandTerminal = tryCommandAsync "gnome-terminal" ["-e", txt] path Nothing notify
-    | interest `elem` [PoiLogFile, PoiApplication] = do
+    | interest `elem` [PoiLogFile, PoiApplication, PoiBackupArchive] = do
         result <- openAssociatedFile (projectPointOfInterestPath poi)
         notify (eitherToCmdProgress result)
     | otherwise = putStrLn "poi action not handled"
