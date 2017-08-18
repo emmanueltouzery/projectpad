@@ -1,15 +1,6 @@
 {-# LANGUAGE OverloadedStrings, DeriveDataTypeable, TypeFamilies, ScopedTypeVariables, ViewPatterns #-}
 module Main where
 
--- the DB init should be done in a try block
--- (if i don't have the rights and so on)
---
--- create a unsafePerformIO error call that displays
--- a message box, use it instead of error everywhere
--- in case of terminal failure
--- proper logger for the SQL errors that goes all
--- the way to the GUI.
-
 import Database.Persist.Sqlite
 import Graphics.QML
 import Data.Typeable
