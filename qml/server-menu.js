@@ -65,8 +65,21 @@ function showSelectMenu(project, server, parnt, desktopSize,
                 function(location) { successMessage("Saved file to " + location) })
         }])
     }
-    options = options.concat(Remote.tileRemoteControlOptions(server, desktopSize,
-        function(w, h) { return getAppState().projectViewState.runRdp(server, w, h) },
+    options = options.concat(Remote.tileRemoteControlOptions(
+        server, desktopSize,
+        function(w, h) {
+            var result = getAppState().projectViewState.runRdp(server, w, h)
+            if (!result.success && result.errorMsg.toLowerCase().indexOf("remote host identification has changed") >= 0) {
+                var title = "The certificate for server '" + server.serverIp + "' has changed!"
+                var msg = "Accept the new key in the trust store?"
+                appContext.confirmDanger(title, msg, "Add", function() {
+                    getAppState().projectViewState.removeFromRdpTrustStore(server)
+                    getAppState().projectViewState.runRdp(server, w, h)
+                })
+            } else {
+                return result
+            }
+        },
         function() { return getAppState().projectViewState.openSshSession(server) }))
     menu.options = options
     menu.show(parnt || parent, global)

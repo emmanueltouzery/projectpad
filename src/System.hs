@@ -63,6 +63,13 @@ runRdp ServerInfo{..} width height = do
         Left x -> return $ Left $ textEx x
         _ -> error "run RDP unexpected process output"
 
+sysRemoveFromRdpTrustStore :: Text -> IO ()
+sysRemoveFromRdpTrustStore addr = do
+    homeDir <- getHomeDirectory
+    let storePath = homeDir </> ".config/freerdp/known_hosts2"
+    records <- T.lines <$> T.readFile storePath
+    T.writeFile storePath $ T.unlines (filter (not . T.isPrefixOf addr) records)
+
 tryCommand :: Text -> [Text] -> Maybe FilePath
     -> Maybe [(String, String)] -> (CommandProgress -> IO ()) -> IO (Either Text ())
 tryCommand cmd_ params_ mCwd envVal readCallback = do

@@ -253,6 +253,9 @@ saveServerAuthKey = saveAuthKey serverAuthKeyFilename serverAuthKey
 runServerRdp :: EntityRef Server -> Int -> Int -> IO (Either Text Text)
 runServerRdp (fromEntityRef -> server) = runRdp (serverToSystemServer server)
 
+removeFromRdpTrustStore :: EntityRef Server -> IO ()
+removeFromRdpTrustStore (fromEntityRef -> server) = sysRemoveFromRdpTrustStore (serverIp server)
+
 openServerSshSession :: SqlBackend -> EntityRef Server -> IO (Either Text ())
 openServerSshSession sqlBackend server = openServerSshAction sqlBackend server $
     \port srv -> openSshSession srv port JustSsh
@@ -395,6 +398,7 @@ createProjectViewState sqlBackend = do
             defMethod' "runPoiAction"      runPoiAction,
             defStatic  "saveAuthKey"       (liftQmlResult1 saveServerAuthKey),
             defStatic  "runRdp"            (liftQmlResult3 runServerRdp),
+            defStatic  "removeFromRdpTrustStore" removeFromRdpTrustStore,
             defStatic  "openSshSession"    (liftQmlResult1 $ openServerSshSession sqlBackend),
             defSignalNamedParams "gotOutput" (Proxy :: Proxy SignalOutput) $
                                                  fstName "output"
