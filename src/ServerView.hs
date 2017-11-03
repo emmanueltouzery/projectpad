@@ -343,7 +343,12 @@ openServerSshAction' :: SqlBackend -> Server
                     -> IO (Either Text a)
 openServerSshAction' sqlBackend server callback =
     case serverAccessType server of
-      SrvAccessSsh       -> callback sshDefaultPort (serverToSystemServer server)
+      SrvAccessSsh -> case T.splitOn ":" (serverIp server) of
+                       [_]          -> callback sshDefaultPort (serverToSystemServer server)
+                       [addr, port] ->
+                           callback (fromMaybe sshDefaultPort $ readTZ port)
+                                          (serverToSystemServer (server { serverIp = addr }))
+                       _ -> return (Left $ "bad server ip " <> serverIp server)
       SrvAccessSshTunnel -> openServerSshTunnelAction sqlBackend server callback
       _                  -> error $ "called openServerSshAction with "
                                   <> show (serverAccessType server)

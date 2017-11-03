@@ -102,7 +102,7 @@ Rectangle {
         }
 
         Text {
-            text: "IP Address:"
+            text: "Address:"
         }
         TextField {
             id: ipAddress

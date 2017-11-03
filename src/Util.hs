@@ -102,3 +102,6 @@ noteET l = hoistEither . note l
 
 tryET :: IO a -> ExceptT Text IO a
 tryET = ExceptT . tryText
+
+readTZ :: Read a => Text -> Maybe a
+readTZ = readZ . T.unpack
