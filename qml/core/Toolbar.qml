@@ -169,13 +169,22 @@ Rectangle {
         }
         IconButton {
             id: envBtn
+            iconName: getIconName(toolbarRoot.environments[0])
+            width: 32
+            iconX: 6
+            height: parent.height
+            menu: envMenu
+            visible: toolbarRoot.environments.length > 1
+        }
+        IconButton {
+            id: envBtnSingle
             iconName: toolbarRoot.environments.length > 0 ?
                 getIconName(toolbarRoot.environments[0]) : ""
             width: 32
-            iconX: toolbarRoot.environments.length > 1 ? 6 : 9
+            iconX: 9
             height: parent.height
-            menu: toolbarRoot.environments.length > 1 ? envMenu : null
-            visible: toolbarRoot.environments.length > 0
+            visible: toolbarRoot.environments.length <= 1
+            style: Rectangle {}
         }
     }
 
