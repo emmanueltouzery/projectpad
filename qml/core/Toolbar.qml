@@ -133,7 +133,8 @@ Rectangle {
                     envBtn.iconName = getIconName("EnvDevelopment")
                     environmentChangeAction("EnvDevelopment")
                 }
-                visible: toolbarRoot.environments.indexOf("EnvDevelopment") >= 0
+                // >= 1 is on purpose: don't offer if we're the active one currently
+                visible: toolbarRoot.environments.indexOf("EnvDevelopment") >= 1
             }
             MenuItem {
                 iconSource: "../../glyphicons-free/" + getIconName("EnvUat")
@@ -142,7 +143,8 @@ Rectangle {
                     envBtn.iconName = getIconName("EnvUat")
                     environmentChangeAction("EnvUat")
                 }
-                visible: toolbarRoot.environments.indexOf("EnvUat") >= 0
+                // >= 1 is on purpose: don't offer if we're the active one currently
+                visible: toolbarRoot.environments.indexOf("EnvUat") >= 1
             }
             MenuItem {
                 iconSource: "../../glyphicons-free/" + getIconName("EnvStage")
@@ -151,7 +153,8 @@ Rectangle {
                     envBtn.iconName = getIconName("EnvStage")
                     environmentChangeAction("EnvStage")
                 }
-                visible: toolbarRoot.environments.indexOf("EnvStage") >= 0
+                // >= 1 is on purpose: don't offer if we're the active one currently
+                visible: toolbarRoot.environments.indexOf("EnvStage") >= 1
             }
             MenuItem {
                 iconSource: "../../glyphicons-free/" + getIconName("EnvProd")
@@ -160,7 +163,8 @@ Rectangle {
                     envBtn.iconName = getIconName("EnvProd")
                     environmentChangeAction("EnvProd")
                 }
-                visible: toolbarRoot.environments.indexOf("EnvProd") >= 0
+                // >= 1 is on purpose: don't offer if we're the active one currently
+                visible: toolbarRoot.environments.indexOf("EnvProd") >= 1
             }
         }
         IconButton {
