@@ -17,6 +17,7 @@ Rectangle {
 
     signal backAction()
     signal forwardAction()
+    signal environmentChangeAction(string envType)
 
     /**
      * actions to display in the toolbar
@@ -128,25 +129,37 @@ Rectangle {
             MenuItem {
                 iconSource: "../../glyphicons-free/" + getIconName("EnvDevelopment")
                 text: "Development"
-                onTriggered: envBtn.iconName = getIconName("EnvDevelopment")
+                onTriggered: {
+                    envBtn.iconName = getIconName("EnvDevelopment")
+                    environmentChangeAction("EnvDevelopment")
+                }
                 visible: toolbarRoot.environments.indexOf("EnvDevelopment") >= 0
             }
             MenuItem {
                 iconSource: "../../glyphicons-free/" + getIconName("EnvUat")
                 text: "UAT"
-                onTriggered: envBtn.iconName = getIconName("EnvUat")
+                onTriggered: {
+                    envBtn.iconName = getIconName("EnvUat")
+                    environmentChangeAction("EnvUat")
+                }
                 visible: toolbarRoot.environments.indexOf("EnvUat") >= 0
             }
             MenuItem {
                 iconSource: "../../glyphicons-free/" + getIconName("EnvStage")
                 text: "Staging"
-                onTriggered: envBtn.iconName = getIconName("EnvStage")
+                onTriggered: {
+                    envBtn.iconName = getIconName("EnvStage")
+                    environmentChangeAction("EnvStage")
+                }
                 visible: toolbarRoot.environments.indexOf("EnvStage") >= 0
             }
             MenuItem {
                 iconSource: "../../glyphicons-free/" + getIconName("EnvProd")
                 text: "PROD"
-                onTriggered: envBtn.iconName = getIconName("EnvProd")
+                onTriggered: {
+                    envBtn.iconName = getIconName("EnvProd")
+                    environmentChangeAction("EnvProd")
+                }
                 visible: toolbarRoot.environments.indexOf("EnvProd") >= 0
             }
         }

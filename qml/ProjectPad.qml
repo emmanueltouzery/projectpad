@@ -224,6 +224,9 @@ Window {
                 selectTileDelay(toGo[2])
             }
         }
+        onEnvironmentChangeAction: {
+            console.error("Env change! " + envType)
+        }
     }
 
     TextField {
