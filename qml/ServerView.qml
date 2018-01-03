@@ -26,7 +26,7 @@ Rectangle {
             [
                 {screen: "ProjectView.qml",
                 model: {"project": projectModel, "environment": model.environment},
-                display: projectModel.name + " " + PoiActions.envDesc(model.environment)}
+                display: projectModel.name}
             ],
             title: model.desc}
     }

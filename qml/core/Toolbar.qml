@@ -99,7 +99,7 @@ Rectangle {
             btnText: 'home'
             iconName: 'glyphicons-21-home'
             onClicked: loadView("ProjectList.qml", null, null, null)
-            style: breadcbrumbsButton
+            style: breadcrumbsButton
             height: parent.height
             checked: pathLinks.length === 0 && title.length === 0
         }
@@ -110,7 +110,7 @@ Rectangle {
                 text: modelData.display
                 height: parent.height
                 onClicked: loadView(modelData.screen, modelData.model, null, null)
-                style: breadcbrumbsButton
+                style: breadcrumbsButton
             }
         }
         ExclusiveGroup { id: tabPositionGroup }
@@ -121,7 +121,7 @@ Rectangle {
             checkable: true
             checked: true
             exclusiveGroup: tabPositionGroup
-            style: breadcbrumbsButton
+            style: breadcrumbsButton
         }
         Menu {
             id: envMenu
@@ -238,7 +238,7 @@ Rectangle {
         NormalButtonStyle {}
     }
     Component {
-        id: breadcbrumbsButton
+        id: breadcrumbsButton
         BreadcrumbsButton {}
     }
     Component {

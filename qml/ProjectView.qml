@@ -41,7 +41,7 @@ Rectangle {
     }
 
     function getBreadCrumbs() {
-        return {pathLinks: [], title: model.project.name + " " + PoiActions.envDesc(model.environment)};
+        return {pathLinks: [], title: model.project.name};
     }
 
     function flowToFocus() {
