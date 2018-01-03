@@ -7,6 +7,7 @@ import QtQml 2.2
 import QtGraphicalEffects 1.0
 import "core"
 import "keyboard-helpers.js" as KeyboardHelpers
+import "utils.js" as Utils
 
 Window {
     width: 800; height: 650;
@@ -226,6 +227,16 @@ Window {
         }
         onEnvironmentChangeAction: {
             console.error("Env change! " + envType)
+            var toGo = history[history.length-historyFromLast]
+            if (toGo[0] !== "ProjectView.qml") {
+                console.error(
+                    "Only know how to change environment on project view! Was " + toGo[0]);
+            }
+            var selectedTileInfo = toGo[2]
+            var newModel =
+                {"project": toGo[1].project,
+                 "environment": envType}
+            loadViewActionEx(toGo[0], newModel, true, selectedTileInfo)
         }
     }
 
