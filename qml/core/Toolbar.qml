@@ -26,6 +26,12 @@ Rectangle {
      */
     property variant actions: []
 
+    /**
+     * environments which are available:
+     * EnvDevelopment | EnvUat | EnvStage | EnvProd
+     */
+    property variant environments: []
+
     property variant pathLinks: []
 
     property string title: ""
@@ -43,6 +49,20 @@ Rectangle {
     }
     function setForwardActive(isActive) {
         fwdBtn.enabled = isActive
+    }
+
+    function getIconName(environment) {
+        switch (environment) {
+        case "EnvDevelopment":
+            return "glyphicons-361-bug"
+        case "EnvUat":
+            return "glyphicons-534-lab"
+        case "EnvStage":
+            return "glyphicons-140-adjust-alt"
+        case "EnvProd":
+            return "glyphicons-333-certificate"
+        }
+        throw "unknown environment: " + environment;
     }
 
     signal actionTriggered(string name);
@@ -102,6 +122,43 @@ Rectangle {
             checked: true
             exclusiveGroup: tabPositionGroup
             style: breadcbrumbsButton
+        }
+        Menu {
+            id: envMenu
+            MenuItem {
+                iconSource: "../../glyphicons-free/" + getIconName("EnvDevelopment")
+                text: "Development"
+                onTriggered: envBtn.iconName = getIconName("EnvDevelopment")
+                visible: toolbarRoot.environments.indexOf("EnvDevelopment") >= 0
+            }
+            MenuItem {
+                iconSource: "../../glyphicons-free/" + getIconName("EnvUat")
+                text: "UAT"
+                onTriggered: envBtn.iconName = getIconName("EnvUat")
+                visible: toolbarRoot.environments.indexOf("EnvUat") >= 0
+            }
+            MenuItem {
+                iconSource: "../../glyphicons-free/" + getIconName("EnvStage")
+                text: "Staging"
+                onTriggered: envBtn.iconName = getIconName("EnvStage")
+                visible: toolbarRoot.environments.indexOf("EnvStage") >= 0
+            }
+            MenuItem {
+                iconSource: "../../glyphicons-free/" + getIconName("EnvProd")
+                text: "PROD"
+                onTriggered: envBtn.iconName = getIconName("EnvProd")
+                visible: toolbarRoot.environments.indexOf("EnvProd") >= 0
+            }
+        }
+        IconButton {
+            id: envBtn
+            iconName: toolbarRoot.environments.length > 0 ?
+                getIconName(toolbarRoot.environments[0]) : ""
+            width: 32
+            iconX: 6
+            height: parent.height
+            menu: envMenu
+            visible: toolbarRoot.environments.length > 0
         }
     }
 

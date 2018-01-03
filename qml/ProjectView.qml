@@ -20,6 +20,25 @@ Rectangle {
     property bool editMode
 
     property variant actions: [["add", "glyphicons-191-circle-plus", "Add..."]]
+    property variant environments: getEnvs()
+
+    function getEnvs() {
+        var result = [model.environment];
+        if (pv.model.project.hasDev && model.environment !== "EnvDevelopment") {
+            result.push("EnvDevelopment")
+        }
+        if (pv.model.project.hasUat && model.environment !== "EnvUat") {
+            result.push("EnvUat")
+        }
+        if (pv.model.project.hasStage && model.environment !== "EnvStage") {
+            result.push("EnvStage")
+        }
+        if (pv.model.project.hasProd && model.environment !== "EnvProd") {
+            result.push("EnvProd")
+        }
+        console.error("getEnvs returning " + result + " -- " + model.environment)
+        return result;
+    }
 
     function getBreadCrumbs() {
         return {pathLinks: [], title: model.project.name + " " + PoiActions.envDesc(model.environment)};

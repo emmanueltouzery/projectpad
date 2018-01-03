@@ -17,6 +17,7 @@ Rectangle {
     property string _popupToDisplay
 
     property variant actions: [["add", "glyphicons-191-circle-plus", "Add..."]]
+    property variant environments: [model.environment]
 
     function getBreadCrumbs() {
         var projectModel = Utils.findById(

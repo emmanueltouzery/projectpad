@@ -284,7 +284,12 @@ Window {
                 // also for the first screen of the app
                 // which is not displayed as the result
                 // of a click.
+                console.error("loaded " + loader.item)
+                console.error("environments: " + loader.item.environments)
+                console.error("actions: " + loader.item.actions)
                 toolbar.actions = loader.item.actions
+                console.error("setting envs: " + loader.item + " -- " + loader.item.environments)
+                toolbar.environments = loader.item.environments
                 var breadcrumbsInfo = loader.item.getBreadCrumbs()
                 toolbar.pathLinks = breadcrumbsInfo.pathLinks
                 toolbar.title = breadcrumbsInfo.title
