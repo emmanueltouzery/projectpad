@@ -17,6 +17,7 @@ Rectangle {
 
     signal backAction()
     signal forwardAction()
+    signal environmentChangeAction(string envType)
 
     /**
      * actions to display in the toolbar
@@ -25,6 +26,12 @@ Rectangle {
      * actionTriggered signal is emitted.
      */
     property variant actions: []
+
+    /**
+     * environments which are available:
+     * EnvDevelopment | EnvUat | EnvStage | EnvProd
+     */
+    property variant environments: []
 
     property variant pathLinks: []
 
@@ -43,6 +50,20 @@ Rectangle {
     }
     function setForwardActive(isActive) {
         fwdBtn.enabled = isActive
+    }
+
+    function getIconName(environment) {
+        switch (environment) {
+        case "EnvDevelopment":
+            return "glyphicons-361-bug"
+        case "EnvUat":
+            return "glyphicons-534-lab"
+        case "EnvStage":
+            return "glyphicons-140-adjust-alt"
+        case "EnvProd":
+            return "glyphicons-333-certificate"
+        }
+        throw "unknown environment: " + environment;
     }
 
     signal actionTriggered(string name);
@@ -79,7 +100,7 @@ Rectangle {
             btnText: 'home'
             iconName: 'glyphicons-21-home'
             onClicked: loadView("ProjectList.qml", null, null, null)
-            style: breadcbrumbsButton
+            style: breadcrumbsButton
             height: parent.height
             checked: pathLinks.length === 0 && title.length === 0
         }
@@ -90,7 +111,7 @@ Rectangle {
                 text: modelData.display
                 height: parent.height
                 onClicked: loadView(modelData.screen, modelData.model, null, null)
-                style: breadcbrumbsButton
+                style: breadcrumbsButton
             }
         }
         ExclusiveGroup { id: tabPositionGroup }
@@ -101,7 +122,69 @@ Rectangle {
             checkable: true
             checked: true
             exclusiveGroup: tabPositionGroup
-            style: breadcbrumbsButton
+            style: breadcrumbsButton
+        }
+        Menu {
+            id: envMenu
+            MenuItem {
+                iconSource: "../../glyphicons-free/" + getIconName("EnvDevelopment")
+                text: "Development"
+                onTriggered: {
+                    envBtn.iconName = getIconName("EnvDevelopment")
+                    environmentChangeAction("EnvDevelopment")
+                }
+                // >= 1 is on purpose: don't offer if we're the active one currently
+                visible: toolbarRoot.environments.indexOf("EnvDevelopment") >= 1
+            }
+            MenuItem {
+                iconSource: "../../glyphicons-free/" + getIconName("EnvUat")
+                text: "UAT"
+                onTriggered: {
+                    envBtn.iconName = getIconName("EnvUat")
+                    environmentChangeAction("EnvUat")
+                }
+                // >= 1 is on purpose: don't offer if we're the active one currently
+                visible: toolbarRoot.environments.indexOf("EnvUat") >= 1
+            }
+            MenuItem {
+                iconSource: "../../glyphicons-free/" + getIconName("EnvStage")
+                text: "Staging"
+                onTriggered: {
+                    envBtn.iconName = getIconName("EnvStage")
+                    environmentChangeAction("EnvStage")
+                }
+                // >= 1 is on purpose: don't offer if we're the active one currently
+                visible: toolbarRoot.environments.indexOf("EnvStage") >= 1
+            }
+            MenuItem {
+                iconSource: "../../glyphicons-free/" + getIconName("EnvProd")
+                text: "PROD"
+                onTriggered: {
+                    envBtn.iconName = getIconName("EnvProd")
+                    environmentChangeAction("EnvProd")
+                }
+                // >= 1 is on purpose: don't offer if we're the active one currently
+                visible: toolbarRoot.environments.indexOf("EnvProd") >= 1
+            }
+        }
+        IconButton {
+            id: envBtn
+            iconName: getIconName(toolbarRoot.environments[0])
+            width: 32
+            iconX: 6
+            height: parent.height
+            menu: envMenu
+            visible: toolbarRoot.environments.length > 1
+        }
+        IconButton {
+            id: envBtnSingle
+            iconName: toolbarRoot.environments.length > 0 ?
+                getIconName(toolbarRoot.environments[0]) : ""
+            width: 32
+            iconX: 9
+            height: parent.height
+            visible: toolbarRoot.environments.length <= 1
+            style: Rectangle {}
         }
     }
 
@@ -181,7 +264,7 @@ Rectangle {
         NormalButtonStyle {}
     }
     Component {
-        id: breadcbrumbsButton
+        id: breadcrumbsButton
         BreadcrumbsButton {}
     }
     Component {

@@ -6,17 +6,3 @@ var actions = {
     "PoiConfigFile":{"text": "Open", "icon": "glyphicons-281-settings"},
     "PoiBackupArchive":{"text": "Open", "icon": "glyphicons-58-history"}
 }
-
-
-function envDesc(environment) {
-    switch (environment) {
-    case "EnvDevelopment":
-        return "Development"
-    case "EnvUat":
-        return "UAT"
-    case "EnvStage":
-        return "Staging"
-    case "EnvProd":
-        return "PROD"
-    }
-}

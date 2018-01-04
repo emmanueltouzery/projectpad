@@ -17,6 +17,7 @@ Rectangle {
     property string _popupToDisplay
 
     property variant actions: [["add", "glyphicons-191-circle-plus", "Add..."]]
+    property variant environments: [model.environment]
 
     function getBreadCrumbs() {
         var projectModel = Utils.findById(
@@ -25,7 +26,7 @@ Rectangle {
             [
                 {screen: "ProjectView.qml",
                 model: {"project": projectModel, "environment": model.environment},
-                display: projectModel.name + " " + PoiActions.envDesc(model.environment)}
+                display: projectModel.name}
             ],
             title: model.desc}
     }

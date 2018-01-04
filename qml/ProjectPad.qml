@@ -7,6 +7,7 @@ import QtQml 2.2
 import QtGraphicalEffects 1.0
 import "core"
 import "keyboard-helpers.js" as KeyboardHelpers
+import "utils.js" as Utils
 
 Window {
     width: 800; height: 650;
@@ -224,6 +225,18 @@ Window {
                 selectTileDelay(toGo[2])
             }
         }
+        onEnvironmentChangeAction: {
+            var toGo = history[history.length-historyFromLast]
+            if (toGo[0] !== "ProjectView.qml") {
+                console.error(
+                    "Only know how to change environment on project view! Was " + toGo[0]);
+            }
+            var selectedTileInfo = toGo[2]
+            var newModel =
+                {"project": toGo[1].project,
+                 "environment": envType}
+            loadViewActionEx(toGo[0], newModel, true, selectedTileInfo)
+        }
     }
 
     TextField {
@@ -285,6 +298,7 @@ Window {
                 // which is not displayed as the result
                 // of a click.
                 toolbar.actions = loader.item.actions
+                toolbar.environments = loader.item.environments
                 var breadcrumbsInfo = loader.item.getBreadCrumbs()
                 toolbar.pathLinks = breadcrumbsInfo.pathLinks
                 toolbar.title = breadcrumbsInfo.title

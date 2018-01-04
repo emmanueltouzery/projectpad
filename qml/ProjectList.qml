@@ -13,6 +13,7 @@ ScrollView {
 
     property variant actions: [
         ["addprj", "glyphicons-146-folder-plus", "Add project"]]
+    property variant environments: []
 
     function getBreadCrumbs() {
         return {pathLinks: [], title: ''};
