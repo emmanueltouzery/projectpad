@@ -169,7 +169,8 @@ Rectangle {
         }
         IconButton {
             id: envBtn
-            iconName: getIconName(toolbarRoot.environments[0])
+            iconName: toolbarRoot.environments.length > 1 ?
+                getIconName(toolbarRoot.environments[0]) : getIconName("EnvProd")
             width: 32
             iconX: 6
             height: parent.height
@@ -178,12 +179,12 @@ Rectangle {
         }
         IconButton {
             id: envBtnSingle
-            iconName: toolbarRoot.environments.length > 0 ?
-                getIconName(toolbarRoot.environments[0]) : ""
+            iconName: toolbarRoot.environments.length === 1 ?
+                getIconName(toolbarRoot.environments[0]) : getIconName("EnvProd")
             width: 32
             iconX: 9
             height: parent.height
-            visible: toolbarRoot.environments.length <= 1
+            visible: toolbarRoot.environments.length === 1
             style: Rectangle {}
         }
     }

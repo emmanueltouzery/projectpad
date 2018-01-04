@@ -36,7 +36,6 @@ Rectangle {
         if (pv.model.project.hasProd && model.environment !== "EnvProd") {
             result.push("EnvProd")
         }
-        console.error("getEnvs returning " + result + " -- " + model.environment)
         return result;
     }
 
