@@ -18,7 +18,11 @@ data ServerAccessType = SrvAccessSsh | SrvAccessRdp | SrvAccessWww | SrvAccessSs
 derivePersistField "ServerAccessType"
 
 -- app would be bug tracking, CI...
-data ServerType = SrvDatabase | SrvApplication
+data ServerType = SrvDatabase
+                | SrvApplication
+                | SrvHttpOrProxy
+                | SrvMonitoring
+                | SrvReporting
     deriving (Show, Read, Eq, Typeable)
 derivePersistField "ServerType"
 

@@ -4,7 +4,13 @@
 function getServerIcon(server) {
     // a bit messy because I check several
     // independant criteria. but makes sense in a way.
-    if (server.accessType === "SrvAccessWww") {
+    if (server.type === "SrvHttpOrProxy") {
+        return "glyphicons-458-transfer"
+    } else if (server.type === "SrvMonitoring") {
+        return "glyphicons-332-dashboard"
+    } else if (server.type === "SrvReporting") {
+        return "glyphicons-479-blackboard"
+    } else if (server.accessType === "SrvAccessWww") {
         return "glyphicons-372-global"
     } else if (server.type === "SrvDatabase") {
         return "glyphicons-343-hdd"

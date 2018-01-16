@@ -182,6 +182,9 @@ Rectangle {
                 id: serverTypeItems
                 ListElement { text: "Application"; value: "SrvApplication"}
                 ListElement { text: "Database"; value: "SrvDatabase"}
+                ListElement { text: "HTTP server or proxy"; value: "SrvHttpOrProxy"}
+                ListElement { text: "Monitoring"; value: "SrvMonitoring"}
+                ListElement { text: "Reporting"; value: "SrvReporting"}
             }
         }
 
