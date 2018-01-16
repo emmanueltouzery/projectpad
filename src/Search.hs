@@ -5,15 +5,15 @@ module Search where
 import Data.Text (Text)
 import qualified Data.Text as T
 import Data.Typeable
-import Database.Esqueleto hiding (on)
+import Database.Esqueleto
 import Graphics.QML
 import qualified Data.Set as Set
 import Data.Set (Set)
 import Data.List
 import Data.Ord
-import Data.Function
+import qualified Data.Function as F
 import Data.Maybe
-import Control.Error
+import Control.Error hiding (just)
 
 import Model
 import Util
@@ -124,10 +124,13 @@ filterServers query = select $ from $ \s -> do
     return s
 
 filterServerWebsites :: SqlExpr (Value Text) -> SqlPersistM [Entity ServerWebsite]
-filterServerWebsites query = select $ from $ \w -> do
+filterServerWebsites query = select $ from $ \(w `LeftOuterJoin` db) -> do
+    on (w ^. ServerWebsiteServerDatabaseId ==. db ?. ServerDatabaseId)
     where_ ((w ^. ServerWebsiteDesc `like` query)
         ||. (w ^. ServerWebsiteUrl `like` query)
-        ||. (w ^. ServerWebsiteText `like` query))
+        ||. (w ^. ServerWebsiteText `like` query)
+        ||. (db ?. ServerDatabaseDesc `like` just query)
+        ||. (db ?. ServerDatabaseName `like` just query))
     return w
 
 filterServerExtraUsers :: SqlExpr (Value Text) -> SqlPersistM [Entity ServerExtraUserAccount]
@@ -216,8 +219,8 @@ compareServerEntities :: EntityRef Server -> EntityRef Server -> Ordering
 compareServerEntities ea eb = if envCompare /= EQ then envCompare else descCompare
     where
         [a, b] = fromEntityRef <$> [ea, eb]
-        envCompare  = (compare `on` serverEnvironment) a b
-        descCompare = (compare `on` T.toCaseFold . serverDesc) a b
+        envCompare  = (compare `F.on` serverEnvironment) a b
+        descCompare = (compare `F.on` T.toCaseFold . serverDesc) a b
 
 -- A Join contains a list of child entities and the function
 -- from entity to parent key.
