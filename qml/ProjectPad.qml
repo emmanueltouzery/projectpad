@@ -298,7 +298,7 @@ Window {
                 // which is not displayed as the result
                 // of a click.
                 toolbar.actions = loader.item.actions
-                toolbar.environments = loader.item.environments
+                toolbar.environments = loader.item.environments || []
                 var breadcrumbsInfo = loader.item.getBreadCrumbs()
                 toolbar.pathLinks = breadcrumbsInfo.pathLinks
                 toolbar.title = breadcrumbsInfo.title
