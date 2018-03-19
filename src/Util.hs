@@ -2,6 +2,7 @@
              FlexibleInstances, ConstraintKinds #-}
 module Util where
 
+import Control.Applicative
 import Data.Text (Text)
 import Control.Error
 import Graphics.QML
@@ -11,6 +12,8 @@ import qualified Data.Text as T
 import Control.Exception
 import System.FilePath.Posix
 import System.Directory
+import Data.Attoparsec.Text hiding (try)
+import Data.Monoid
 
 projectPadFolder :: String
 projectPadFolder = ".projectpad"
@@ -30,6 +33,7 @@ text = T.pack . show
 data CommandProgress = CommandOutput Text
     | CommandSucceeded
     | CommandFailed Text
+    deriving Show
 
 eitherToCmdProgress :: Either Text b -> CommandProgress
 eitherToCmdProgress (Right _) = CommandSucceeded
@@ -39,6 +43,19 @@ cmdProgressToJs :: CommandProgress -> [Text]
 cmdProgressToJs (CommandOutput x) = ["text", x]
 cmdProgressToJs CommandSucceeded  = ["succeeded", ""]
 cmdProgressToJs (CommandFailed x) = ["failed", x]
+
+splitParams :: Text -> Either String [Text]
+splitParams = parseOnly splitParamsParser
+    where
+        splitParamsParser = (parseQuotedParam <|> parseParam) `sepBy` char ' ' <* endOfInput
+        parseQuotedParam = char '"' *> takeWhile1 (/= '"') <* char '"'
+        parseParam = takeWhile1 (/= ' ')
+
+withParams :: Text -> (CommandProgress -> a) -> ([Text] -> a) -> a
+withParams txt notify action = case splitParams txt of
+  Left x   -> notify (CommandFailed $ "Error parsing the command: " <> T.pack x)
+  Right [] -> notify (CommandFailed "Incomplete command line")
+  Right params -> action params
 
 data SignalOutput deriving Typeable
 instance SignalKeyClass SignalOutput where

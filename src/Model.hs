@@ -41,6 +41,7 @@ ServerPointOfInterest
     path Text
     text Text
     interestType InterestType
+    runOn RunOn
     groupName Text Maybe
     serverId ServerId
     deriving Show Typeable
@@ -227,6 +228,7 @@ instance DefaultClass (Entity ServerPointOfInterest) where
             defPropConst "path"         serverPointOfInterestPath,
             defPropConst "text"         serverPointOfInterestText,
             defPropConst "interestType" $ text . serverPointOfInterestInterestType,
+            defPropConst "runOn"        $ text . serverPointOfInterestRunOn,
             defPropConst "groupName"    $ fromMaybe "" . serverPointOfInterestGroupName
         ]
 

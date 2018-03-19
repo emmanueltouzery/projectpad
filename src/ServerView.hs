@@ -36,22 +36,26 @@ readServerPois serverId = select $ from $ \p -> do
     return p
 
 addServerPoi :: SqlBackend -> Int
-    -> Text -> Text -> Text -> Text -> Maybe Text -> IO ()
-addServerPoi sqlBackend serverId pDesc path txt interestTypeT (groupOrNothing -> grpName) = do
+    -> Text -> Text -> Text -> Text -> Text -> Maybe Text -> IO ()
+addServerPoi sqlBackend serverId pDesc path txt interestTypeT
+             runOnT (groupOrNothing -> grpName) = do
     let interestType = read $ T.unpack interestTypeT
+    let runOn = read $ T.unpack runOnT
     addHelper sqlBackend serverId
-        $ ServerPointOfInterest pDesc path txt interestType grpName
+        $ ServerPointOfInterest pDesc path txt interestType runOn grpName
 
 updateServerPoi :: SqlBackend -> EntityRef ServerPointOfInterest
-    -> Text -> Text -> Text -> Text -> Maybe Text -> IO (EntityRef ServerPointOfInterest)
+    -> Text -> Text -> Text -> Text -> Text -> Maybe Text -> IO (EntityRef ServerPointOfInterest)
 updateServerPoi sqlBackend poiRef
-    pDesc path txt interestTypeT (groupOrNothing -> grpName) = do
+    pDesc path txt interestTypeT runOnT (groupOrNothing -> grpName) = do
     let interestType = read $ T.unpack interestTypeT
+    let runOn = read $ T.unpack runOnT
     updateHelper sqlBackend poiRef
         [
             ServerPointOfInterestDesc P.=. pDesc, ServerPointOfInterestPath P.=. path,
             ServerPointOfInterestText P.=. txt,
             ServerPointOfInterestInterestType P.=. interestType,
+            ServerPointOfInterestRunOn P.=. runOn,
             ServerPointOfInterestGroupName P.=. grpName
         ]
 
@@ -221,16 +225,35 @@ saveAuthKey getKeyFilename getKey (entityVal . fromObjRef -> entity) = do
 executePoiAction :: SqlBackend -> ObjRef ServerViewState -> EntityRef Server
     -> EntityRef ServerPointOfInterest -> IO (Either Text ())
 executePoiAction sqlBackend srvState server (entityVal . fromObjRef -> serverPoi) =
-    openServerSshAction sqlBackend server $ \port eSrv ->
     case serverPointOfInterestInterestType serverPoi of
-        PoiCommandToRun    -> executePoiCommand srvState eSrv port serverPoi
-        PoiCommandTerminal -> openSshSession eSrv port (SshCommand $ workDir <> serverPointOfInterestText serverPoi)
-        PoiLogFile         -> executePoiLogFile eSrv port serverPoi "tail -f "
-        PoiConfigFile      -> executePoiLogFile eSrv port serverPoi "vim "
+        PoiCommandToRun    -> runLocalOrElse serverPoi notify txt workDir $
+          withSsh (\port eSrv -> executePoiCommand srvState eSrv port serverPoi)
+        PoiCommandTerminal -> runLocalTerminalOrElse serverPoi notify txt workDir $
+          withSsh (\port eSrv -> openSshSession eSrv port (SshCommand $ fromMaybe "" workDir <> serverPointOfInterestText serverPoi))
+        PoiLogFile         -> withSsh (\port eSrv -> executePoiLogFile eSrv port serverPoi "tail -f ")
+        PoiConfigFile      -> withSsh (\port eSrv -> executePoiLogFile eSrv port serverPoi "vim ")
         _                  -> return $ Right ()
-    where workDir = case serverPointOfInterestPath serverPoi of
-            "" -> ""
-            x  -> x <> "/"
+    where
+      withSsh = openServerSshAction sqlBackend server 
+      workDir = case serverPointOfInterestPath serverPoi of
+            "" -> Nothing
+            x  -> Just (x <> "/")
+      txt = serverPointOfInterestText serverPoi
+      notify = fireSignal (Proxy :: Proxy SignalOutput) srvState . cmdProgressToJs
+
+runLocalOrElse :: ServerPointOfInterest -> (CommandProgress -> IO ()) -> Text -> Maybe Text -> IO (Either Text ())
+               -> IO (Either Text ())
+runLocalOrElse serverPoi notify txt workDir cb = case serverPointOfInterestRunOn serverPoi of
+  RunOnServer -> cb
+  RunOnClient -> fmap Right $ withParams txt notify $
+    \(prog:parameters) -> tryCommandAsync prog parameters (T.unpack <$> workDir) Nothing notify
+
+runLocalTerminalOrElse :: ServerPointOfInterest -> (CommandProgress -> IO ()) -> Text -> Maybe Text -> IO (Either Text ())
+                       -> IO (Either Text ())
+runLocalTerminalOrElse serverPoi notify txt workDir cb = case serverPointOfInterestRunOn serverPoi of
+  RunOnServer -> cb
+  RunOnClient -> Right <$>
+    tryCommandAsync "gnome-terminal" ["-e", txt] (T.unpack <$> workDir) Nothing notify
 
 executePoiSecondaryAction :: SqlBackend -> EntityRef Server
     -> EntityRef ServerPointOfInterest -> IO (Either Text ())

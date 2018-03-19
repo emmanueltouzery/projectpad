@@ -51,7 +51,7 @@ Rectangle {
                             poiEdit.activate(pv.model, poiEdit.getDefaultModel())
                         },
                         function (poiEdit) {
-                            poiEdit.onServerOk(pv.model);
+                            poiEdit.onOk(pv.model);
                             refreshServerView()
                         }, {noOpacity: true})
                 break;
@@ -273,9 +273,8 @@ Rectangle {
 
             Component {
                 id: editPoiComponent
-                PoiEdit {
+                ServerPoiEdit {
                     id: poiEdit
-                    isServerPoi: true
                 }
             }
             Component {

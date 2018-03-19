@@ -19,7 +19,7 @@ ItemTile {
                     poiEdit.activate(server, curPoi)
                 },
                 function (poiEdit) {
-                    poiEdit.onServerOk(server)
+                    poiEdit.onOk(server)
                     // force refresh
                     refreshServerView()
                 })
@@ -52,63 +52,77 @@ ItemTile {
                     refreshServerView()
                 })
             }]]
-        if ((server.accessType === "SrvAccessSsh" || server.accessType === "SrvAccessSshTunnel")
-            && server.serverIp.length > 0
-            && server.username.length > 0
-            && server.password.length > 0) {
+        if (model.runOn === "RunOnClient") {
             switch (model.interestType) {
             case "PoiCommandToRun":
             case "PoiCommandTerminal":
                 options.push(["glyphicons-138-cogwheels", function() {
-                    Utils.runIfSshHostTrusted(server, function() {
-                        var info = getAppState().
-                            serverViewState.executePoiAction(server, model)
-                        appContext.progressMessage("\nStarted program\n")
-                    })
+                    var info = getAppState().
+                        serverViewState.executePoiAction(server, model)
+                    appContext.progressMessage("\nStarted program\n")
                 }])
                 break
-            case "PoiLogFile":
-                options.push(["glyphicons-283-cardio", function() {
-                    Utils.runIfSshHostTrusted(server, function() {
-                        getAppState()
-                            .serverViewState.executePoiAction(server, model)
-                    })
-                }])
-                options.push(["glyphicons-52-eye-open", function() {
-                    Utils.runIfSshHostTrusted(server, function() {
-                        getAppState().serverViewState
-                            .executePoiSecondaryAction(server, model)
-                    })
-                }])
-                options.push(["glyphicons-182-download-alt", function() {
-                    Utils.runIfSshHostTrusted(server, function() {
-                        getAppState().
-                            serverViewState.executePoiThirdAction(server, model)
-                    })
-                }])
-                break
-            case "PoiConfigFile":
-                options.push(["glyphicons-52-eye-open", function() {
-                    Utils.runIfSshHostTrusted(server, function() {
-                        getAppState().
-                            serverViewState.executePoiAction(server, model)
-                    })
-                }])
-                options.push(["glyphicons-182-download-alt", function() {
-                    Utils.runIfSshHostTrusted(server, function() {
-                        getAppState().
-                            serverViewState.executePoiThirdAction(server, model)
-                    })
-                }])
-                break
-            case "PoiBackupArchive":
-                options.push(["glyphicons-182-download-alt", function() {
-                    Utils.runIfSshHostTrusted(server, function() {
-                        getAppState().
-                            serverViewState.executePoiThirdAction(server, model)
-                    })
-                }])
-                break
+            }
+        } else {
+            var hasSrvAccess = (server.accessType === "SrvAccessSsh" || server.accessType === "SrvAccessSshTunnel")
+                && server.serverIp.length > 0
+                && server.username.length > 0
+                && server.password.length > 0
+            if (hasSrvAccess) {
+                switch (model.interestType) {
+                case "PoiCommandToRun":
+                case "PoiCommandTerminal":
+                    options.push(["glyphicons-138-cogwheels", function() {
+                        Utils.runIfSshHostTrusted(server, function() {
+                            var info = getAppState().
+                                serverViewState.executePoiAction(server, model)
+                            appContext.progressMessage("\nStarted program\n")
+                        })
+                    }])
+                    break
+                case "PoiLogFile":
+                    options.push(["glyphicons-283-cardio", function() {
+                        Utils.runIfSshHostTrusted(server, function() {
+                            getAppState()
+                                .serverViewState.executePoiAction(server, model)
+                        })
+                    }])
+                    options.push(["glyphicons-52-eye-open", function() {
+                        Utils.runIfSshHostTrusted(server, function() {
+                            getAppState().serverViewState
+                                .executePoiSecondaryAction(server, model)
+                        })
+                    }])
+                    options.push(["glyphicons-182-download-alt", function() {
+                        Utils.runIfSshHostTrusted(server, function() {
+                            getAppState().
+                                serverViewState.executePoiThirdAction(server, model)
+                        })
+                    }])
+                    break
+                case "PoiConfigFile":
+                    options.push(["glyphicons-52-eye-open", function() {
+                        Utils.runIfSshHostTrusted(server, function() {
+                            getAppState().
+                                serverViewState.executePoiAction(server, model)
+                        })
+                    }])
+                    options.push(["glyphicons-182-download-alt", function() {
+                        Utils.runIfSshHostTrusted(server, function() {
+                            getAppState().
+                                serverViewState.executePoiThirdAction(server, model)
+                        })
+                    }])
+                    break
+                case "PoiBackupArchive":
+                    options.push(["glyphicons-182-download-alt", function() {
+                        Utils.runIfSshHostTrusted(server, function() {
+                            getAppState().
+                                serverViewState.executePoiThirdAction(server, model)
+                        })
+                    }])
+                    break
+                }
             }
         }
         selectMenu.options = options
@@ -124,9 +138,8 @@ ItemTile {
     }
     Component {
         id: editPoiComponent
-        PoiEdit {
+        ServerPoiEdit {
             id: poiEdit
-            isServerPoi: true
         }
     }
 }

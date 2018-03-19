@@ -14,7 +14,6 @@ import qualified Data.Map as M
 import Data.Maybe
 import Control.Arrow
 import Data.Monoid
-import Data.Attoparsec.Text hiding (count)
 
 import ModelBase
 import Model
@@ -33,7 +32,7 @@ readServers projectId = select $ from $ \s -> do
 
 addServer :: SqlBackend -> Int -> Text -> IpAddress -> Bool -> Text -> Text
     -> Text -> Text -> Text -> Text -> Maybe Int -> Maybe Int
-    -> Text -> Maybe Text -> IO ()
+    -> Text -> Maybe Text ->             IO ()
 addServer sqlBackend projectId sDesc ipAddr isRetired txt username password
         keyPath serverTypeT serverAccessTypeT sshTunnelPort sshTunnelThroughServerId
         srvEnvironmentT (groupOrNothing -> groupName) = do
@@ -214,19 +213,6 @@ getProjectDisplaySections sqlBackend projectId environment = do
       runServerQ :: DefaultClass a => (Int -> SqlPersistM [a]) -> IO [ObjRef a]
       runServerQ f = sqlToQml sqlBackend (f projectId)
       fromEntRef f = fromEntityRef . f . fromObjRef
-
-splitParams :: Text -> Either String [Text]
-splitParams = parseOnly splitParamsParser
-    where
-        splitParamsParser = (parseQuotedParam <|> parseParam) `sepBy` char ' ' <* endOfInput
-        parseQuotedParam = char '"' *> takeWhile1 (/= '"') <* char '"'
-        parseParam = takeWhile1 (/= ' ')
-
-withParams :: Text -> (CommandProgress -> a) -> ([Text] -> a) -> a
-withParams txt notify action = case splitParams txt of
-  Left x   -> notify (CommandFailed $ "Error parsing the command: " <> T.pack x)
-  Right [] -> notify (CommandFailed "Incomplete command line")
-  Right params -> action params
 
 runPoiAction :: ObjRef ProjectViewState
     -> EntityRef ProjectPointOfInterest -> IO ()

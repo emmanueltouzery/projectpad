@@ -29,3 +29,7 @@ derivePersistField "ServerType"
 data EnvironmentType = EnvDevelopment | EnvUat | EnvStage | EnvProd
     deriving (Show, Read, Eq, Typeable, Ord)
 derivePersistField "EnvironmentType"
+
+data RunOn = RunOnServer | RunOnClient
+    deriving (Show, Read, Eq, Typeable, Ord)
+derivePersistField "RunOn"

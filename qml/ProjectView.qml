@@ -255,9 +255,8 @@ Rectangle {
             }
             Component {
                 id: poiEditComponent
-                PoiEdit {
+                ProjectPoiEdit {
                     id: poiEdit
-                    isServerPoi: false
                 }
             }
             Component {
