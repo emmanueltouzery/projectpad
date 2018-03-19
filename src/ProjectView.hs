@@ -32,7 +32,7 @@ readServers projectId = select $ from $ \s -> do
 
 addServer :: SqlBackend -> Int -> Text -> IpAddress -> Bool -> Text -> Text
     -> Text -> Text -> Text -> Text -> Maybe Int -> Maybe Int
-    -> Text -> Maybe Text ->             IO ()
+    -> Text -> Maybe Text -> IO ()
 addServer sqlBackend projectId sDesc ipAddr isRetired txt username password
         keyPath serverTypeT serverAccessTypeT sshTunnelPort sshTunnelThroughServerId
         srvEnvironmentT (groupOrNothing -> groupName) = do
