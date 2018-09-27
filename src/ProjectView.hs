@@ -2,7 +2,6 @@
     MultiParamTypeClasses, FlexibleContexts, ViewPatterns, ConstraintKinds #-}
 module ProjectView where
 
-import Control.Applicative
 import Graphics.QML
 import Graphics.QML.Objects.ParamNames
 import Database.Esqueleto
@@ -13,7 +12,6 @@ import qualified Data.Text as T
 import qualified Data.Map as M
 import Data.Maybe
 import Control.Arrow
-import Data.Monoid
 
 import ModelBase
 import Model
