@@ -34,6 +34,8 @@ runNotesParsingTests = it "parses notes properly" $ do
         $ parseNoteDocument "hello **world**"
     assertEqual "bold text" (Right [NormalNote $ Paragraph [PlainText "hello ", Strikethrough [PlainText "world"]]])
         $ parseNoteDocument "hello ~~world~~"
+    assertEqual "plain tilde is unchanged" (Right [NormalNote $ Paragraph [PlainText "cd ~/home"]])
+        $ parseNoteDocument "cd ~/home"
     assertEqual "bold italics text"
                 (Right [NormalNote $ Paragraph [PlainText "hello ",
                         Bold [PlainText "w", Italics [PlainText "or"], PlainText "ld"]]])
