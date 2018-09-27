@@ -5,6 +5,7 @@ import Test.HUnit
 
 import ProjectView
 import Notes
+import Util
 
 main :: IO ()
 main = hspec $ do
@@ -31,6 +32,8 @@ runNotesParsingTests = it "parses notes properly" $ do
         $ parseNoteDocument "# hello world\ncon*[]tents"
     assertEqual "bold text" (Right [NormalNote $ Paragraph [PlainText "hello ", Bold [PlainText "world"]]])
         $ parseNoteDocument "hello **world**"
+    assertEqual "bold text" (Right [NormalNote $ Paragraph [PlainText "hello ", Strikethrough [PlainText "world"]]])
+        $ parseNoteDocument "hello ~~world~~"
     assertEqual "bold italics text"
                 (Right [NormalNote $ Paragraph [PlainText "hello ",
                         Bold [PlainText "w", Italics [PlainText "or"], PlainText "ld"]]])
@@ -70,8 +73,8 @@ runNotesParsingTests = it "parses notes properly" $ do
                 (Right [NormalNote $ Paragraph [PlainText " a b"]])
         $ parseNoteDocument "\na b"
     assertEqual "escapes"
-                (Right [NormalNote $ Paragraph [PlainText "# normal\\ **text**"]])
-        $ parseNoteDocument "\\# normal\\\\ \\*\\*text\\*\\*"
+                (Right [NormalNote $ Paragraph [PlainText "# normal\\ **text** ~~nothing special~~"]])
+        $ parseNoteDocument "\\# normal\\\\ \\*\\*text\\*\\* \\~\\~nothing special\\~\\~"
     assertEqual "inline pre"
                 (Right [NormalNote $ Paragraph [PlainText "hello ", PreformatInline "world"]])
         $ parseNoteDocument "hello `world`"

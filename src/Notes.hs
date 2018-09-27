@@ -42,6 +42,7 @@ data NoteElement = NormalNote NoteElementNoBlockQuote
 
 data LineItem = Bold [LineItem]
     | Italics [LineItem]
+    | Strikethrough [LineItem]
     | Link Text [LineItem]
     | Password Text
     | PreformatInline Text
@@ -115,13 +116,14 @@ mergePlainTexts = \case
     [] -> []
 
 plainTextStopChars :: String
-plainTextStopChars = "*[]\n\\`"
+plainTextStopChars = "*[]\n\\`~"
 
 parseLineItem :: Parser LineItem
 parseLineItem = parseEscapedMarkers
     <|> parsePreformatInline
     <|> parseTextToggle Bold "**"
     <|> parseTextToggle Italics "*"
+    <|> parseTextToggle Strikethrough "~~"
     <|> parsePassword
     <|> parseLink
     <|> PlainText <$> takeWhile1 (not . (`elem` plainTextStopChars))
@@ -129,7 +131,7 @@ parseLineItem = parseEscapedMarkers
     <|> PlainText <$> (endOfLine >> return " ")
 
 parseEscapedMarkers :: Parser LineItem
-parseEscapedMarkers = choice (parseEscape <$> ["\\", "*", "`", "#",  "-"])
+parseEscapedMarkers = choice (parseEscape <$> ["\\", "*", "`", "#",  "-", "~"])
     where parseEscape t = string ("\\" <> t) *> return (PlainText t)
 
 parsePreformatInline :: Parser LineItem
@@ -213,6 +215,9 @@ cellspacing_ = makeAttribute "cellspacing"
 center_ :: Term arg result => arg -> result
 center_ = term "center"
 
+s_ :: Html () -> Html ()
+s_ = term "s"
+
 noteElementToHtml :: NoteElement -> Html ()
 noteElementToHtml = \case
     NormalNote (Header1 txt)        -> h1_ (toHtml txt)
@@ -234,10 +239,11 @@ noteLineItemsToHtml = fold . fmap normalLineItemToHtml
 
 normalLineItemToHtml :: LineItem -> Html ()
 normalLineItemToHtml = \case
-    Bold elts     -> b_ (noteLineItemsToHtml elts)
-    Italics elts  -> i_ (noteLineItemsToHtml elts)
-    Password txt  -> a_ [href_ ("pass://" <> txt)] "\x1F512[Password]"
-    PlainText txt -> toHtml txt
+    Bold elts            -> b_ (noteLineItemsToHtml elts)
+    Italics elts         -> i_ (noteLineItemsToHtml elts)
+    Strikethrough elts   -> s_ (noteLineItemsToHtml elts)
+    Password txt         -> a_ [href_ ("pass://" <> txt)] "\x1F512[Password]"
+    PlainText txt        -> toHtml txt
     Link target contents ->
        a_ [href_ target] (noteLineItemsToHtml contents)
     PreformatInline txt  ->
