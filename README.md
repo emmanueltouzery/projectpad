@@ -31,7 +31,7 @@ That does complicate the installation of the application though.
 
 ## Installation
 
-On Fedora, you'll need to install the `qt5-qtdeclarative-devel`, `qt5-qtquickcontrols` and `qt5-qtgraphicaleffects` packages.
+On Fedora, you'll need to install the `sqlcipher-devel`, `sqlite-devel`, `qt5-qtdeclarative-devel`, `qt5-qtquickcontrols` and `qt5-qtgraphicaleffects` packages.
 
 You should also install some unicode font because some unicode symbol glyphs are used when editing notes. On Fedora you can install `gdouros-symbola-fonts`.
 
