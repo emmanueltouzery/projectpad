@@ -1431,20 +1431,20 @@
           ]
         },
         {
-          "name": "hsqml-0.3.5.0",
+          "name": "hsqml-0.3.5.1",
           "only-arches": ["x86_64"],
           "buildsystem": "simple",
           "build-commands": [
             "ghc -threaded --make Setup",
             "./Setup configure --prefix=/app",
-            "./Setup build",
+            "./Setup build -v",
             "./Setup install"
           ],
           "sources": [
             {
               "type": "archive",
-              "sha256": "ec3d9d1c95bd73ab885e207c44bbd7bd14e517e49dae3d6bde7e6f424295a7c6",
-              "url": "https://hackage.haskell.org/package/hsqml-0.3.5.0/hsqml-0.3.5.0.tar.gz"
+              "sha256": "a0c685ed26905818713cdd0b6f1821d24697ea14f38e62b828401775c1b7d110",
+              "url": "https://hackage.haskell.org/package/hsqml-0.3.5.1/hsqml-0.3.5.1.tar.gz"
             }
           ]
         },
