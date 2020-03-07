@@ -39,6 +39,48 @@
           ]
         },
         {
+          "name": "transformers-0.5.2.0",
+          "only-arches": ["x86_64"],
+          "buildsystem": "simple",
+          "build-commands": [
+            "mv 1.cabal transformers.cabal",
+            "ghc -threaded --make Setup",
+            "./Setup configure --prefix=/app",
+            "./Setup build",
+            "./Setup install"
+          ],
+          "sources": [
+            {
+              "type": "archive",
+              "sha256": "6c408713a8ba7dd7a6573a4644e0c17fe11747f5bf259eab958421a7358a70e2",
+              "url": "https://hackage.haskell.org/package/transformers-0.5.2.0/transformers-0.5.2.0.tar.gz"
+            },
+            {
+              "type": "file",
+              "sha256": "c9329bafcf966fdb7d06a73ff91b9837690c2a0e584363946f7bd087dce8dd86",
+              "url": "https://hackage.haskell.org/package/transformers-0.5.2.0/revision/1.cabal"
+            }
+          ]
+        },
+        {
+          "name": "template-haskell-2.12.0.0",
+          "only-arches": ["x86_64"],
+          "buildsystem": "simple",
+          "build-commands": [
+            "ghc -threaded --make Setup",
+            "./Setup configure --prefix=/app",
+            "./Setup build",
+            "./Setup install"
+          ],
+          "sources": [
+            {
+              "type": "archive",
+              "sha256": "5935130da92bcb41842ae725501e981c1daf44b8a535cc6b92b94d3b9fc27551",
+              "url": "https://hackage.haskell.org/package/template-haskell-2.12.0.0/template-haskell-2.12.0.0.tar.gz"
+            }
+          ]
+        },
+        {
           "name": "random-1.1",
           "only-arches": ["x86_64"],
           "buildsystem": "simple",
@@ -159,7 +201,31 @@
           ]
         },
         {
-          "name": "tagged-0.8.5",
+          "name": "stm-2.4.4.1",
+          "only-arches": ["x86_64"],
+          "buildsystem": "simple",
+          "build-commands": [
+            "mv 1.cabal stm.cabal",
+            "ghc -threaded --make Setup",
+            "./Setup configure --prefix=/app",
+            "./Setup build",
+            "./Setup install"
+          ],
+          "sources": [
+            {
+              "type": "archive",
+              "sha256": "8f999095ed8d50d2056fc6e185035ee8166c50751e1af8de02ac38d382bf3384",
+              "url": "https://hackage.haskell.org/package/stm-2.4.4.1/stm-2.4.4.1.tar.gz"
+            },
+            {
+              "type": "file",
+              "sha256": "49cfd80cba95f84d42eda0045346c8a567df5ce434d4da3d26ac3e977826fc4f",
+              "url": "https://hackage.haskell.org/package/stm-2.4.4.1/revision/1.cabal"
+            }
+          ]
+        },
+        {
+          "name": "stm-chans-3.0.0.4",
           "only-arches": ["x86_64"],
           "buildsystem": "simple",
           "build-commands": [
@@ -171,8 +237,68 @@
           "sources": [
             {
               "type": "archive",
+              "sha256": "2344fc5bfa33d565bad7b009fc0e2c5a7a595060ba149c661f44419fc0d54738",
+              "url": "https://hackage.haskell.org/package/stm-chans-3.0.0.4/stm-chans-3.0.0.4.tar.gz"
+            }
+          ]
+        },
+        {
+          "name": "transformers-compat-0.5.1.4",
+          "only-arches": ["x86_64"],
+          "buildsystem": "simple",
+          "build-commands": [
+            "ghc -threaded --make Setup",
+            "./Setup configure --prefix=/app",
+            "./Setup build",
+            "./Setup install"
+          ],
+          "sources": [
+            {
+              "type": "archive",
+              "sha256": "d881ef4ec164b631591b222efe7ff555af6d5397c9d86475b309ba9402a8ca9f",
+              "url": "https://hackage.haskell.org/package/transformers-compat-0.5.1.4/transformers-compat-0.5.1.4.tar.gz"
+            }
+          ]
+        },
+        {
+          "name": "transformers-base-0.4.4",
+          "only-arches": ["x86_64"],
+          "buildsystem": "simple",
+          "build-commands": [
+            "ghc -threaded --make Setup",
+            "./Setup configure --prefix=/app",
+            "./Setup build",
+            "./Setup install"
+          ],
+          "sources": [
+            {
+              "type": "archive",
+              "sha256": "6aa3494fc70659342fbbb163035d5827ecfd8079e3c929e2372adf771fd52387",
+              "url": "https://hackage.haskell.org/package/transformers-base-0.4.4/transformers-base-0.4.4.tar.gz"
+            }
+          ]
+        },
+        {
+          "name": "tagged-0.8.5",
+          "only-arches": ["x86_64"],
+          "buildsystem": "simple",
+          "build-commands": [
+            "mv 2.cabal tagged.cabal",
+            "ghc -threaded --make Setup",
+            "./Setup configure --prefix=/app",
+            "./Setup build",
+            "./Setup install"
+          ],
+          "sources": [
+            {
+              "type": "archive",
               "sha256": "e47c51c955ed77b0fa36897f652df990aa0a8c4eb278efaddcd604be00fc8d99",
               "url": "https://hackage.haskell.org/package/tagged-0.8.5/tagged-0.8.5.tar.gz"
+            },
+            {
+              "type": "file",
+              "sha256": "4545e05de52ad8f6c95d88cea4b260b30a463b77966eba45319a2c8099b35364",
+              "url": "https://hackage.haskell.org/package/tagged-0.8.5/revision/2.cabal"
             }
           ]
         },
@@ -231,7 +357,7 @@
           ]
         },
         {
-          "name": "alex-3.2.3",
+          "name": "bytestring-0.10.8.2",
           "only-arches": ["x86_64"],
           "buildsystem": "simple",
           "build-commands": [
@@ -243,8 +369,26 @@
           "sources": [
             {
               "type": "archive",
-              "sha256": "1a63791417b3e6e36e8b79849317beeaf9ea09efa21bea021c2347b49266212e",
-              "url": "https://hackage.haskell.org/package/alex-3.2.3/alex-3.2.3.tar.gz"
+              "sha256": "da6f668e47a8c408929a456a6d79b81021a734c1dbd023e004f498de972f4c3a",
+              "url": "https://hackage.haskell.org/package/bytestring-0.10.8.2/bytestring-0.10.8.2.tar.gz"
+            }
+          ]
+        },
+        {
+          "name": "async-2.1.1.1",
+          "only-arches": ["x86_64"],
+          "buildsystem": "simple",
+          "build-commands": [
+            "ghc -threaded --make Setup",
+            "./Setup configure --prefix=/app",
+            "./Setup build",
+            "./Setup install"
+          ],
+          "sources": [
+            {
+              "type": "archive",
+              "sha256": "cd83e471466ea6885b2e8fb60f452db3ac3fdf3ea2d6370aa1e071ebc37544e2",
+              "url": "https://hackage.haskell.org/package/async-2.1.1.1/async-2.1.1.1.tar.gz"
             }
           ]
         },
@@ -267,7 +411,7 @@
           ]
         },
         {
-          "name": "async-2.1.1.1",
+          "name": "containers-0.5.10.2",
           "only-arches": ["x86_64"],
           "buildsystem": "simple",
           "build-commands": [
@@ -279,8 +423,62 @@
           "sources": [
             {
               "type": "archive",
-              "sha256": "cd83e471466ea6885b2e8fb60f452db3ac3fdf3ea2d6370aa1e071ebc37544e2",
-              "url": "https://hackage.haskell.org/package/async-2.1.1.1/async-2.1.1.1.tar.gz"
+              "sha256": "a04efef290be272cdeca1c36f9cff17271ccd8d2b484ebf152bb496fb5328c23",
+              "url": "https://hackage.haskell.org/package/containers-0.5.10.2/containers-0.5.10.2.tar.gz"
+            }
+          ]
+        },
+        {
+          "name": "deepseq-1.4.3.0",
+          "only-arches": ["x86_64"],
+          "buildsystem": "simple",
+          "build-commands": [
+            "ghc -threaded --make Setup",
+            "./Setup configure --prefix=/app",
+            "./Setup build",
+            "./Setup install"
+          ],
+          "sources": [
+            {
+              "type": "archive",
+              "sha256": "6d8135992ccb8829b676a17f016ced966bd72e083584702a3a1b63879aae4d3a",
+              "url": "https://hackage.haskell.org/package/deepseq-1.4.3.0/deepseq-1.4.3.0.tar.gz"
+            }
+          ]
+        },
+        {
+          "name": "unix-2.7.2.2",
+          "only-arches": ["x86_64"],
+          "buildsystem": "simple",
+          "build-commands": [
+            "ghc -threaded --make Setup",
+            "./Setup configure --prefix=/app",
+            "./Setup build",
+            "./Setup install"
+          ],
+          "sources": [
+            {
+              "type": "archive",
+              "sha256": "98dd4eb1b28d65bb57f42acbe22076930c0ad5947f3c1459ab7b15abd57cdeac",
+              "url": "https://hackage.haskell.org/package/unix-2.7.2.2/unix-2.7.2.2.tar.gz"
+            }
+          ]
+        },
+        {
+          "name": "unix-time-0.3.7",
+          "only-arches": ["x86_64"],
+          "buildsystem": "simple",
+          "build-commands": [
+            "ghc -threaded --make Setup",
+            "./Setup configure --prefix=/app",
+            "./Setup build",
+            "./Setup install"
+          ],
+          "sources": [
+            {
+              "type": "archive",
+              "sha256": "1131301131dd3e73353a346daa04578ec067073e7674d447051ac1a87262b4e1",
+              "url": "https://hackage.haskell.org/package/unix-time-0.3.7/unix-time-0.3.7.tar.gz"
             }
           ]
         },
@@ -429,24 +627,6 @@
           ]
         },
         {
-          "name": "bytestring-0.10.8.2",
-          "only-arches": ["x86_64"],
-          "buildsystem": "simple",
-          "build-commands": [
-            "ghc -threaded --make Setup",
-            "./Setup configure --prefix=/app",
-            "./Setup build",
-            "./Setup install"
-          ],
-          "sources": [
-            {
-              "type": "archive",
-              "sha256": "da6f668e47a8c408929a456a6d79b81021a734c1dbd023e004f498de972f4c3a",
-              "url": "https://hackage.haskell.org/package/bytestring-0.10.8.2/bytestring-0.10.8.2.tar.gz"
-            }
-          ]
-        },
-        {
           "name": "c2hs-0.28.3",
           "only-arches": ["x86_64"],
           "buildsystem": "simple",
@@ -533,42 +713,6 @@
               "type": "archive",
               "sha256": "1d5b66284703a4b9fb96a4c6a2213727208639871a675da9755e9a963fa230f6",
               "url": "https://hackage.haskell.org/package/conduit-extra-1.2.3.2/conduit-extra-1.2.3.2.tar.gz"
-            }
-          ]
-        },
-        {
-          "name": "containers-0.5.10.2",
-          "only-arches": ["x86_64"],
-          "buildsystem": "simple",
-          "build-commands": [
-            "ghc -threaded --make Setup",
-            "./Setup configure --prefix=/app",
-            "./Setup build",
-            "./Setup install"
-          ],
-          "sources": [
-            {
-              "type": "archive",
-              "sha256": "a04efef290be272cdeca1c36f9cff17271ccd8d2b484ebf152bb496fb5328c23",
-              "url": "https://hackage.haskell.org/package/containers-0.5.10.2/containers-0.5.10.2.tar.gz"
-            }
-          ]
-        },
-        {
-          "name": "deepseq-1.4.3.0",
-          "only-arches": ["x86_64"],
-          "buildsystem": "simple",
-          "build-commands": [
-            "ghc -threaded --make Setup",
-            "./Setup configure --prefix=/app",
-            "./Setup build",
-            "./Setup install"
-          ],
-          "sources": [
-            {
-              "type": "archive",
-              "sha256": "6d8135992ccb8829b676a17f016ced966bd72e083584702a3a1b63879aae4d3a",
-              "url": "https://hackage.haskell.org/package/deepseq-1.4.3.0/deepseq-1.4.3.0.tar.gz"
             }
           ]
         },
@@ -1366,42 +1510,6 @@
           ]
         },
         {
-          "name": "stm-2.4.4.1",
-          "only-arches": ["x86_64"],
-          "buildsystem": "simple",
-          "build-commands": [
-            "ghc -threaded --make Setup",
-            "./Setup configure --prefix=/app",
-            "./Setup build",
-            "./Setup install"
-          ],
-          "sources": [
-            {
-              "type": "archive",
-              "sha256": "8f999095ed8d50d2056fc6e185035ee8166c50751e1af8de02ac38d382bf3384",
-              "url": "https://hackage.haskell.org/package/stm-2.4.4.1/stm-2.4.4.1.tar.gz"
-            }
-          ]
-        },
-        {
-          "name": "stm-chans-3.0.0.4",
-          "only-arches": ["x86_64"],
-          "buildsystem": "simple",
-          "build-commands": [
-            "ghc -threaded --make Setup",
-            "./Setup configure --prefix=/app",
-            "./Setup build",
-            "./Setup install"
-          ],
-          "sources": [
-            {
-              "type": "archive",
-              "sha256": "2344fc5bfa33d565bad7b009fc0e2c5a7a595060ba149c661f44419fc0d54738",
-              "url": "https://hackage.haskell.org/package/stm-chans-3.0.0.4/stm-chans-3.0.0.4.tar.gz"
-            }
-          ]
-        },
-        {
           "name": "streaming-commons-0.1.18",
           "only-arches": ["x86_64"],
           "buildsystem": "simple",
@@ -1434,24 +1542,6 @@
               "type": "archive",
               "sha256": "b8757dce5ab4045c49a0ae90407d575b87ee5523a7dd5dfa5c9d54fcceff42b5",
               "url": "https://hackage.haskell.org/package/syb-0.7/syb-0.7.tar.gz"
-            }
-          ]
-        },
-        {
-          "name": "template-haskell-2.12.0.0",
-          "only-arches": ["x86_64"],
-          "buildsystem": "simple",
-          "build-commands": [
-            "ghc -threaded --make Setup",
-            "./Setup configure --prefix=/app",
-            "./Setup build",
-            "./Setup install"
-          ],
-          "sources": [
-            {
-              "type": "archive",
-              "sha256": "5935130da92bcb41842ae725501e981c1daf44b8a535cc6b92b94d3b9fc27551",
-              "url": "https://hackage.haskell.org/package/template-haskell-2.12.0.0/template-haskell-2.12.0.0.tar.gz"
             }
           ]
         },
@@ -1546,60 +1636,6 @@
           ]
         },
         {
-          "name": "transformers-0.5.2.0",
-          "only-arches": ["x86_64"],
-          "buildsystem": "simple",
-          "build-commands": [
-            "ghc -threaded --make Setup",
-            "./Setup configure --prefix=/app",
-            "./Setup build",
-            "./Setup install"
-          ],
-          "sources": [
-            {
-              "type": "archive",
-              "sha256": "6c408713a8ba7dd7a6573a4644e0c17fe11747f5bf259eab958421a7358a70e2",
-              "url": "https://hackage.haskell.org/package/transformers-0.5.2.0/transformers-0.5.2.0.tar.gz"
-            }
-          ]
-        },
-        {
-          "name": "transformers-base-0.4.4",
-          "only-arches": ["x86_64"],
-          "buildsystem": "simple",
-          "build-commands": [
-            "ghc -threaded --make Setup",
-            "./Setup configure --prefix=/app",
-            "./Setup build",
-            "./Setup install"
-          ],
-          "sources": [
-            {
-              "type": "archive",
-              "sha256": "6aa3494fc70659342fbbb163035d5827ecfd8079e3c929e2372adf771fd52387",
-              "url": "https://hackage.haskell.org/package/transformers-base-0.4.4/transformers-base-0.4.4.tar.gz"
-            }
-          ]
-        },
-        {
-          "name": "transformers-compat-0.5.1.4",
-          "only-arches": ["x86_64"],
-          "buildsystem": "simple",
-          "build-commands": [
-            "ghc -threaded --make Setup",
-            "./Setup configure --prefix=/app",
-            "./Setup build",
-            "./Setup install"
-          ],
-          "sources": [
-            {
-              "type": "archive",
-              "sha256": "d881ef4ec164b631591b222efe7ff555af6d5397c9d86475b309ba9402a8ca9f",
-              "url": "https://hackage.haskell.org/package/transformers-compat-0.5.1.4/transformers-compat-0.5.1.4.tar.gz"
-            }
-          ]
-        },
-        {
           "name": "typed-process-0.2.1.0",
           "only-arches": ["x86_64"],
           "buildsystem": "simple",
@@ -1636,42 +1672,6 @@
           ]
         },
         {
-          "name": "unix-2.7.2.2",
-          "only-arches": ["x86_64"],
-          "buildsystem": "simple",
-          "build-commands": [
-            "ghc -threaded --make Setup",
-            "./Setup configure --prefix=/app",
-            "./Setup build",
-            "./Setup install"
-          ],
-          "sources": [
-            {
-              "type": "archive",
-              "sha256": "98dd4eb1b28d65bb57f42acbe22076930c0ad5947f3c1459ab7b15abd57cdeac",
-              "url": "https://hackage.haskell.org/package/unix-2.7.2.2/unix-2.7.2.2.tar.gz"
-            }
-          ]
-        },
-        {
-          "name": "unix-time-0.3.7",
-          "only-arches": ["x86_64"],
-          "buildsystem": "simple",
-          "build-commands": [
-            "ghc -threaded --make Setup",
-            "./Setup configure --prefix=/app",
-            "./Setup build",
-            "./Setup install"
-          ],
-          "sources": [
-            {
-              "type": "archive",
-              "sha256": "1131301131dd3e73353a346daa04578ec067073e7674d447051ac1a87262b4e1",
-              "url": "https://hackage.haskell.org/package/unix-time-0.3.7/unix-time-0.3.7.tar.gz"
-            }
-          ]
-        },
-        {
           "name": "unliftio-core-0.1.1.0",
           "only-arches": ["x86_64"],
           "buildsystem": "simple",
@@ -1686,6 +1686,24 @@
               "type": "archive",
               "sha256": "7550b017d87af53ae3e0d3b8524e24a77faf739073f35e40663454a9e9752385",
               "url": "https://hackage.haskell.org/package/unliftio-core-0.1.1.0/unliftio-core-0.1.1.0.tar.gz"
+            }
+          ]
+        },
+        {
+          "name": "alex-3.2.3",
+          "only-arches": ["x86_64"],
+          "buildsystem": "simple",
+          "build-commands": [
+            "ghc -threaded --make Setup",
+            "./Setup configure --prefix=/app",
+            "./Setup build",
+            "./Setup install"
+          ],
+          "sources": [
+            {
+              "type": "archive",
+              "sha256": "1a63791417b3e6e36e8b79849317beeaf9ea09efa21bea021c2347b49266212e",
+              "url": "https://hackage.haskell.org/package/alex-3.2.3/alex-3.2.3.tar.gz"
             }
           ]
         },
