@@ -39,7 +39,7 @@
           ]
         },
         {
-          "name": "Cabal-2.0.1.1",
+          "name": "random-1.1",
           "only-arches": ["x86_64"],
           "buildsystem": "simple",
           "build-commands": [
@@ -51,16 +51,17 @@
           "sources": [
             {
               "type": "archive",
-              "sha256": "802bc6d0113fdb734ea938ad2aadc14f590e372b55d56be6712de319bb343d1b",
-              "url": "https://hackage.haskell.org/package/Cabal-2.0.1.1/Cabal-2.0.1.1.tar.gz"
+              "sha256": "b718a41057e25a3a71df693ab0fe2263d492e759679b3c2fea6ea33b171d3a5a",
+              "url": "https://hackage.haskell.org/package/random-1.1/random-1.1.tar.gz"
             }
           ]
         },
         {
-          "name": "base-4.10.1.0",
+          "name": "primitive-0.6.2.0",
           "only-arches": ["x86_64"],
           "buildsystem": "simple",
           "build-commands": [
+            "mv 1.cabal primitive.cabal",
             "ghc -threaded --make Setup",
             "./Setup configure --prefix=/app",
             "./Setup build",
@@ -69,8 +70,13 @@
           "sources": [
             {
               "type": "archive",
-              "sha256": "9d27fa65d290c1172763d3a482e0d72542a04df5fa1815a94ebf2fe11a86df42",
-              "url": "https://hackage.haskell.org/package/base-4.10.1.0/base-4.10.1.0.tar.gz"
+              "sha256": "b8e8d70213e22b3fab0e0d11525c02627489618988fdc636052ca0adce282ae1",
+              "url": "https://hackage.haskell.org/package/primitive-0.6.2.0/primitive-0.6.2.0.tar.gz"
+            },
+            {
+              "type": "file",
+              "sha256": "a67c9da25c0d15971f8dc06c119cae4a0180a7216c0a3a3d6e52357d2f7ac134",
+              "url": "https://hackage.haskell.org/package/primitive-0.6.2.0/revision/1.cabal"
             }
           ]
         },
@@ -89,42 +95,6 @@
               "type": "archive",
               "sha256": "7d602b0f0543fadbd598a090c738e9ce9b07a1896673dc27f1503ae3bea1a210",
               "url": "https://hackage.haskell.org/package/base-compat-0.9.3/base-compat-0.9.3.tar.gz"
-            }
-          ]
-        },
-        {
-          "name": "primitive-0.6.2.0",
-          "only-arches": ["x86_64"],
-          "buildsystem": "simple",
-          "build-commands": [
-            "ghc -threaded --make Setup",
-            "./Setup configure --prefix=/app",
-            "./Setup build",
-            "./Setup install"
-          ],
-          "sources": [
-            {
-              "type": "archive",
-              "sha256": "b8e8d70213e22b3fab0e0d11525c02627489618988fdc636052ca0adce282ae1",
-              "url": "https://hackage.haskell.org/package/primitive-0.6.2.0/primitive-0.6.2.0.tar.gz"
-            }
-          ]
-        },
-        {
-          "name": "random-1.1",
-          "only-arches": ["x86_64"],
-          "buildsystem": "simple",
-          "build-commands": [
-            "ghc -threaded --make Setup",
-            "./Setup configure --prefix=/app",
-            "./Setup build",
-            "./Setup install"
-          ],
-          "sources": [
-            {
-              "type": "archive",
-              "sha256": "b718a41057e25a3a71df693ab0fe2263d492e759679b3c2fea6ea33b171d3a5a",
-              "url": "https://hackage.haskell.org/package/random-1.1/random-1.1.tar.gz"
             }
           ]
         },
@@ -165,10 +135,11 @@
           ]
         },
         {
-          "name": "aeson-1.2.3.0",
+          "name": "vector-0.12.0.1",
           "only-arches": ["x86_64"],
           "buildsystem": "simple",
           "build-commands": [
+            "mv 3.cabal vector.cabal",
             "ghc -threaded --make Setup",
             "./Setup configure --prefix=/app",
             "./Setup build",
@@ -177,13 +148,18 @@
           "sources": [
             {
               "type": "archive",
-              "sha256": "aacdc69295dc2a781b3fdc5fce4eb019610df4ae0dee6c2ab5234923d7c59cbf",
-              "url": "https://hackage.haskell.org/package/aeson-1.2.3.0/aeson-1.2.3.0.tar.gz"
+              "sha256": "b100ee79b9da2651276278cd3e0f08a3c152505cc52982beda507515af173d7b",
+              "url": "https://hackage.haskell.org/package/vector-0.12.0.1/vector-0.12.0.1.tar.gz"
+            },
+            {
+              "type": "file",
+              "sha256": "3d644fff350ee3eee2896e4d00cb45e73956f2862f0b18ee502282702682b978",
+              "url": "https://hackage.haskell.org/package/vector-0.12.0.1/revision/3.cabal"
             }
           ]
         },
         {
-          "name": "aeson-compat-0.3.7.1",
+          "name": "tagged-0.8.5",
           "only-arches": ["x86_64"],
           "buildsystem": "simple",
           "build-commands": [
@@ -195,8 +171,62 @@
           "sources": [
             {
               "type": "archive",
-              "sha256": "59740dc1e37b08e60abb47f38b87de5b9805611a1b468cd18294d5982a1dcacb",
-              "url": "https://hackage.haskell.org/package/aeson-compat-0.3.7.1/aeson-compat-0.3.7.1.tar.gz"
+              "sha256": "e47c51c955ed77b0fa36897f652df990aa0a8c4eb278efaddcd604be00fc8d99",
+              "url": "https://hackage.haskell.org/package/tagged-0.8.5/tagged-0.8.5.tar.gz"
+            }
+          ]
+        },
+        {
+          "name": "dlist-0.8.0.3",
+          "only-arches": ["x86_64"],
+          "buildsystem": "simple",
+          "build-commands": [
+            "ghc -threaded --make Setup",
+            "./Setup configure --prefix=/app",
+            "./Setup build",
+            "./Setup install"
+          ],
+          "sources": [
+            {
+              "type": "archive",
+              "sha256": "876782c96957ff480863effb33878f48dd55de7fa64d036e12bf1fbd49542f2f",
+              "url": "https://hackage.haskell.org/package/dlist-0.8.0.3/dlist-0.8.0.3.tar.gz"
+            }
+          ]
+        },
+        {
+          "name": "text-1.2.2.2",
+          "only-arches": ["x86_64"],
+          "buildsystem": "simple",
+          "build-commands": [
+            "ghc -threaded --make Setup",
+            "./Setup configure --prefix=/app",
+            "./Setup build",
+            "./Setup install"
+          ],
+          "sources": [
+            {
+              "type": "archive",
+              "sha256": "31465106360a7d7e214d96f1d1b4303a113ffce1bde44a4e614053a1e5072df9",
+              "url": "https://hackage.haskell.org/package/text-1.2.2.2/text-1.2.2.2.tar.gz"
+            }
+          ]
+        },
+        {
+          "name": "th-abstraction-0.2.6.0",
+          "only-arches": ["x86_64"],
+          "buildsystem": "simple",
+          "build-commands": [
+            "ghc -threaded --make Setup",
+            "./Setup configure --prefix=/app",
+            "./Setup build",
+            "./Setup install"
+          ],
+          "sources": [
+            {
+              "type": "archive",
+              "sha256": "e52e289a547d68f203d65f2e63ec2d87a3c613007d2fe873615c0969b981823c",
+              "url": "https://hackage.haskell.org/package/th-abstraction-0.2.6.0/th-abstraction-0.2.6.0.tar.gz"
             }
           ]
         },
@@ -561,24 +591,6 @@
           ]
         },
         {
-          "name": "dlist-0.8.0.3",
-          "only-arches": ["x86_64"],
-          "buildsystem": "simple",
-          "build-commands": [
-            "ghc -threaded --make Setup",
-            "./Setup configure --prefix=/app",
-            "./Setup build",
-            "./Setup install"
-          ],
-          "sources": [
-            {
-              "type": "archive",
-              "sha256": "876782c96957ff480863effb33878f48dd55de7fa64d036e12bf1fbd49542f2f",
-              "url": "https://hackage.haskell.org/package/dlist-0.8.0.3/dlist-0.8.0.3.tar.gz"
-            }
-          ]
-        },
-        {
           "name": "easy-file-0.2.1",
           "only-arches": ["x86_64"],
           "buildsystem": "simple",
@@ -593,6 +605,42 @@
               "type": "archive",
               "sha256": "ff86e1b29284499bea5f1d0ff539b3ed64fa6d1a06c2243ca61f93be0202e56c",
               "url": "https://hackage.haskell.org/package/easy-file-0.2.1/easy-file-0.2.1.tar.gz"
+            }
+          ]
+        },
+        {
+          "name": "aeson-1.2.3.0",
+          "only-arches": ["x86_64"],
+          "buildsystem": "simple",
+          "build-commands": [
+            "ghc -threaded --make Setup",
+            "./Setup configure --prefix=/app",
+            "./Setup build",
+            "./Setup install"
+          ],
+          "sources": [
+            {
+              "type": "archive",
+              "sha256": "aacdc69295dc2a781b3fdc5fce4eb019610df4ae0dee6c2ab5234923d7c59cbf",
+              "url": "https://hackage.haskell.org/package/aeson-1.2.3.0/aeson-1.2.3.0.tar.gz"
+            }
+          ]
+        },
+        {
+          "name": "aeson-compat-0.3.7.1",
+          "only-arches": ["x86_64"],
+          "buildsystem": "simple",
+          "build-commands": [
+            "ghc -threaded --make Setup",
+            "./Setup configure --prefix=/app",
+            "./Setup build",
+            "./Setup install"
+          ],
+          "sources": [
+            {
+              "type": "archive",
+              "sha256": "59740dc1e37b08e60abb47f38b87de5b9805611a1b468cd18294d5982a1dcacb",
+              "url": "https://hackage.haskell.org/package/aeson-compat-0.3.7.1/aeson-compat-0.3.7.1.tar.gz"
             }
           ]
         },
@@ -1390,24 +1438,6 @@
           ]
         },
         {
-          "name": "tagged-0.8.5",
-          "only-arches": ["x86_64"],
-          "buildsystem": "simple",
-          "build-commands": [
-            "ghc -threaded --make Setup",
-            "./Setup configure --prefix=/app",
-            "./Setup build",
-            "./Setup install"
-          ],
-          "sources": [
-            {
-              "type": "archive",
-              "sha256": "e47c51c955ed77b0fa36897f652df990aa0a8c4eb278efaddcd604be00fc8d99",
-              "url": "https://hackage.haskell.org/package/tagged-0.8.5/tagged-0.8.5.tar.gz"
-            }
-          ]
-        },
-        {
           "name": "template-haskell-2.12.0.0",
           "only-arches": ["x86_64"],
           "buildsystem": "simple",
@@ -1422,42 +1452,6 @@
               "type": "archive",
               "sha256": "5935130da92bcb41842ae725501e981c1daf44b8a535cc6b92b94d3b9fc27551",
               "url": "https://hackage.haskell.org/package/template-haskell-2.12.0.0/template-haskell-2.12.0.0.tar.gz"
-            }
-          ]
-        },
-        {
-          "name": "text-1.2.2.2",
-          "only-arches": ["x86_64"],
-          "buildsystem": "simple",
-          "build-commands": [
-            "ghc -threaded --make Setup",
-            "./Setup configure --prefix=/app",
-            "./Setup build",
-            "./Setup install"
-          ],
-          "sources": [
-            {
-              "type": "archive",
-              "sha256": "31465106360a7d7e214d96f1d1b4303a113ffce1bde44a4e614053a1e5072df9",
-              "url": "https://hackage.haskell.org/package/text-1.2.2.2/text-1.2.2.2.tar.gz"
-            }
-          ]
-        },
-        {
-          "name": "th-abstraction-0.2.6.0",
-          "only-arches": ["x86_64"],
-          "buildsystem": "simple",
-          "build-commands": [
-            "ghc -threaded --make Setup",
-            "./Setup configure --prefix=/app",
-            "./Setup build",
-            "./Setup install"
-          ],
-          "sources": [
-            {
-              "type": "archive",
-              "sha256": "e52e289a547d68f203d65f2e63ec2d87a3c613007d2fe873615c0969b981823c",
-              "url": "https://hackage.haskell.org/package/th-abstraction-0.2.6.0/th-abstraction-0.2.6.0.tar.gz"
             }
           ]
         },
@@ -1746,24 +1740,6 @@
               "type": "archive",
               "sha256": "9276517ab24a9b06f39d6e3c33c6c2b4ace1fc2126dbc1cd9806866a6551b3fd",
               "url": "https://hackage.haskell.org/package/uuid-types-1.0.3/uuid-types-1.0.3.tar.gz"
-            }
-          ]
-        },
-        {
-          "name": "vector-0.12.0.1",
-          "only-arches": ["x86_64"],
-          "buildsystem": "simple",
-          "build-commands": [
-            "ghc -threaded --make Setup",
-            "./Setup configure --prefix=/app",
-            "./Setup build",
-            "./Setup install"
-          ],
-          "sources": [
-            {
-              "type": "archive",
-              "sha256": "b100ee79b9da2651276278cd3e0f08a3c152505cc52982beda507515af173d7b",
-              "url": "https://hackage.haskell.org/package/vector-0.12.0.1/vector-0.12.0.1.tar.gz"
             }
           ]
         },
