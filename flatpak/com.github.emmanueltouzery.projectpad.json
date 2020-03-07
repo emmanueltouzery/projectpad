@@ -357,10 +357,11 @@
           ]
         },
         {
-          "name": "bytestring-0.10.8.2",
+          "name": "old-locale-1.0.0.7",
           "only-arches": ["x86_64"],
           "buildsystem": "simple",
           "build-commands": [
+            "mv 2.cabal old-locale.cabal",
             "ghc -threaded --make Setup",
             "./Setup configure --prefix=/app",
             "./Setup build",
@@ -369,16 +370,22 @@
           "sources": [
             {
               "type": "archive",
-              "sha256": "da6f668e47a8c408929a456a6d79b81021a734c1dbd023e004f498de972f4c3a",
-              "url": "https://hackage.haskell.org/package/bytestring-0.10.8.2/bytestring-0.10.8.2.tar.gz"
+              "sha256": "dbaf8bf6b888fb98845705079296a23c3f40ee2f449df7312f7f7f1de18d7b50",
+              "url": "https://hackage.haskell.org/package/old-locale-1.0.0.7/old-locale-1.0.0.7.tar.gz"
+            },
+            {
+              "type": "file",
+              "sha256": "fa998be2c7e00cd26a6e9075bea790caaf3932caa3e9497ad69bc20380dd6911",
+              "url": "https://hackage.haskell.org/package/old-locale-1.0.0.7/revision/2.cabal"
             }
           ]
         },
         {
-          "name": "async-2.1.1.1",
+          "name": "old-time-1.1.0.3",
           "only-arches": ["x86_64"],
           "buildsystem": "simple",
           "build-commands": [
+            "mv 2.cabal old-time.cabal",
             "ghc -threaded --make Setup",
             "./Setup configure --prefix=/app",
             "./Setup build",
@@ -387,80 +394,13 @@
           "sources": [
             {
               "type": "archive",
-              "sha256": "cd83e471466ea6885b2e8fb60f452db3ac3fdf3ea2d6370aa1e071ebc37544e2",
-              "url": "https://hackage.haskell.org/package/async-2.1.1.1/async-2.1.1.1.tar.gz"
-            }
-          ]
-        },
-        {
-          "name": "array-0.5.2.0",
-          "only-arches": ["x86_64"],
-          "buildsystem": "simple",
-          "build-commands": [
-            "ghc -threaded --make Setup",
-            "./Setup configure --prefix=/app",
-            "./Setup build",
-            "./Setup install"
-          ],
-          "sources": [
+              "sha256": "1ccb158b0f7851715d36b757c523b026ca1541e2030d02239802ba39b4112bc1",
+              "url": "https://hackage.haskell.org/package/old-time-1.1.0.3/old-time-1.1.0.3.tar.gz"
+            },
             {
-              "type": "archive",
-              "sha256": "52c9a2343bc3190d954fb3adc4b5bfd44c0ba0bcf9539b99b863f51a851e688b",
-              "url": "https://hackage.haskell.org/package/array-0.5.2.0/array-0.5.2.0.tar.gz"
-            }
-          ]
-        },
-        {
-          "name": "containers-0.5.10.2",
-          "only-arches": ["x86_64"],
-          "buildsystem": "simple",
-          "build-commands": [
-            "ghc -threaded --make Setup",
-            "./Setup configure --prefix=/app",
-            "./Setup build",
-            "./Setup install"
-          ],
-          "sources": [
-            {
-              "type": "archive",
-              "sha256": "a04efef290be272cdeca1c36f9cff17271ccd8d2b484ebf152bb496fb5328c23",
-              "url": "https://hackage.haskell.org/package/containers-0.5.10.2/containers-0.5.10.2.tar.gz"
-            }
-          ]
-        },
-        {
-          "name": "deepseq-1.4.3.0",
-          "only-arches": ["x86_64"],
-          "buildsystem": "simple",
-          "build-commands": [
-            "ghc -threaded --make Setup",
-            "./Setup configure --prefix=/app",
-            "./Setup build",
-            "./Setup install"
-          ],
-          "sources": [
-            {
-              "type": "archive",
-              "sha256": "6d8135992ccb8829b676a17f016ced966bd72e083584702a3a1b63879aae4d3a",
-              "url": "https://hackage.haskell.org/package/deepseq-1.4.3.0/deepseq-1.4.3.0.tar.gz"
-            }
-          ]
-        },
-        {
-          "name": "unix-2.7.2.2",
-          "only-arches": ["x86_64"],
-          "buildsystem": "simple",
-          "build-commands": [
-            "ghc -threaded --make Setup",
-            "./Setup configure --prefix=/app",
-            "./Setup build",
-            "./Setup install"
-          ],
-          "sources": [
-            {
-              "type": "archive",
-              "sha256": "98dd4eb1b28d65bb57f42acbe22076930c0ad5947f3c1459ab7b15abd57cdeac",
-              "url": "https://hackage.haskell.org/package/unix-2.7.2.2/unix-2.7.2.2.tar.gz"
+              "type": "file",
+              "sha256": "c91fbb3ee73d20ccd015842b30f1f29a304893ebe0ae3128b7bbc13d5bb0d4c8",
+              "url": "https://hackage.haskell.org/package/old-time-1.1.0.3/revision/2.cabal"
             }
           ]
         },
@@ -479,6 +419,60 @@
               "type": "archive",
               "sha256": "1131301131dd3e73353a346daa04578ec067073e7674d447051ac1a87262b4e1",
               "url": "https://hackage.haskell.org/package/unix-time-0.3.7/unix-time-0.3.7.tar.gz"
+            }
+          ]
+        },
+        {
+          "name": "integer-logarithms-1.0.2",
+          "only-arches": ["x86_64"],
+          "buildsystem": "simple",
+          "build-commands": [
+            "ghc -threaded --make Setup",
+            "./Setup configure --prefix=/app",
+            "./Setup build",
+            "./Setup install"
+          ],
+          "sources": [
+            {
+              "type": "archive",
+              "sha256": "31069ccbff489baf6c4a93cb7475640aabea9366eb0b583236f10714a682b570",
+              "url": "https://hackage.haskell.org/package/integer-logarithms-1.0.2/integer-logarithms-1.0.2.tar.gz"
+            }
+          ]
+        },
+        {
+          "name": "hashable-1.2.6.1",
+          "only-arches": ["x86_64"],
+          "buildsystem": "simple",
+          "build-commands": [
+            "ghc -threaded --make Setup",
+            "./Setup configure --prefix=/app",
+            "./Setup build",
+            "./Setup install"
+          ],
+          "sources": [
+            {
+              "type": "archive",
+              "sha256": "94ca8789e13bc05c1582c46b709f3b0f5aeec2092be634b8606dbd9c5915bb7a",
+              "url": "https://hackage.haskell.org/package/hashable-1.2.6.1/hashable-1.2.6.1.tar.gz"
+            }
+          ]
+        },
+        {
+          "name": "scientific-0.3.5.2",
+          "only-arches": ["x86_64"],
+          "buildsystem": "simple",
+          "build-commands": [
+            "ghc -threaded --make Setup",
+            "./Setup configure --prefix=/app",
+            "./Setup build",
+            "./Setup install"
+          ],
+          "sources": [
+            {
+              "type": "archive",
+              "sha256": "5ce479ff95482fb907267516bd0f8fff450bdeea546bbd1267fe035acf975657",
+              "url": "https://hackage.haskell.org/package/scientific-0.3.5.2/scientific-0.3.5.2.tar.gz"
             }
           ]
         },
@@ -551,24 +545,6 @@
               "type": "archive",
               "sha256": "ab25abf4b00a2f52b270bc3ed43f1d59f16c8eec9d7dffb14df1e9265b233b50",
               "url": "https://hackage.haskell.org/package/base64-bytestring-1.0.0.1/base64-bytestring-1.0.0.1.tar.gz"
-            }
-          ]
-        },
-        {
-          "name": "binary-0.8.5.1",
-          "only-arches": ["x86_64"],
-          "buildsystem": "simple",
-          "build-commands": [
-            "ghc -threaded --make Setup",
-            "./Setup configure --prefix=/app",
-            "./Setup build",
-            "./Setup install"
-          ],
-          "sources": [
-            {
-              "type": "archive",
-              "sha256": "deb91a69662288f38bb62e04f2cedf8ef60d84437a194c778dacf6c31dfe0596",
-              "url": "https://hackage.haskell.org/package/binary-0.8.5.1/binary-0.8.5.1.tar.gz"
             }
           ]
         },
@@ -713,24 +689,6 @@
               "type": "archive",
               "sha256": "1d5b66284703a4b9fb96a4c6a2213727208639871a675da9755e9a963fa230f6",
               "url": "https://hackage.haskell.org/package/conduit-extra-1.2.3.2/conduit-extra-1.2.3.2.tar.gz"
-            }
-          ]
-        },
-        {
-          "name": "directory-1.3.0.2",
-          "only-arches": ["x86_64"],
-          "buildsystem": "simple",
-          "build-commands": [
-            "ghc -threaded --make Setup",
-            "./Setup configure --prefix=/app",
-            "./Setup build",
-            "./Setup install"
-          ],
-          "sources": [
-            {
-              "type": "archive",
-              "sha256": "f9ee11de8bbaf7b8e2710d40ca0f1081fd1aaa609faede14a3706d60345c7aa3",
-              "url": "https://hackage.haskell.org/package/directory-1.3.0.2/directory-1.3.0.2.tar.gz"
             }
           ]
         },
@@ -897,24 +855,6 @@
           ]
         },
         {
-          "name": "filepath-1.4.1.2",
-          "only-arches": ["x86_64"],
-          "buildsystem": "simple",
-          "build-commands": [
-            "ghc -threaded --make Setup",
-            "./Setup configure --prefix=/app",
-            "./Setup build",
-            "./Setup install"
-          ],
-          "sources": [
-            {
-              "type": "archive",
-              "sha256": "7bfb0c8776dc161cf10e324b306f3a0c89db01803ee2f8c7e11fcf3cd9892bc3",
-              "url": "https://hackage.haskell.org/package/filepath-1.4.1.2/filepath-1.4.1.2.tar.gz"
-            }
-          ]
-        },
-        {
           "name": "ghc-boot-th-8.2.2",
           "only-arches": ["x86_64"],
           "buildsystem": "simple",
@@ -933,24 +873,6 @@
           ]
         },
         {
-          "name": "ghc-prim-0.5.1.1",
-          "only-arches": ["x86_64"],
-          "buildsystem": "simple",
-          "build-commands": [
-            "ghc -threaded --make Setup",
-            "./Setup configure --prefix=/app",
-            "./Setup build",
-            "./Setup install"
-          ],
-          "sources": [
-            {
-              "type": "archive",
-              "sha256": "62415c570a065d7a3b7cc2792395d57ac4d31b828a357ba54136d690100574b6",
-              "url": "https://hackage.haskell.org/package/ghc-prim-0.5.1.1/ghc-prim-0.5.1.1.tar.gz"
-            }
-          ]
-        },
-        {
           "name": "happy-1.19.8",
           "only-arches": ["x86_64"],
           "buildsystem": "simple",
@@ -965,24 +887,6 @@
               "type": "archive",
               "sha256": "4df739965d559e48a9b0044fa6140241c07e8f3c794c6c0a6323024fd7f0d3a0",
               "url": "https://hackage.haskell.org/package/happy-1.19.8/happy-1.19.8.tar.gz"
-            }
-          ]
-        },
-        {
-          "name": "hashable-1.2.6.1",
-          "only-arches": ["x86_64"],
-          "buildsystem": "simple",
-          "build-commands": [
-            "ghc -threaded --make Setup",
-            "./Setup configure --prefix=/app",
-            "./Setup build",
-            "./Setup install"
-          ],
-          "sources": [
-            {
-              "type": "archive",
-              "sha256": "94ca8789e13bc05c1582c46b709f3b0f5aeec2092be634b8606dbd9c5915bb7a",
-              "url": "https://hackage.haskell.org/package/hashable-1.2.6.1/hashable-1.2.6.1.tar.gz"
             }
           ]
         },
@@ -1037,42 +941,6 @@
               "type": "archive",
               "sha256": "7bed648cdc1c69e76bf039763dbe1074b55fd2704911dd0cb6b7dfebf1b6f550",
               "url": "https://hackage.haskell.org/package/http-types-0.9.1/http-types-0.9.1.tar.gz"
-            }
-          ]
-        },
-        {
-          "name": "integer-gmp-1.0.1.0",
-          "only-arches": ["x86_64"],
-          "buildsystem": "simple",
-          "build-commands": [
-            "ghc -threaded --make Setup",
-            "./Setup configure --prefix=/app",
-            "./Setup build",
-            "./Setup install"
-          ],
-          "sources": [
-            {
-              "type": "archive",
-              "sha256": "9cda6049a81fd4f301ffb38829f85203eb052daaffb450d193c06605f5c42df7",
-              "url": "https://hackage.haskell.org/package/integer-gmp-1.0.1.0/integer-gmp-1.0.1.0.tar.gz"
-            }
-          ]
-        },
-        {
-          "name": "integer-logarithms-1.0.2",
-          "only-arches": ["x86_64"],
-          "buildsystem": "simple",
-          "build-commands": [
-            "ghc -threaded --make Setup",
-            "./Setup configure --prefix=/app",
-            "./Setup build",
-            "./Setup install"
-          ],
-          "sources": [
-            {
-              "type": "archive",
-              "sha256": "31069ccbff489baf6c4a93cb7475640aabea9366eb0b583236f10714a682b570",
-              "url": "https://hackage.haskell.org/package/integer-logarithms-1.0.2/integer-logarithms-1.0.2.tar.gz"
             }
           ]
         },
@@ -1275,42 +1143,6 @@
           ]
         },
         {
-          "name": "old-locale-1.0.0.7",
-          "only-arches": ["x86_64"],
-          "buildsystem": "simple",
-          "build-commands": [
-            "ghc -threaded --make Setup",
-            "./Setup configure --prefix=/app",
-            "./Setup build",
-            "./Setup install"
-          ],
-          "sources": [
-            {
-              "type": "archive",
-              "sha256": "dbaf8bf6b888fb98845705079296a23c3f40ee2f449df7312f7f7f1de18d7b50",
-              "url": "https://hackage.haskell.org/package/old-locale-1.0.0.7/old-locale-1.0.0.7.tar.gz"
-            }
-          ]
-        },
-        {
-          "name": "old-time-1.1.0.3",
-          "only-arches": ["x86_64"],
-          "buildsystem": "simple",
-          "build-commands": [
-            "ghc -threaded --make Setup",
-            "./Setup configure --prefix=/app",
-            "./Setup build",
-            "./Setup install"
-          ],
-          "sources": [
-            {
-              "type": "archive",
-              "sha256": "1ccb158b0f7851715d36b757c523b026ca1541e2030d02239802ba39b4112bc1",
-              "url": "https://hackage.haskell.org/package/old-time-1.1.0.3/old-time-1.1.0.3.tar.gz"
-            }
-          ]
-        },
-        {
           "name": "path-pieces-0.2.1",
           "only-arches": ["x86_64"],
           "buildsystem": "simple",
@@ -1474,24 +1306,6 @@
           ]
         },
         {
-          "name": "scientific-0.3.5.2",
-          "only-arches": ["x86_64"],
-          "buildsystem": "simple",
-          "build-commands": [
-            "ghc -threaded --make Setup",
-            "./Setup configure --prefix=/app",
-            "./Setup build",
-            "./Setup install"
-          ],
-          "sources": [
-            {
-              "type": "archive",
-              "sha256": "5ce479ff95482fb907267516bd0f8fff450bdeea546bbd1267fe035acf975657",
-              "url": "https://hackage.haskell.org/package/scientific-0.3.5.2/scientific-0.3.5.2.tar.gz"
-            }
-          ]
-        },
-        {
           "name": "silently-1.2.5",
           "only-arches": ["x86_64"],
           "buildsystem": "simple",
@@ -1596,24 +1410,6 @@
               "type": "archive",
               "sha256": "ea3cccf9abc8633aa5d347aef20822f0869e1e6f3929951f481befad2ecd2f21",
               "url": "https://hackage.haskell.org/package/th-printf-0.3.1/th-printf-0.3.1.tar.gz"
-            }
-          ]
-        },
-        {
-          "name": "time-1.8.0.2",
-          "only-arches": ["x86_64"],
-          "buildsystem": "simple",
-          "build-commands": [
-            "ghc -threaded --make Setup",
-            "./Setup configure --prefix=/app",
-            "./Setup build",
-            "./Setup install"
-          ],
-          "sources": [
-            {
-              "type": "archive",
-              "sha256": "40642d965caca8c18950f0812e88ae061aa670fc2b3a8bf70e95b74927f11095",
-              "url": "https://hackage.haskell.org/package/time-1.8.0.2/time-1.8.0.2.tar.gz"
             }
           ]
         },
