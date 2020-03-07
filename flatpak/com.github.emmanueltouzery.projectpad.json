@@ -567,6 +567,24 @@
           ]
         },
         {
+          "name": "blaze-markup-0.8.0.0",
+          "only-arches": ["x86_64"],
+          "buildsystem": "simple",
+          "build-commands": [
+            "ghc -threaded --make Setup",
+            "./Setup configure --prefix=/app",
+            "./Setup build",
+            "./Setup install"
+          ],
+          "sources": [
+            {
+              "type": "archive",
+              "sha256": "19e1cbb9303803273ed7f9fcf3b8b6938578afbed2bfafe5ea9fcc6d743f540f",
+              "url": "https://hackage.haskell.org/package/blaze-markup-0.8.0.0/blaze-markup-0.8.0.0.tar.gz"
+            }
+          ]
+        },
+        {
           "name": "blaze-html-0.9.0.1",
           "only-arches": ["x86_64"],
           "buildsystem": "simple",
@@ -585,7 +603,7 @@
           ]
         },
         {
-          "name": "blaze-markup-0.8.0.0",
+          "name": "syb-0.7",
           "only-arches": ["x86_64"],
           "buildsystem": "simple",
           "build-commands": [
@@ -597,8 +615,86 @@
           "sources": [
             {
               "type": "archive",
-              "sha256": "19e1cbb9303803273ed7f9fcf3b8b6938578afbed2bfafe5ea9fcc6d743f540f",
-              "url": "https://hackage.haskell.org/package/blaze-markup-0.8.0.0/blaze-markup-0.8.0.0.tar.gz"
+              "sha256": "b8757dce5ab4045c49a0ae90407d575b87ee5523a7dd5dfa5c9d54fcceff42b5",
+              "url": "https://hackage.haskell.org/package/syb-0.7/syb-0.7.tar.gz"
+            }
+          ]
+        },
+        {
+          "name": "mtl-2.2.1",
+          "only-arches": ["x86_64"],
+          "buildsystem": "simple",
+          "build-commands": [
+            "mv 1.cabal mtl.cabal",
+            "ghc -threaded --make Setup",
+            "./Setup configure --prefix=/app",
+            "./Setup build",
+            "./Setup install"
+          ],
+          "sources": [
+            {
+              "type": "archive",
+              "sha256": "cae59d79f3a16f8e9f3c9adc1010c7c6cdddc73e8a97ff4305f6439d855c8dc5",
+              "url": "https://hackage.haskell.org/package/mtl-2.2.1/mtl-2.2.1.tar.gz"
+            },
+            {
+              "type": "file",
+              "sha256": "4b5a800fe9edf168fc7ae48c7a3fc2aab6b418ac15be2f1dad43c0f48a494a3b",
+              "url": "https://hackage.haskell.org/package/mtl-2.2.1/revision/1.cabal"
+            }
+          ]
+        },
+        {
+          "name": "happy-1.19.8",
+          "only-arches": ["x86_64"],
+          "buildsystem": "simple",
+          "build-commands": [
+            "ghc -threaded --make Setup",
+            "./Setup configure --prefix=/app",
+            "./Setup build",
+            "./Setup install"
+          ],
+          "sources": [
+            {
+              "type": "archive",
+              "sha256": "4df739965d559e48a9b0044fa6140241c07e8f3c794c6c0a6323024fd7f0d3a0",
+              "url": "https://hackage.haskell.org/package/happy-1.19.8/happy-1.19.8.tar.gz"
+            }
+          ]
+        },
+        {
+          "name": "alex-3.2.3",
+          "only-arches": ["x86_64"],
+          "buildsystem": "simple",
+          "build-commands": [
+            "ghc -threaded --make Setup",
+            "./Setup configure --prefix=/app",
+            "./Setup build",
+            "./Setup install"
+          ],
+          "sources": [
+            {
+              "type": "archive",
+              "sha256": "1a63791417b3e6e36e8b79849317beeaf9ea09efa21bea021c2347b49266212e",
+              "url": "https://hackage.haskell.org/package/alex-3.2.3/alex-3.2.3.tar.gz"
+            }
+          ]
+        },
+        {
+          "name": "language-c-0.7.1",
+          "only-arches": ["x86_64"],
+          "buildsystem": "simple",
+          "build-commands": [
+            "ghc -threaded --make Setup",
+            "./Setup configure --prefix=/app",
+            "./Setup build",
+            "./Setup install"
+          ],
+          "sources": [
+            {
+              "type": "archive",
+              "sha256": "a7447123f9b3bec9319ee2a22b22d97f03acd6566b4f6caf5b9a1f71e4f7a9ca",
+              "url": "https://hackage.haskell.org/package/language-c-0.7.1/language-c-0.7.1.tar.gz"
             }
           ]
         },
@@ -657,6 +753,126 @@
           ]
         },
         {
+          "name": "exceptions-0.8.3",
+          "only-arches": ["x86_64"],
+          "buildsystem": "simple",
+          "build-commands": [
+            "mv 5.cabal exceptions.cabal",
+            "ghc -threaded --make Setup",
+            "./Setup configure --prefix=/app",
+            "./Setup build",
+            "./Setup install"
+          ],
+          "sources": [
+            {
+              "type": "archive",
+              "sha256": "4d6ad97e8e3d5dc6ce9ae68a469dc2fd3f66e9d312bc6faa7ab162eddcef87be",
+              "url": "https://hackage.haskell.org/package/exceptions-0.8.3/exceptions-0.8.3.tar.gz"
+            },
+            {
+              "type": "file",
+              "sha256": "31626cabb107a00224da8df21c50b3df42d7f1a66edccfe44bdf551303b9cfcd",
+              "url": "https://hackage.haskell.org/package/exceptions-0.8.3/revision/5.cabal"
+            }
+          ]
+        },
+        {
+          "name": "monad-control-1.0.2.2",
+          "only-arches": ["x86_64"],
+          "buildsystem": "simple",
+          "build-commands": [
+            "ghc -threaded --make Setup",
+            "./Setup configure --prefix=/app",
+            "./Setup build",
+            "./Setup install"
+          ],
+          "sources": [
+            {
+              "type": "archive",
+              "sha256": "1e34a21d123f2ed8bb2708e7f30343fa1d9d7f36881f9871cbcca4bb07e7e433",
+              "url": "https://hackage.haskell.org/package/monad-control-1.0.2.2/monad-control-1.0.2.2.tar.gz"
+            }
+          ]
+        },
+        {
+          "name": "lifted-base-0.2.3.11",
+          "only-arches": ["x86_64"],
+          "buildsystem": "simple",
+          "build-commands": [
+            "mv 1.cabal lifted-base.cabal",
+            "ghc -threaded --make Setup",
+            "./Setup configure --prefix=/app",
+            "./Setup build",
+            "./Setup install"
+          ],
+          "sources": [
+            {
+              "type": "archive",
+              "sha256": "8ec47a9fce7cf5913766a5c53e1b2cf254be733fa9d62e6e2f3f24e538005aab",
+              "url": "https://hackage.haskell.org/package/lifted-base-0.2.3.11/lifted-base-0.2.3.11.tar.gz"
+            },
+            {
+              "type": "file",
+              "sha256": "dd6eb5346fa0d79394ccfa2d4b1f271f0d84cf92473997cab95eec1e2498316f",
+              "url": "https://hackage.haskell.org/package/lifted-base-0.2.3.11/revision/1.cabal"
+            }
+          ]
+        },
+        {
+          "name": "mmorph-1.1.0",
+          "only-arches": ["x86_64"],
+          "buildsystem": "simple",
+          "build-commands": [
+            "ghc -threaded --make Setup",
+            "./Setup configure --prefix=/app",
+            "./Setup build",
+            "./Setup install"
+          ],
+          "sources": [
+            {
+              "type": "archive",
+              "sha256": "c1bcb45560753203f5ce3952f3c8a100b7d5b37c91746372c1da4988c4db74de",
+              "url": "https://hackage.haskell.org/package/mmorph-1.1.0/mmorph-1.1.0.tar.gz"
+            }
+          ]
+        },
+        {
+          "name": "unliftio-core-0.1.1.0",
+          "only-arches": ["x86_64"],
+          "buildsystem": "simple",
+          "build-commands": [
+            "ghc -threaded --make Setup",
+            "./Setup configure --prefix=/app",
+            "./Setup build",
+            "./Setup install"
+          ],
+          "sources": [
+            {
+              "type": "archive",
+              "sha256": "7550b017d87af53ae3e0d3b8524e24a77faf739073f35e40663454a9e9752385",
+              "url": "https://hackage.haskell.org/package/unliftio-core-0.1.1.0/unliftio-core-0.1.1.0.tar.gz"
+            }
+          ]
+        },
+        {
+          "name": "resourcet-1.1.10",
+          "only-arches": ["x86_64"],
+          "buildsystem": "simple",
+          "build-commands": [
+            "ghc -threaded --make Setup",
+            "./Setup configure --prefix=/app",
+            "./Setup build",
+            "./Setup install"
+          ],
+          "sources": [
+            {
+              "type": "archive",
+              "sha256": "d43363645c680022fe07144ab04cc291ede65c8f5d17f9bf1211495b104f1cc2",
+              "url": "https://hackage.haskell.org/package/resourcet-1.1.10/resourcet-1.1.10.tar.gz"
+            }
+          ]
+        },
+        {
           "name": "conduit-1.2.12.1",
           "only-arches": ["x86_64"],
           "buildsystem": "simple",
@@ -671,6 +887,78 @@
               "type": "archive",
               "sha256": "0072bb2daf993227e7913f3011e0f0654e6847e818caebb7f066f803a97b867e",
               "url": "https://hackage.haskell.org/package/conduit-1.2.12.1/conduit-1.2.12.1.tar.gz"
+            }
+          ]
+        },
+        {
+          "name": "network-2.6.3.2",
+          "only-arches": ["x86_64"],
+          "buildsystem": "simple",
+          "build-commands": [
+            "ghc -threaded --make Setup",
+            "./Setup configure --prefix=/app",
+            "./Setup build",
+            "./Setup install"
+          ],
+          "sources": [
+            {
+              "type": "archive",
+              "sha256": "354477074eaf2c0e134f4a7ae17694ffc747d484133463e95fae57ecbe48c0b6",
+              "url": "https://hackage.haskell.org/package/network-2.6.3.2/network-2.6.3.2.tar.gz"
+            }
+          ]
+        },
+        {
+          "name": "zlib-0.6.1.2",
+          "only-arches": ["x86_64"],
+          "buildsystem": "simple",
+          "build-commands": [
+            "ghc -threaded --make Setup",
+            "./Setup configure --prefix=/app",
+            "./Setup build",
+            "./Setup install"
+          ],
+          "sources": [
+            {
+              "type": "archive",
+              "sha256": "e4eb4e636caf07a16a9730ce469a00b65d5748f259f43edd904dd457b198a2bb",
+              "url": "https://hackage.haskell.org/package/zlib-0.6.1.2/zlib-0.6.1.2.tar.gz"
+            }
+          ]
+        },
+        {
+          "name": "streaming-commons-0.1.18",
+          "only-arches": ["x86_64"],
+          "buildsystem": "simple",
+          "build-commands": [
+            "ghc -threaded --make Setup",
+            "./Setup configure --prefix=/app",
+            "./Setup build",
+            "./Setup install"
+          ],
+          "sources": [
+            {
+              "type": "archive",
+              "sha256": "27af2efb901a003c83fc6c71563eb70f45b4823516c299759d800a48d9f083cb",
+              "url": "https://hackage.haskell.org/package/streaming-commons-0.1.18/streaming-commons-0.1.18.tar.gz"
+            }
+          ]
+        },
+        {
+          "name": "typed-process-0.2.1.0",
+          "only-arches": ["x86_64"],
+          "buildsystem": "simple",
+          "build-commands": [
+            "ghc -threaded --make Setup",
+            "./Setup configure --prefix=/app",
+            "./Setup build",
+            "./Setup install"
+          ],
+          "sources": [
+            {
+              "type": "archive",
+              "sha256": "d214d88575dc0fe919d23eacd91a212ed7bf5b1dbb4360038e99926ff9bcdcd0",
+              "url": "https://hackage.haskell.org/package/typed-process-0.2.1.0/typed-process-0.2.1.0.tar.gz"
             }
           ]
         },
@@ -783,24 +1071,6 @@
           ]
         },
         {
-          "name": "exceptions-0.8.3",
-          "only-arches": ["x86_64"],
-          "buildsystem": "simple",
-          "build-commands": [
-            "ghc -threaded --make Setup",
-            "./Setup configure --prefix=/app",
-            "./Setup build",
-            "./Setup install"
-          ],
-          "sources": [
-            {
-              "type": "archive",
-              "sha256": "4d6ad97e8e3d5dc6ce9ae68a469dc2fd3f66e9d312bc6faa7ab162eddcef87be",
-              "url": "https://hackage.haskell.org/package/exceptions-0.8.3/exceptions-0.8.3.tar.gz"
-            }
-          ]
-        },
-        {
           "name": "fail-4.9.0.0",
           "only-arches": ["x86_64"],
           "buildsystem": "simple",
@@ -873,24 +1143,6 @@
           ]
         },
         {
-          "name": "happy-1.19.8",
-          "only-arches": ["x86_64"],
-          "buildsystem": "simple",
-          "build-commands": [
-            "ghc -threaded --make Setup",
-            "./Setup configure --prefix=/app",
-            "./Setup build",
-            "./Setup install"
-          ],
-          "sources": [
-            {
-              "type": "archive",
-              "sha256": "4df739965d559e48a9b0044fa6140241c07e8f3c794c6c0a6323024fd7f0d3a0",
-              "url": "https://hackage.haskell.org/package/happy-1.19.8/happy-1.19.8.tar.gz"
-            }
-          ]
-        },
-        {
           "name": "hsqml-0.3.5.0",
           "only-arches": ["x86_64"],
           "buildsystem": "simple",
@@ -941,42 +1193,6 @@
               "type": "archive",
               "sha256": "7bed648cdc1c69e76bf039763dbe1074b55fd2704911dd0cb6b7dfebf1b6f550",
               "url": "https://hackage.haskell.org/package/http-types-0.9.1/http-types-0.9.1.tar.gz"
-            }
-          ]
-        },
-        {
-          "name": "language-c-0.7.1",
-          "only-arches": ["x86_64"],
-          "buildsystem": "simple",
-          "build-commands": [
-            "ghc -threaded --make Setup",
-            "./Setup configure --prefix=/app",
-            "./Setup build",
-            "./Setup install"
-          ],
-          "sources": [
-            {
-              "type": "archive",
-              "sha256": "a7447123f9b3bec9319ee2a22b22d97f03acd6566b4f6caf5b9a1f71e4f7a9ca",
-              "url": "https://hackage.haskell.org/package/language-c-0.7.1/language-c-0.7.1.tar.gz"
-            }
-          ]
-        },
-        {
-          "name": "lifted-base-0.2.3.11",
-          "only-arches": ["x86_64"],
-          "buildsystem": "simple",
-          "build-commands": [
-            "ghc -threaded --make Setup",
-            "./Setup configure --prefix=/app",
-            "./Setup build",
-            "./Setup install"
-          ],
-          "sources": [
-            {
-              "type": "archive",
-              "sha256": "8ec47a9fce7cf5913766a5c53e1b2cf254be733fa9d62e6e2f3f24e538005aab",
-              "url": "https://hackage.haskell.org/package/lifted-base-0.2.3.11/lifted-base-0.2.3.11.tar.gz"
             }
           ]
         },
@@ -1035,42 +1251,6 @@
           ]
         },
         {
-          "name": "mmorph-1.1.0",
-          "only-arches": ["x86_64"],
-          "buildsystem": "simple",
-          "build-commands": [
-            "ghc -threaded --make Setup",
-            "./Setup configure --prefix=/app",
-            "./Setup build",
-            "./Setup install"
-          ],
-          "sources": [
-            {
-              "type": "archive",
-              "sha256": "c1bcb45560753203f5ce3952f3c8a100b7d5b37c91746372c1da4988c4db74de",
-              "url": "https://hackage.haskell.org/package/mmorph-1.1.0/mmorph-1.1.0.tar.gz"
-            }
-          ]
-        },
-        {
-          "name": "monad-control-1.0.2.2",
-          "only-arches": ["x86_64"],
-          "buildsystem": "simple",
-          "build-commands": [
-            "ghc -threaded --make Setup",
-            "./Setup configure --prefix=/app",
-            "./Setup build",
-            "./Setup install"
-          ],
-          "sources": [
-            {
-              "type": "archive",
-              "sha256": "1e34a21d123f2ed8bb2708e7f30343fa1d9d7f36881f9871cbcca4bb07e7e433",
-              "url": "https://hackage.haskell.org/package/monad-control-1.0.2.2/monad-control-1.0.2.2.tar.gz"
-            }
-          ]
-        },
-        {
           "name": "monad-logger-0.3.26",
           "only-arches": ["x86_64"],
           "buildsystem": "simple",
@@ -1103,42 +1283,6 @@
               "type": "archive",
               "sha256": "7eaaaf6bc43661e9e86e310ff8c56fbea16eb6bf13c31a2e28103138ac164c18",
               "url": "https://hackage.haskell.org/package/monad-loops-0.4.3/monad-loops-0.4.3.tar.gz"
-            }
-          ]
-        },
-        {
-          "name": "mtl-2.2.1",
-          "only-arches": ["x86_64"],
-          "buildsystem": "simple",
-          "build-commands": [
-            "ghc -threaded --make Setup",
-            "./Setup configure --prefix=/app",
-            "./Setup build",
-            "./Setup install"
-          ],
-          "sources": [
-            {
-              "type": "archive",
-              "sha256": "cae59d79f3a16f8e9f3c9adc1010c7c6cdddc73e8a97ff4305f6439d855c8dc5",
-              "url": "https://hackage.haskell.org/package/mtl-2.2.1/mtl-2.2.1.tar.gz"
-            }
-          ]
-        },
-        {
-          "name": "network-2.6.3.2",
-          "only-arches": ["x86_64"],
-          "buildsystem": "simple",
-          "build-commands": [
-            "ghc -threaded --make Setup",
-            "./Setup configure --prefix=/app",
-            "./Setup build",
-            "./Setup install"
-          ],
-          "sources": [
-            {
-              "type": "archive",
-              "sha256": "354477074eaf2c0e134f4a7ae17694ffc747d484133463e95fae57ecbe48c0b6",
-              "url": "https://hackage.haskell.org/package/network-2.6.3.2/network-2.6.3.2.tar.gz"
             }
           ]
         },
@@ -1270,24 +1414,6 @@
           ]
         },
         {
-          "name": "resourcet-1.1.10",
-          "only-arches": ["x86_64"],
-          "buildsystem": "simple",
-          "build-commands": [
-            "ghc -threaded --make Setup",
-            "./Setup configure --prefix=/app",
-            "./Setup build",
-            "./Setup install"
-          ],
-          "sources": [
-            {
-              "type": "archive",
-              "sha256": "d43363645c680022fe07144ab04cc291ede65c8f5d17f9bf1211495b104f1cc2",
-              "url": "https://hackage.haskell.org/package/resourcet-1.1.10/resourcet-1.1.10.tar.gz"
-            }
-          ]
-        },
-        {
           "name": "safe-0.3.15",
           "only-arches": ["x86_64"],
           "buildsystem": "simple",
@@ -1320,42 +1446,6 @@
               "type": "archive",
               "sha256": "cef625635053a46032ca53b43d311921875a437910b6568ded17027fdca83839",
               "url": "https://hackage.haskell.org/package/silently-1.2.5/silently-1.2.5.tar.gz"
-            }
-          ]
-        },
-        {
-          "name": "streaming-commons-0.1.18",
-          "only-arches": ["x86_64"],
-          "buildsystem": "simple",
-          "build-commands": [
-            "ghc -threaded --make Setup",
-            "./Setup configure --prefix=/app",
-            "./Setup build",
-            "./Setup install"
-          ],
-          "sources": [
-            {
-              "type": "archive",
-              "sha256": "27af2efb901a003c83fc6c71563eb70f45b4823516c299759d800a48d9f083cb",
-              "url": "https://hackage.haskell.org/package/streaming-commons-0.1.18/streaming-commons-0.1.18.tar.gz"
-            }
-          ]
-        },
-        {
-          "name": "syb-0.7",
-          "only-arches": ["x86_64"],
-          "buildsystem": "simple",
-          "build-commands": [
-            "ghc -threaded --make Setup",
-            "./Setup configure --prefix=/app",
-            "./Setup build",
-            "./Setup install"
-          ],
-          "sources": [
-            {
-              "type": "archive",
-              "sha256": "b8757dce5ab4045c49a0ae90407d575b87ee5523a7dd5dfa5c9d54fcceff42b5",
-              "url": "https://hackage.haskell.org/package/syb-0.7/syb-0.7.tar.gz"
             }
           ]
         },
@@ -1432,24 +1522,6 @@
           ]
         },
         {
-          "name": "typed-process-0.2.1.0",
-          "only-arches": ["x86_64"],
-          "buildsystem": "simple",
-          "build-commands": [
-            "ghc -threaded --make Setup",
-            "./Setup configure --prefix=/app",
-            "./Setup build",
-            "./Setup install"
-          ],
-          "sources": [
-            {
-              "type": "archive",
-              "sha256": "d214d88575dc0fe919d23eacd91a212ed7bf5b1dbb4360038e99926ff9bcdcd0",
-              "url": "https://hackage.haskell.org/package/typed-process-0.2.1.0/typed-process-0.2.1.0.tar.gz"
-            }
-          ]
-        },
-        {
           "name": "unexceptionalio-0.3.0",
           "only-arches": ["x86_64"],
           "buildsystem": "simple",
@@ -1464,42 +1536,6 @@
               "type": "archive",
               "sha256": "927e2be6bb9ced73c1c17d79c981cadef4039d9ee45d2d3d6b4c133ff93ff0b8",
               "url": "https://hackage.haskell.org/package/unexceptionalio-0.3.0/unexceptionalio-0.3.0.tar.gz"
-            }
-          ]
-        },
-        {
-          "name": "unliftio-core-0.1.1.0",
-          "only-arches": ["x86_64"],
-          "buildsystem": "simple",
-          "build-commands": [
-            "ghc -threaded --make Setup",
-            "./Setup configure --prefix=/app",
-            "./Setup build",
-            "./Setup install"
-          ],
-          "sources": [
-            {
-              "type": "archive",
-              "sha256": "7550b017d87af53ae3e0d3b8524e24a77faf739073f35e40663454a9e9752385",
-              "url": "https://hackage.haskell.org/package/unliftio-core-0.1.1.0/unliftio-core-0.1.1.0.tar.gz"
-            }
-          ]
-        },
-        {
-          "name": "alex-3.2.3",
-          "only-arches": ["x86_64"],
-          "buildsystem": "simple",
-          "build-commands": [
-            "ghc -threaded --make Setup",
-            "./Setup configure --prefix=/app",
-            "./Setup build",
-            "./Setup install"
-          ],
-          "sources": [
-            {
-              "type": "archive",
-              "sha256": "1a63791417b3e6e36e8b79849317beeaf9ea09efa21bea021c2347b49266212e",
-              "url": "https://hackage.haskell.org/package/alex-3.2.3/alex-3.2.3.tar.gz"
             }
           ]
         },
@@ -1590,24 +1626,6 @@
               "type": "archive",
               "sha256": "88aabbcb80dee5b669ad533af20000d561e6fe59ab1014ccc2482055d0a8046e",
               "url": "https://hackage.haskell.org/package/xdg-userdirs-0.1.0.2/xdg-userdirs-0.1.0.2.tar.gz"
-            }
-          ]
-        },
-        {
-          "name": "zlib-0.6.1.2",
-          "only-arches": ["x86_64"],
-          "buildsystem": "simple",
-          "build-commands": [
-            "ghc -threaded --make Setup",
-            "./Setup configure --prefix=/app",
-            "./Setup build",
-            "./Setup install"
-          ],
-          "sources": [
-            {
-              "type": "archive",
-              "sha256": "e4eb4e636caf07a16a9730ce469a00b65d5748f259f43edd904dd457b198a2bb",
-              "url": "https://hackage.haskell.org/package/zlib-0.6.1.2/zlib-0.6.1.2.tar.gz"
             }
           ]
         }
