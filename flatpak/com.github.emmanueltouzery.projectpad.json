@@ -17,9 +17,11 @@
       "name": "projectpad",
       "buildsystem": "simple",
       "build-commands": [
-        "find .",
-        "stack build",
-        "install -Dm755 ./target/release/projectpad -t /app/bin/",
+        "ghc -threaded --make Setup",
+        "./Setup configure --prefix=/app",
+        "./Setup build",
+        "./Setup install",
+        "install -Dm755 ./dist/build/projectpad/projectpad -t /app/bin/",
         "install -Dm644 ./flatpak/${FLATPAK_ID}.metainfo.xml -t /app/share/metainfo/",
         "install -Dm644 ./${FLATPAK_ID}.desktop -t /app/share/applications/",
         "install -Dm644 ./${FLATPAK_ID}.svg -t /app/share/icons/hicolor/scalable/apps/"
@@ -1618,7 +1620,7 @@
           "build-commands": [
             "ghc -threaded --make Setup",
             "./Setup configure --prefix=/app --extra-include-dirs=/usr/include",
-            "./Setup build -v",
+            "./Setup build",
             "./Setup install"
           ],
           "sources": [
@@ -1631,11 +1633,6 @@
         }
       ],
       "sources": [
-        {
-          "type": "archive",
-          "url": "https://github.com/commercialhaskell/stack/releases/download/v2.1.3/stack-2.1.3-linux-x86_64.tar.gz",
-          "sha256": "c724b207831fe5f06b087bac7e01d33e61a1c9cad6be0468f9c117d383ec5673"
-        },
         {
           "type": "git",
           "url": "https://github.com/emmanueltouzery/projectpad.git",

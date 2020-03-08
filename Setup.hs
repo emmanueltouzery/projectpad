@@ -34,5 +34,5 @@ doPostBuild _ _ pkg_descr lbi = do
     rawSystem "xdg-icon-resource" ["install", "--size", "64", "projectpad-64.png", "projectpad", "--novendor"]
     rawSystem "xdg-icon-resource" ["install", "--size", "96", "projectpad-96.png", "projectpad", "--novendor"]
     rawSystem "xdg-icon-resource" ["install", "--size", "128", "projectpad-128.png", "projectpad", "--novendor"]
-    rawSystem "xdg-desktop-menu" ["install", "projectpad.desktop", "--novendor"]
+    rawSystem "xdg-desktop-menu" ["install", "com.github.emmanueltouzery.projectpad.desktop", "--novendor"]
     return ()
