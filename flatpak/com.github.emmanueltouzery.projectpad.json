@@ -1617,7 +1617,7 @@
           "buildsystem": "simple",
           "build-commands": [
             "ghc -threaded --make Setup",
-            "./Setup configure --prefix=/app",
+            "./Setup configure --prefix=/app --extra-include-dirs=/usr/include",
             "./Setup build -v",
             "./Setup install"
           ],
