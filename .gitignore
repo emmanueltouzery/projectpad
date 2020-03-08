@@ -6,3 +6,5 @@ dist/
 flycheck_
 persistent-sqlcipher-2.6.4/
 .stack-work/
+.flatpak-builder
+repo/

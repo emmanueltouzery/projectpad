@@ -39,4 +39,8 @@ echo "Will now install the haskell compiler if needed"
 stack setup
 echo "Will now compile the application"
 stack install $*
+xdg-icon-resource install --size 64 projectpad-64.png projectpad --novendor
+xdg-icon-resource install --size 96 projectpad-96.png projectpad --novendor
+xdg-icon-resource install --size 128 projectpad-128.png projectpad --novendor
+xdg-desktop-menu install com.github.emmanueltouzery.projectpad.desktop --novendor
 echo "The application is installed! Run with ~/.local/bin/projectpad"

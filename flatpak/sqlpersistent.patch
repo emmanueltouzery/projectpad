@@ -1,0 +1,25 @@
+--- persistent-sqlite.cabal     2017-12-02 22:27:44.000000000 +0100
++++ persistent-sqlcipher.cabal  2018-01-04 18:15:27.309943866 +0100
+@@ -1,4 +1,4 @@
+-name:            persistent-sqlite
++name:            persistent-sqlcipher
+ version:         2.6.4
+ license:         MIT
+ license-file:    LICENSE
+@@ -44,15 +44,7 @@
+     exposed-modules: Database.Sqlite
+                      Database.Persist.Sqlite
+     ghc-options:     -Wall
+-    if flag(systemlib)
+-        if flag(use-pkgconfig)
+-            pkgconfig-depends: sqlite3
+-        else
+-            extra-libraries: sqlite3
+-    else
+-        c-sources:   cbits/sqlite3.c
+-        include-dirs: cbits
+-        cc-options:  -fPIC -std=c99
++    extra-libraries: sqlcipher
+ 
+     c-sources: cbits/config.c
+
