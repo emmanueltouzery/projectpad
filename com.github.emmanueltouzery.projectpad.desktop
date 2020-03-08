@@ -4,4 +4,4 @@ Terminal=false
 Name=Projectpad
 Exec=projectpad
 Type=Application
-Icon=projectpad
+Icon=com.github.emmanueltouzery.projectpad
