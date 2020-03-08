@@ -1,5 +1,5 @@
---- persistent-sqlite-2.6.4/persistent-sqlite.cabal     2017-12-02 22:27:44.000000000 +0100
-+++ persistent-sqlite-2.6.4/persistent-sqlcipher.cabal  2018-01-04 18:15:27.309943866 +0100
+--- persistent-sqlite.cabal     2017-12-02 22:27:44.000000000 +0100
++++ persistent-sqlcipher.cabal  2018-01-04 18:15:27.309943866 +0100
 @@ -1,4 +1,4 @@
 -name:            persistent-sqlite
 +name:            persistent-sqlcipher

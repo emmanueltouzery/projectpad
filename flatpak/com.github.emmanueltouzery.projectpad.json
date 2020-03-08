@@ -1431,24 +1431,6 @@
           ]
         },
         {
-          "name": "hsqml-0.3.5.1",
-          "only-arches": ["x86_64"],
-          "buildsystem": "simple",
-          "build-commands": [
-            "ghc -threaded --make Setup",
-            "./Setup configure --prefix=/app",
-            "./Setup build -v",
-            "./Setup install"
-          ],
-          "sources": [
-            {
-              "type": "archive",
-              "sha256": "a0c685ed26905818713cdd0b6f1821d24697ea14f38e62b828401775c1b7d110",
-              "url": "https://hackage.haskell.org/package/hsqml-0.3.5.1/hsqml-0.3.5.1.tar.gz"
-            }
-          ]
-        },
-        {
           "name": "lucid-2.9.9",
           "only-arches": ["x86_64"],
           "buildsystem": "simple",
@@ -1503,13 +1485,45 @@
           ]
         },
         {
-          "name": "persistent-sqllite-2.6.4",
+          "name": "tcl-8.6.10",
+          "only-arches": [],
+          "buildsystem": "simple",
+          "build-commands": [
+            "cd unix && ./configure --prefix=/app --enable-shared=no",
+            "cd unix && make install"
+          ],
+          "sources": [
+            {
+              "type": "archive",
+              "sha256": "5196dbf6638e3df8d5c87b5815c8c2b758496eb6f0e41446596c9a4e638d87ed",
+              "url": "https://prdownloads.sourceforge.net/tcl/tcl8.6.10-src.tar.gz"
+            }
+          ]
+        },
+        {
+          "name": "sqlcipher-3.4.2",
+          "only-arches": [],
+          "buildsystem": "simple",
+          "build-commands": [
+            "./configure --enable-tempstore=yes CFLAGS=\"-DSQLITE_HAS_CODEC\" LDFLAGS=\"-lcrypto\" --prefix=/app",
+            "make install"
+          ],
+          "sources": [
+            {
+              "type": "archive",
+              "sha256": "69897a5167f34e8a84c7069f1b283aba88cdfa8ec183165c4a5da2c816cfaadb",
+              "url": "https://github.com/sqlcipher/sqlcipher/archive/v3.4.2.tar.gz"
+            }
+          ]
+        },
+        {
+          "name": "persistent-sqlcipher-2.6.4",
           "only-arches": ["x86_64"],
           "buildsystem": "simple",
           "build-commands": [
             "patch -p0 < sqlpersistent.patch",
             "ghc -threaded --make Setup",
-            "./Setup configure --prefix=/app",
+            "./Setup configure --prefix=/app --extra-include-dirs=/app/include --extra-lib-dirs=/app/lib",
             "./Setup build",
             "./Setup install"
           ],
@@ -1518,6 +1532,10 @@
               "type": "archive",
               "sha256": "75e5dbd330337e6e60346f309457f56deabb4260bd53391962de2f085416ac9a",
               "url": "https://hackage.haskell.org/package/persistent-sqlite-2.6.4/persistent-sqlite-2.6.4.tar.gz"
+            },
+            {
+              "type": "file",
+              "path": "./sqlpersistent.patch"
             }
           ]
         },
@@ -1536,42 +1554,6 @@
               "type": "archive",
               "sha256": "9e95997d4d2e4e00ff1e77746d99064347a10b0ea418e46e7896c026684a16ad",
               "url": "https://hackage.haskell.org/package/persistent-template-2.5.3/persistent-template-2.5.3.tar.gz"
-            }
-          ]
-        },
-        {
-          "name": "pretty-1.1.3.3",
-          "only-arches": ["x86_64"],
-          "buildsystem": "simple",
-          "build-commands": [
-            "ghc -threaded --make Setup",
-            "./Setup configure --prefix=/app",
-            "./Setup build",
-            "./Setup install"
-          ],
-          "sources": [
-            {
-              "type": "archive",
-              "sha256": "3b632679f51cc709ec96e51c6a03bbc1ded8dbc5c8ea3fda75501cf7962f9798",
-              "url": "https://hackage.haskell.org/package/pretty-1.1.3.3/pretty-1.1.3.3.tar.gz"
-            }
-          ]
-        },
-        {
-          "name": "process-1.6.1.0",
-          "only-arches": ["x86_64"],
-          "buildsystem": "simple",
-          "build-commands": [
-            "ghc -threaded --make Setup",
-            "./Setup configure --prefix=/app",
-            "./Setup build",
-            "./Setup install"
-          ],
-          "sources": [
-            {
-              "type": "archive",
-              "sha256": "245fa25e49e9f616d2788c45e70263dc069db78656dd83ebfba807e870528a53",
-              "url": "https://hackage.haskell.org/package/process-1.6.1.0/process-1.6.1.0.tar.gz"
             }
           ]
         },
@@ -1628,6 +1610,24 @@
               "url": "https://hackage.haskell.org/package/xdg-userdirs-0.1.0.2/xdg-userdirs-0.1.0.2.tar.gz"
             }
           ]
+        },
+        {
+          "name": "hsqml-0.3.5.1",
+          "only-arches": ["x86_64"],
+          "buildsystem": "simple",
+          "build-commands": [
+            "ghc -threaded --make Setup",
+            "./Setup configure --prefix=/app",
+            "./Setup build -v",
+            "./Setup install"
+          ],
+          "sources": [
+            {
+              "type": "archive",
+              "sha256": "a0c685ed26905818713cdd0b6f1821d24697ea14f38e62b828401775c1b7d110",
+              "url": "https://hackage.haskell.org/package/hsqml-0.3.5.1/hsqml-0.3.5.1.tar.gz"
+            }
+          ]
         }
       ],
       "sources": [
@@ -1640,10 +1640,6 @@
           "type": "git",
           "url": "https://github.com/emmanueltouzery/projectpad.git",
           "commit": "ed81b1880d0e51eb9c768bd0a838a3d599ce1093"
-        },
-        {
-          "type": "dir",
-          "path": "./"
         }
       ]
     }
