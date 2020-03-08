@@ -36,7 +36,7 @@ https://hughsie.github.io/oars/index.html
 -->
   <content_rating type="oars-1.0" />
   <releases>
-    <release version="0.0.1" date="2020-03-01">
+    <release version="0.1.0" date="2020-03-08">
       <description>
         <p>First release of ProjectPad</p>
       </description>
