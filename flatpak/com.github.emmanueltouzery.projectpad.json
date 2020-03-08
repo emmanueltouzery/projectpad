@@ -1569,9 +1569,9 @@
           ],
           "sources": [
             {
-              "type": "archive",
-              "sha256": "ea3cccf9abc8633aa5d347aef20822f0869e1e6f3929951f481befad2ecd2f21",
-              "url": "https://hackage.haskell.org/package/th-printf-0.3.1/th-printf-0.3.1.tar.gz"
+              "type": "git",
+              "commit": "90dd9924ae93307fb8a5de390abe4855ce7ac6ab",
+              "url": "https://github.com/emmanueltouzery/th-printf"
             }
           ]
         },
