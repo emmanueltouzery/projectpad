@@ -1,5 +1,6 @@
 # ProjectPad
 
+# I don't maintain anymore this application. I've written a new version in rust/gtk, please use [that one](https://github.com/emmanueltouzery/projectpad2)
 
 <img align="right" src="https://raw.github.com/wiki/emmanueltouzery/projectpad/projectpad-128.png" alt="app icon"/>
 
